@@ -1,0 +1,2475 @@
+<!DOCTYPE html>
+<html lang="en" class="antialiased">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#4f46e5" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Delights Flow" />
+  <title>Delights Flow — Money &amp; Shop Tracker</title>
+
+  <!-- Delights Flow App Icon & PWA Manifest -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%234f46e5'/%3E%3Cstop offset='100%25' stop-color='%230ea5e9'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='512' height='512' rx='112' fill='url(%23g)'/%3E%3Cg transform='translate(112 112) scale(12)' fill='none' stroke='%23ffffff' stroke-width='2.1' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 12a2.25 2.25 0 0 0-2.25-2.25H15a3 3 0 1 1-6 0H5.25A2.25 2.25 0 0 0 3 12m18 0v6a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 18v-6m18 0V9M3 12V9m18 0a2.25 2.25 0 0 0-2.25-2.25H5.25A2.25 2.25 0 0 0 3 9m18 0V6a2.25 2.25 0 0 0-2.25-2.25H5.25A2.25 2.25 0 0 0 3 6v3'/%3E%3C/g%3E%3C/svg%3E" />
+  <link id="apple-touch-icon-link" rel="apple-touch-icon" sizes="180x180" href="" />
+  <link rel="manifest" href="manifest.json" />
+
+  <!-- Inter Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS & Chart.js -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: { extend: { fontFamily: { sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'] } } }
+    };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 font-sans min-h-screen overflow-x-hidden transition-colors duration-200 selection:bg-indigo-500 selection:text-white">
+
+  <!-- ==================== SCREEN 0: LOADING SPLASH ==================== -->
+  <div id="loading-screen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-950 gap-4">
+    <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-600 to-sky-500 flex items-center justify-center text-white shadow-xl shadow-indigo-500/30 animate-pulse">
+      <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a2.25 2.25 0 0 0-2.25-2.25H15a3 3 0 1 1-6 0H5.25A2.25 2.25 0 0 0 3 12m18 0v6a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 18v-6m18 0V9M3 12V9m18 0a2.25 2.25 0 0 0-2.25-2.25H5.25A2.25 2.25 0 0 0 3 9m18 0V6a2.25 2.25 0 0 0-2.25-2.25H5.25A2.25 2.25 0 0 0 3 6v3" /></svg>
+    </div>
+    <p class="text-sm font-bold text-slate-500 dark:text-slate-400">Loading Delights Flow...</p>
+  </div>
+
+  <!-- ==================== SCREEN 1: AUTHENTICATION (GOOGLE + EMAIL/PASSWORD) ==================== -->
+  <div id="auth-screen" class="hidden min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-slate-100 via-indigo-50/40 to-sky-50/50 dark:from-slate-950 dark:via-indigo-950/30 dark:to-slate-950">
+    <div class="w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200/80 dark:border-slate-800 p-6 sm:p-8 space-y-6">
+      <div class="text-center space-y-2">
+        <div class="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-br from-indigo-600 to-sky-500 flex items-center justify-center text-white shadow-lg shadow-indigo-500/30">
+          <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a2.25 2.25 0 0 0-2.25-2.25H15a3 3 0 1 1-6 0H5.25A2.25 2.25 0 0 0 3 12m18 0v6a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 18v-6m18 0V9M3 12V9m18 0a2.25 2.25 0 0 0-2.25-2.25H5.25A2.25 2.25 0 0 0 3 9m18 0V6a2.25 2.25 0 0 0-2.25-2.25H5.25A2.25 2.25 0 0 0 3 6v3" /></svg>
+        </div>
+        <h1 class="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">Delights Flow</h1>
+        <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400">Private multi-user money &amp; online shop tracker</p>
+      </div>
+
+      <!-- Google Sign-In Button -->
+      <button id="google-signin-btn" type="button" class="w-full py-3 px-4 rounded-2xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 font-bold text-sm flex items-center justify-center gap-3 shadow-sm active:scale-[0.98] transition-all">
+        <svg class="w-5 h-5" viewBox="0 0 24 24">
+          <path fill="#EA4335" d="M12 5.04c1.64 0 3.12.56 4.28 1.67l3.21-3.21C17.55 1.69 14.99.6 12 .6 7.36.6 3.36 3.26 1.44 7.13l3.74 2.9C6.07 7.18 8.79 5.04 12 5.04z"/>
+          <path fill="#4285F4" d="M23.49 12.27c0-.79-.07-1.54-.19-2.27H12v4.51h6.47c-.29 1.48-1.14 2.73-2.4 3.58l3.7 2.87c2.16-1.99 3.72-4.93 3.72-8.69z"/>
+          <path fill="#FBBC05" d="M5.18 14.97a7.02 7.02 0 0 1 0-4.94L1.44 7.13a11.4 11.4 0 0 0 0 10.74l3.74-2.9z"/>
+          <path fill="#34A853" d="M12 23.4c3.24 0 5.95-1.07 7.93-2.91l-3.7-2.87c-1.08.72-2.45 1.15-4.23 1.15-3.21 0-5.93-2.14-6.82-5.04l-3.74 2.9C3.36 20.74 7.36 23.4 12 23.4z"/>
+        </svg>
+        <span>Continue with Google</span>
+      </button>
+
+      <div class="flex items-center gap-3">
+        <div class="h-px flex-1 bg-slate-200 dark:bg-slate-800"></div>
+        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Or Email</span>
+        <div class="h-px flex-1 bg-slate-200 dark:bg-slate-800"></div>
+      </div>
+
+      <!-- Email / Password Tabs -->
+      <div class="grid grid-cols-2 gap-1 p-1 rounded-2xl bg-slate-100 dark:bg-slate-800">
+        <button id="auth-tab-signin" type="button" class="py-2 rounded-xl text-xs font-bold bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm transition-all">Sign In</button>
+        <button id="auth-tab-signup" type="button" class="py-2 rounded-xl text-xs font-bold text-slate-500 dark:text-slate-400 transition-all">Create Account</button>
+      </div>
+
+      <form id="auth-email-form" class="space-y-3.5">
+        <div id="auth-name-wrap" class="hidden space-y-1">
+          <label for="auth-name" class="text-xs font-semibold text-slate-500 dark:text-slate-400">Your Name</label>
+          <input id="auth-name" type="text" maxlength="32" placeholder="e.g. Su Su" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+        </div>
+        <div class="space-y-1">
+          <label for="auth-email" class="text-xs font-semibold text-slate-500 dark:text-slate-400">Email</label>
+          <input id="auth-email" type="email" required autocomplete="email" placeholder="you@gmail.com" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+        </div>
+        <div class="space-y-1">
+          <div class="flex items-center justify-between">
+            <label for="auth-password" class="text-xs font-semibold text-slate-500 dark:text-slate-400">Password</label>
+            <button id="auth-forgot-btn" type="button" class="text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">Forgot password?</button>
+          </div>
+          <input id="auth-password" type="password" required minlength="6" autocomplete="current-password" placeholder="••••••••" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+        </div>
+
+        <div id="auth-error-box" class="hidden p-3 rounded-xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs font-semibold"></div>
+
+        <button id="auth-submit-btn" type="submit" class="w-full py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 active:scale-[0.98] text-white font-bold text-sm shadow-lg shadow-indigo-600/25 transition-all">
+          Sign In
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== SCREEN 2: WORKSPACE ONBOARDING (CREATE OR JOIN) ==================== -->
+  <div id="workspace-screen" class="hidden min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-slate-100 via-indigo-50/40 to-sky-50/50 dark:from-slate-950 dark:via-indigo-950/30 dark:to-slate-950">
+    <div class="w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200/80 dark:border-slate-800 p-6 sm:p-8 space-y-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-xl font-extrabold text-slate-900 dark:text-white">Set Up Your Ledger</h2>
+          <p id="ws-user-email" class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 truncate max-w-[230px]"></p>
+        </div>
+        <button id="ws-signout-btn" type="button" class="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700">Sign Out</button>
+      </div>
+
+      <div class="grid grid-cols-2 gap-1 p-1 rounded-2xl bg-slate-100 dark:bg-slate-800">
+        <button id="ws-tab-create" type="button" class="py-2 rounded-xl text-xs font-bold bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm transition-all">Create New Ledger</button>
+        <button id="ws-tab-join" type="button" class="py-2 rounded-xl text-xs font-bold text-slate-500 dark:text-slate-400 transition-all">Join Partner's</button>
+      </div>
+
+      <!-- Create New Isolated Workspace Form -->
+      <form id="ws-create-form" class="space-y-4">
+        <div class="space-y-1">
+          <label for="ws-create-name" class="text-xs font-semibold text-slate-500 dark:text-slate-400">Ledger Name</label>
+          <input id="ws-create-name" type="text" required maxlength="32" value="My Ledger" placeholder="e.g. Our Home &amp; Shop" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div class="space-y-1">
+            <label for="ws-create-currency" class="text-xs font-semibold text-slate-500 dark:text-slate-400">Currency</label>
+            <input id="ws-create-currency" type="text" required maxlength="8" value="Ks" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+          </div>
+          <div class="space-y-1">
+            <label for="ws-create-pin" class="text-xs font-semibold text-slate-500 dark:text-slate-400">Partner Join PIN</label>
+            <input id="ws-create-pin" type="text" required minlength="4" maxlength="12" placeholder="6 digits" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-mono font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+          </div>
+        </div>
+        <p class="text-[11px] text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/60 p-3 rounded-xl">
+          Starts clean with <strong>Cash</strong> and <strong>Bank</strong>. You can add KBZ Bank, KPay, CBPay, or any custom accounts anytime in Settings.
+        </p>
+        <div id="ws-create-error" class="hidden p-3 rounded-xl bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 text-xs font-semibold"></div>
+        <button id="ws-create-btn" type="submit" class="w-full py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm shadow-lg shadow-indigo-600/25 active:scale-[0.98] transition-all">
+          Create Private Ledger
+        </button>
+      </form>
+
+      <!-- Join Partner's Workspace Form -->
+      <form id="ws-join-form" class="hidden space-y-4">
+        <div class="space-y-1">
+          <label for="ws-join-id" class="text-xs font-semibold text-slate-500 dark:text-slate-400">Workspace ID (from your partner)</label>
+          <input id="ws-join-id" type="text" required placeholder="e.g. df-8k2m9p4x" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-mono font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+        </div>
+        <div class="space-y-1">
+          <label for="ws-join-pin" class="text-xs font-semibold text-slate-500 dark:text-slate-400">Join PIN</label>
+          <input id="ws-join-pin" type="text" required minlength="4" placeholder="Enter exact PIN" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-mono font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+        </div>
+        <div id="ws-join-error" class="hidden p-3 rounded-xl bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 text-xs font-semibold"></div>
+        <button id="ws-join-btn" type="submit" class="w-full py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-lg shadow-emerald-600/25 active:scale-[0.98] transition-all">
+          Join Shared Ledger
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== SCREEN 3: MAIN APP SHELL ==================== -->
+  <div id="app-shell" class="hidden min-h-screen flex flex-col md:flex-row">
+
+    <!-- DESKTOP SIDEBAR -->
+    <aside class="hidden md:flex md:flex-col md:w-64 lg:w-72 md:fixed md:inset-y-0 bg-white dark:bg-slate-900 border-r border-slate-200/80 dark:border-slate-800 z-30">
+      <div class="p-5 flex items-center justify-between border-b border-slate-100 dark:border-slate-800/80">
+        <div class="flex items-center gap-3 min-w-0">
+          <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-indigo-600 to-sky-500 flex items-center justify-center text-white shadow-lg shadow-indigo-500/25 shrink-0">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a2.25 2.25 0 0 0-2.25-2.25H15a3 3 0 1 1-6 0H5.25A2.25 2.25 0 0 0 3 12m18 0v6a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 18v-6m18 0V9M3 12V9m18 0a2.25 2.25 0 0 0-2.25-2.25H5.25A2.25 2.25 0 0 0 3 9m18 0V6a2.25 2.25 0 0 0-2.25-2.25H5.25A2.25 2.25 0 0 0 3 6v3" /></svg>
+          </div>
+          <div class="min-w-0">
+            <h1 class="text-base font-extrabold tracking-tight text-slate-900 dark:text-white leading-none truncate">Delights Flow</h1>
+            <p id="sidebar-workspace-label" class="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium truncate">My Ledger</p>
+          </div>
+        </div>
+        <button id="desktop-theme-btn" type="button" title="Toggle dark mode" class="p-2 rounded-xl text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shrink-0">
+          <span class="theme-icon-slot"></span>
+        </button>
+      </div>
+
+      <div class="p-4">
+        <button id="desktop-add-btn" type="button" class="w-full py-3.5 px-4 rounded-2xl bg-indigo-600 hover:bg-indigo-700 active:scale-[0.98] text-white font-semibold text-sm flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/25 transition-all">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+          <span>New Entry</span>
+        </button>
+      </div>
+
+      <nav class="flex-1 px-3 space-y-1.5">
+        <button data-nav="overview" type="button" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z" /></svg>
+          <span>Overview</span>
+        </button>
+
+        <button data-nav="history" type="button" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" /></svg>
+          <span>Transactions</span>
+        </button>
+
+        <a href="shop.html" class="shop-nav-link w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-semibold text-slate-600 dark:text-slate-400 hover:bg-amber-50 dark:hover:bg-amber-950/40 hover:text-amber-700 dark:hover:text-amber-300 transition-all">
+          <span class="flex items-center gap-3">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349M3.75 21V9.349m0 0a3.001 3.001 0 0 0 3.75-.615A2.993 2.993 0 0 0 9.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 0 0 2.25 1.016c.896 0 1.7-.393 2.25-1.015a3.001 3.001 0 0 0 3.75.614m-16.5 0a3.004 3.004 0 0 1-.621-4.72l1.189-1.19A1.5 1.5 0 0 1 5.378 3h13.243a1.5 1.5 0 0 1 1.06.44l1.19 1.189a3 3 0 0 1-.621 4.72" /></svg>
+            <span>Online Shop</span>
+          </span>
+          <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300">Sales</span>
+        </a>
+
+        <button data-nav="analytics" type="button" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6a7.5 7.5 0 1 0 7.5 7.5h-7.5V6Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0 0 13.5 3v7.5Z" /></svg>
+          <span>Analytics</span>
+        </button>
+
+        <button id="desktop-settings-btn" type="button" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/80 hover:text-slate-900 dark:hover:text-white transition-all">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /></svg>
+          <span>Wallets &amp; Settings</span>
+        </button>
+      </nav>
+
+      <!-- Active Person Switcher & Account Footer -->
+      <div class="p-4 border-t border-slate-100 dark:border-slate-800/80 space-y-3">
+        <div class="bg-slate-100 dark:bg-slate-800/80 p-1 rounded-xl grid grid-cols-3 gap-1 text-[11px] font-semibold">
+          <button data-quick-person="person1" type="button" class="quick-person-btn py-2 px-1.5 rounded-lg transition-all truncate">Person 1</button>
+          <button data-quick-person="person2" type="button" class="quick-person-btn py-2 px-1.5 rounded-lg transition-all truncate">Person 2</button>
+          <button data-quick-person="shared" type="button" class="quick-person-btn py-2 px-1.5 rounded-lg transition-all truncate">Shared</button>
+        </div>
+
+        <div class="flex items-center justify-between px-2 text-xs">
+          <div class="flex items-center gap-2 min-w-0">
+            <span class="sync-dot w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse shrink-0"></span>
+            <span class="sync-text text-slate-500 dark:text-slate-400 font-medium truncate">Connecting...</span>
+          </div>
+          <button id="sidebar-open-sync" type="button" class="text-indigo-600 dark:text-indigo-400 hover:underline font-semibold shrink-0">Invite</button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- MOBILE STICKY HEADER -->
+    <header class="md:hidden sticky top-0 z-30 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800 px-4 py-3">
+      <div class="flex items-center justify-between gap-2">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-600 to-sky-500 flex items-center justify-center text-white shadow-md shadow-indigo-500/20 shrink-0">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a2.25 2.25 0 0 0-2.25-2.25H15a3 3 0 1 1-6 0H5.25A2.25 2.25 0 0 0 3 12m18 0v6a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 18v-6m18 0V9M3 12V9m18 0a2.25 2.25 0 0 0-2.25-2.25H5.25A2.25 2.25 0 0 0 3 9m18 0V6a2.25 2.25 0 0 0-2.25-2.25H5.25A2.25 2.25 0 0 0 3 6v3" /></svg>
+          </div>
+          <div class="min-w-0">
+            <div class="flex items-center gap-1.5">
+              <h1 class="text-base font-extrabold tracking-tight text-slate-900 dark:text-white truncate">Delights Flow</h1>
+              <span class="sync-dot w-2 h-2 rounded-full bg-amber-400 shrink-0"></span>
+            </div>
+            <p id="mobile-header-subtitle" class="text-[11px] font-medium text-slate-500 dark:text-slate-400 truncate">My Ledger</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-1 shrink-0">
+          <button id="mobile-person-pill" type="button" class="px-2.5 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 text-xs font-bold border border-indigo-200/70 dark:border-indigo-800/70 active:scale-95 transition-transform">P1</button>
+          <button id="mobile-privacy-btn" type="button" title="Toggle Privacy Mode" class="p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"><span class="privacy-icon-slot"></span></button>
+          <button id="mobile-theme-btn" type="button" title="Toggle Dark Mode" class="p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"><span class="theme-icon-slot"></span></button>
+          <button id="mobile-settings-btn" type="button" title="Wallets &amp; Settings" class="p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /></svg>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main class="flex-1 md:ml-64 lg:ml-72 pb-28 md:pb-10">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-7 space-y-6">
+
+        <!-- ==================== VIEW 1: OVERVIEW ==================== -->
+        <section id="view-overview" class="space-y-6">
+          <!-- Hero Balance Card -->
+          <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 dark:from-indigo-950 dark:via-slate-900 dark:to-slate-900 text-white p-6 sm:p-8 shadow-xl border border-white/10">
+            <div class="pointer-events-none absolute -top-20 -right-20 w-64 h-64 rounded-full bg-indigo-500/20 blur-3xl"></div>
+            <div class="pointer-events-none absolute -bottom-24 -left-12 w-56 h-56 rounded-full bg-sky-500/15 blur-3xl"></div>
+
+            <div class="relative z-10 flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
+              <div class="space-y-2">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span id="hero-wallet-count-label" class="text-xs sm:text-sm font-medium uppercase tracking-wider text-indigo-200/90">Total Net Balance</span>
+                  <span id="overview-month-pill" class="px-2.5 py-0.5 rounded-full bg-white/10 text-[11px] font-semibold text-indigo-100">Month</span>
+                  <button id="hero-privacy-btn" type="button" title="Toggle Privacy Mode" class="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-indigo-100 transition-colors active:scale-95">
+                    <span class="privacy-icon-slot"></span>
+                  </button>
+                </div>
+                <div id="hero-total-balance" class="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight tabular-nums">0 Ks</div>
+                <p id="hero-tx-count" class="text-xs sm:text-sm text-slate-300">Live synced across all wallets</p>
+              </div>
+
+              <div class="grid grid-cols-3 gap-2.5 sm:gap-4 w-full lg:w-auto lg:min-w-[380px]">
+                <div class="rounded-2xl bg-white/10 backdrop-blur-sm p-3 sm:p-4 border border-white/10">
+                  <div class="text-emerald-300 text-xs font-semibold mb-1">↗ Income</div>
+                  <div id="hero-month-income" class="text-sm sm:text-base font-bold tabular-nums truncate">0 Ks</div>
+                </div>
+                <div class="rounded-2xl bg-white/10 backdrop-blur-sm p-3 sm:p-4 border border-white/10">
+                  <div class="text-rose-300 text-xs font-semibold mb-1">↘ Expense</div>
+                  <div id="hero-month-expense" class="text-sm sm:text-base font-bold tabular-nums truncate">0 Ks</div>
+                </div>
+                <div class="rounded-2xl bg-white/10 backdrop-blur-sm p-3 sm:p-4 border border-white/10">
+                  <div class="text-sky-300 text-xs font-semibold mb-1">Net</div>
+                  <div id="hero-month-net" class="text-sm sm:text-base font-bold tabular-nums truncate">0 Ks</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Wallets Section -->
+          <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <div>
+                <h2 id="overview-wallets-title" class="text-base sm:text-lg font-bold text-slate-900 dark:text-white">Your Wallets</h2>
+                <p class="text-xs text-slate-500 dark:text-slate-400">Tap a wallet to filter history, or customize your accounts</p>
+              </div>
+              <button id="overview-edit-wallets-btn" type="button" class="text-xs sm:text-sm font-semibold text-indigo-600 dark:text-indigo-400 px-3 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/50 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors">
+                + Customize
+              </button>
+            </div>
+            <div id="wallets-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4"></div>
+          </div>
+
+          <!-- Quick Templates Section -->
+          <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <div>
+                <h2 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white">Quick Templates</h2>
+                <p class="text-xs text-slate-500 dark:text-slate-400">Tap once to log frequent entries</p>
+              </div>
+              <button id="open-templates-modal-btn" type="button" class="text-xs sm:text-sm font-semibold text-indigo-600 dark:text-indigo-400 px-3 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/50 transition-colors">+ Manage</button>
+            </div>
+            <div id="quick-templates-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5"></div>
+          </div>
+
+          <!-- Recent Activity -->
+          <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
+            <div class="px-5 py-4 border-b border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
+              <h2 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white">Recent Activity</h2>
+              <button id="overview-view-all-btn" type="button" class="text-xs sm:text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">View All →</button>
+            </div>
+            <div id="recent-transactions-list" class="divide-y divide-slate-100 dark:divide-slate-800/70"></div>
+          </div>
+        </section>
+
+        <!-- ==================== VIEW 2: TRANSACTIONS & CALENDAR ==================== -->
+        <section id="view-history" class="hidden space-y-5">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+              <h2 class="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">Transactions</h2>
+              <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400">Filter by Personal or Shop, view calendar, edit, or export</p>
+            </div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <div class="inline-flex p-1 rounded-xl bg-slate-200/80 dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700">
+                <button id="history-mode-list" type="button" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all">List</button>
+                <button id="history-mode-calendar" type="button" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all">Calendar</button>
+              </div>
+              <button id="export-csv-btn" type="button" class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs sm:text-sm font-semibold shadow-sm active:scale-95 transition-all">
+                <span>Export CSV</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Filters Card -->
+          <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-4 sm:p-5 shadow-sm space-y-3.5">
+            <div class="relative">
+              <svg class="w-5 h-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" /></svg>
+              <input id="filter-search" type="text" placeholder="Search note, category, wallet, customer, or amount..." class="w-full pl-11 pr-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            </div>
+
+            <div class="grid grid-cols-2 lg:grid-cols-5 gap-2.5">
+              <div class="space-y-1">
+                <label class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 px-1">Month</label>
+                <select id="filter-month" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500"></select>
+              </div>
+              <div class="space-y-1">
+                <label class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 px-1">Wallet</label>
+                <select id="filter-wallet" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500"></select>
+              </div>
+              <div class="space-y-1">
+                <label class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 px-1">Type</label>
+                <select id="filter-type" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                  <option value="all">All Types</option>
+                  <option value="expense">Expense</option>
+                  <option value="income">Income</option>
+                  <option value="transfer">Transfer</option>
+                </select>
+              </div>
+              <div class="space-y-1">
+                <label class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 px-1">Owner</label>
+                <select id="filter-person" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                  <option value="all">All Owners</option>
+                  <option value="person1">Person 1</option>
+                  <option value="person2">Person 2</option>
+                  <option value="shared">Shared (Both)</option>
+                </select>
+              </div>
+              <div class="space-y-1 col-span-2 lg:col-span-1">
+                <label class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 px-1">Scope</label>
+                <select id="filter-scope" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                  <option value="all">Personal + Shop</option>
+                  <option value="personal">Personal Only</option>
+                  <option value="shop">Online Shop Only</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="pt-2 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2 text-xs">
+              <div id="history-summary-stats" class="flex flex-wrap items-center gap-3 font-semibold"></div>
+              <button id="clear-filters-btn" type="button" class="hidden text-indigo-600 dark:text-indigo-400 font-semibold hover:underline">Reset filters</button>
+            </div>
+          </div>
+
+          <!-- Calendar View -->
+          <div id="history-calendar-wrap" class="hidden space-y-4">
+            <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-4 sm:p-5 shadow-sm space-y-4">
+              <div class="flex items-center justify-between gap-2">
+                <button id="cal-prev-month" type="button" class="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300">‹</button>
+                <div class="flex items-center gap-2">
+                  <h3 id="cal-month-title" class="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white">Month</h3>
+                  <button id="cal-today-btn" type="button" class="px-2.5 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-300 text-[11px] font-bold">Today</button>
+                </div>
+                <button id="cal-next-month" type="button" class="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300">›</button>
+              </div>
+              <div class="grid grid-cols-7 gap-1 text-center text-[11px] font-bold uppercase text-slate-400">
+                <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+              </div>
+              <div id="calendar-days-grid" class="grid grid-cols-7 gap-1 sm:gap-1.5"></div>
+            </div>
+
+            <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
+              <div class="px-4 sm:px-5 py-3.5 bg-slate-50/90 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2">
+                <div class="min-w-0">
+                  <h4 id="cal-selected-date-title" class="text-sm font-extrabold text-slate-900 dark:text-white truncate">Today</h4>
+                  <p id="cal-selected-date-summary" class="text-[11px] font-semibold text-slate-500 dark:text-slate-400">0 entries</p>
+                </div>
+                <button id="cal-add-for-date-btn" type="button" class="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shrink-0">+ Add on Day</button>
+              </div>
+              <div id="cal-selected-day-list" class="divide-y divide-slate-100 dark:divide-slate-800/70"></div>
+            </div>
+          </div>
+
+          <!-- Grouped List View -->
+          <div id="history-grouped-list" class="space-y-4"></div>
+        </section>
+
+        <!-- ==================== VIEW 3: ANALYTICS ==================== -->
+        <section id="view-analytics" class="hidden space-y-6">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+              <h2 class="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">Analytics &amp; Summary</h2>
+              <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400">Toggle between Personal, Online Shop, or Combined reports</p>
+            </div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <select id="analytics-scope-select" class="px-3 py-2 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs sm:text-sm font-bold shadow-sm focus:outline-none">
+                <option value="all">Personal + Shop</option>
+                <option value="personal">Personal Only</option>
+                <option value="shop">Online Shop Only</option>
+              </select>
+              <div class="flex items-center gap-1 bg-white dark:bg-slate-900 p-1 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                <button id="analytics-prev-month" type="button" class="px-2.5 py-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 font-bold">‹</button>
+                <select id="analytics-month-select" class="bg-transparent text-xs sm:text-sm font-bold text-slate-900 dark:text-white px-1 py-1 focus:outline-none"></select>
+                <button id="analytics-next-month" type="button" class="px-2.5 py-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 font-bold">›</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            <div class="bg-white dark:bg-slate-900 rounded-3xl p-4 sm:p-5 border border-slate-200/80 dark:border-slate-800 shadow-sm">
+              <p class="text-xs font-semibold text-slate-500 dark:text-slate-400">Period Income</p>
+              <p id="kpi-income" class="text-lg sm:text-xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-1 tabular-nums">0 Ks</p>
+            </div>
+            <div class="bg-white dark:bg-slate-900 rounded-3xl p-4 sm:p-5 border border-slate-200/80 dark:border-slate-800 shadow-sm">
+              <p class="text-xs font-semibold text-slate-500 dark:text-slate-400">Period Expense</p>
+              <p id="kpi-expense" class="text-lg sm:text-xl font-extrabold text-rose-600 dark:text-rose-400 mt-1 tabular-nums">0 Ks</p>
+            </div>
+            <div class="bg-white dark:bg-slate-900 rounded-3xl p-4 sm:p-5 border border-slate-200/80 dark:border-slate-800 shadow-sm">
+              <p class="text-xs font-semibold text-slate-500 dark:text-slate-400">Net Savings</p>
+              <p id="kpi-net" class="text-lg sm:text-xl font-extrabold mt-1 tabular-nums">0 Ks</p>
+            </div>
+            <div class="bg-white dark:bg-slate-900 rounded-3xl p-4 sm:p-5 border border-slate-200/80 dark:border-slate-800 shadow-sm">
+              <p class="text-xs font-semibold text-slate-500 dark:text-slate-400">Savings Rate</p>
+              <p id="kpi-rate" class="text-lg sm:text-xl font-extrabold text-indigo-600 dark:text-indigo-400 mt-1 tabular-nums">0%</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            <div class="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4">
+              <div>
+                <h3 class="text-base font-bold text-slate-900 dark:text-white">Expenses by Category</h3>
+                <p class="text-xs text-slate-500 dark:text-slate-400">Share of spending for the selected period</p>
+              </div>
+              <div class="relative h-56 w-full">
+                <canvas id="chart-expense-category"></canvas>
+                <div id="empty-expense-chart" class="hidden absolute inset-0 flex items-center justify-center text-slate-400 text-sm">No expenses recorded</div>
+              </div>
+              <div id="category-breakdown-list" class="space-y-2.5 pt-2 border-t border-slate-100 dark:border-slate-800 max-h-56 overflow-y-auto pr-1"></div>
+            </div>
+
+            <div class="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4">
+              <div>
+                <h3 class="text-base font-bold text-slate-900 dark:text-white">Income vs Expense (6-Month Trend)</h3>
+                <p class="text-xs text-slate-500 dark:text-slate-400">Transfers excluded from totals</p>
+              </div>
+              <div class="relative h-72 w-full"><canvas id="chart-income-expense"></canvas></div>
+            </div>
+
+            <div class="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4">
+              <div>
+                <h3 id="analytics-wallets-chart-title" class="text-base font-bold text-slate-900 dark:text-white">Live Wallet Balances</h3>
+                <p class="text-xs text-slate-500 dark:text-slate-400">Current funds across all wallets</p>
+              </div>
+              <div class="relative h-64 w-full"><canvas id="chart-wallet-distribution"></canvas></div>
+            </div>
+
+            <div class="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4">
+              <div>
+                <h3 class="text-base font-bold text-slate-900 dark:text-white">Owner Breakdown</h3>
+                <p class="text-xs text-slate-500 dark:text-slate-400">Person 1, Person 2, and Shared</p>
+              </div>
+              <div class="relative h-52 w-full"><canvas id="chart-person-breakdown"></canvas></div>
+              <div id="person-comparison-cards" class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-2 border-t border-slate-100 dark:border-slate-800"></div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <!-- MOBILE BOTTOM NAVIGATION (Overview · History · [+] · Shop · Analytics) -->
+    <nav class="md:hidden fixed bottom-0 inset-x-0 z-30 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200/80 dark:border-slate-800 px-2 pb-2 pt-1.5">
+      <div class="grid grid-cols-5 items-center max-w-md mx-auto">
+        <button data-nav="overview" type="button" class="nav-btn-mobile flex flex-col items-center justify-center py-1.5 gap-1 rounded-xl text-[11px] font-semibold">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z" /></svg>
+          <span>Overview</span>
+        </button>
+
+        <button data-nav="history" type="button" class="nav-btn-mobile flex flex-col items-center justify-center py-1.5 gap-1 rounded-xl text-[11px] font-semibold">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" /></svg>
+          <span>History</span>
+        </button>
+
+        <div class="flex justify-center -mt-7">
+          <button id="mobile-fab-add" type="button" aria-label="Add new entry" class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-indigo-600 to-sky-500 text-white shadow-xl shadow-indigo-600/35 flex items-center justify-center active:scale-90 transition-transform ring-4 ring-white dark:ring-slate-900">
+            <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2.6" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+          </button>
+        </div>
+
+        <a href="shop.html" class="shop-nav-link flex flex-col items-center justify-center py-1.5 gap-1 rounded-xl text-[11px] font-semibold text-amber-600 dark:text-amber-400">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349M3.75 21V9.349m0 0a3.001 3.001 0 0 0 3.75-.615A2.993 2.993 0 0 0 9.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 0 0 2.25 1.016c.896 0 1.7-.393 2.25-1.015a3.001 3.001 0 0 0 3.75.614m-16.5 0a3.004 3.004 0 0 1-.621-4.72l1.189-1.19A1.5 1.5 0 0 1 5.378 3h13.243a1.5 1.5 0 0 1 1.06.44l1.19 1.189a3 3 0 0 1-.621 4.72" /></svg>
+          <span>Shop</span>
+        </a>
+
+        <button data-nav="analytics" type="button" class="nav-btn-mobile flex flex-col items-center justify-center py-1.5 gap-1 rounded-xl text-[11px] font-semibold">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6a7.5 7.5 0 1 0 7.5 7.5h-7.5V6Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0 0 13.5 3v7.5Z" /></svg>
+          <span>Analytics</span>
+        </button>
+      </div>
+    </nav>
+  </div>
+
+  <!-- ==================== MODAL 1: TRANSACTION ENTRY / EDIT ==================== -->
+  <div id="tx-modal" class="hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-950/60 backdrop-blur-sm p-0 sm:p-4">
+    <div class="bg-white dark:bg-slate-900 w-full sm:max-w-lg rounded-t-3xl sm:rounded-3xl shadow-2xl border border-slate-200/80 dark:border-slate-800 max-h-[92vh] flex flex-col overflow-hidden">
+      <div class="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
+        <h3 id="tx-modal-title" class="text-lg font-extrabold text-slate-900 dark:text-white">New Transaction</h3>
+        <button id="tx-modal-close" type="button" class="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800">✕</button>
+      </div>
+
+      <form id="tx-form" class="p-5 space-y-5 overflow-y-auto flex-1">
+        <div class="grid grid-cols-3 gap-1.5 p-1.5 rounded-2xl bg-slate-100 dark:bg-slate-800/90">
+          <button type="button" data-tx-type="expense" class="tx-type-tab py-2.5 rounded-xl text-sm font-bold transition-all">Expense</button>
+          <button type="button" data-tx-type="income" class="tx-type-tab py-2.5 rounded-xl text-sm font-bold transition-all">Income</button>
+          <button type="button" data-tx-type="transfer" class="tx-type-tab py-2.5 rounded-xl text-sm font-bold transition-all">Transfer</button>
+        </div>
+
+        <div class="space-y-2">
+          <label for="tx-amount" class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Amount</label>
+          <div class="relative flex items-center">
+            <input id="tx-amount" type="text" inputmode="decimal" autocomplete="off" placeholder="0" required class="w-full text-3xl font-extrabold tabular-nums px-4 py-3.5 pr-16 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            <span id="tx-currency-badge" class="absolute right-4 text-sm font-bold text-slate-400">Ks</span>
+          </div>
+          <div class="flex flex-wrap gap-1.5">
+            <button type="button" data-quick-amt="1000" class="quick-amt-btn px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-xs font-semibold text-slate-600 dark:text-slate-300">+1,000</button>
+            <button type="button" data-quick-amt="5000" class="quick-amt-btn px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-xs font-semibold text-slate-600 dark:text-slate-300">+5,000</button>
+            <button type="button" data-quick-amt="10000" class="quick-amt-btn px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-xs font-semibold text-slate-600 dark:text-slate-300">+10,000</button>
+            <button type="button" data-quick-amt="50000" class="quick-amt-btn px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-xs font-semibold text-slate-600 dark:text-slate-300">+50,000</button>
+            <button type="button" data-quick-amt="100000" class="quick-amt-btn px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-xs font-semibold text-slate-600 dark:text-slate-300">+100,000</button>
+          </div>
+        </div>
+
+        <div id="tx-single-wallet-wrap" class="space-y-2">
+          <label id="tx-wallet-label" class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Select Wallet</label>
+          <div id="tx-wallet-pills" class="grid grid-cols-2 sm:grid-cols-3 gap-2"></div>
+        </div>
+
+        <div id="tx-transfer-wallets-wrap" class="hidden space-y-3">
+          <div class="space-y-1.5">
+            <label class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">From Wallet</label>
+            <div id="tx-from-wallet-pills" class="grid grid-cols-2 sm:grid-cols-3 gap-2"></div>
+          </div>
+          <div class="flex justify-center">
+            <button id="tx-swap-wallets-btn" type="button" class="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-bold text-slate-600 dark:text-slate-300">⇅ Swap Wallets</button>
+          </div>
+          <div class="space-y-1.5">
+            <label class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">To Wallet</label>
+            <div id="tx-to-wallet-pills" class="grid grid-cols-2 sm:grid-cols-3 gap-2"></div>
+          </div>
+        </div>
+
+        <div id="tx-category-wrap" class="space-y-2">
+          <div class="flex items-center justify-between">
+            <label class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Category</label>
+            <button id="toggle-add-custom-cat" type="button" class="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">+ Custom</button>
+          </div>
+          <div id="custom-cat-inline" class="hidden flex items-center gap-2 pb-1">
+            <input id="custom-cat-input" type="text" placeholder="New category name..." class="flex-1 px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            <button id="save-custom-cat-btn" type="button" class="px-3.5 py-2 rounded-xl bg-indigo-600 text-white text-xs font-bold">Add</button>
+          </div>
+          <div id="tx-category-grid" class="grid grid-cols-3 gap-2 max-h-44 overflow-y-auto pr-0.5"></div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="space-y-1.5">
+            <label for="tx-date" class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Date</label>
+            <input id="tx-date" type="date" required class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+          </div>
+          <div class="space-y-1.5">
+            <label class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Owner / Logged By</label>
+            <div class="grid grid-cols-3 gap-1 p-1 rounded-xl bg-slate-100 dark:bg-slate-800">
+              <button type="button" data-tx-person="person1" class="tx-person-toggle py-2 px-1.5 rounded-lg text-xs font-bold truncate">P1</button>
+              <button type="button" data-tx-person="person2" class="tx-person-toggle py-2 px-1.5 rounded-lg text-xs font-bold truncate">P2</button>
+              <button type="button" data-tx-person="shared" class="tx-person-toggle py-2 px-1.5 rounded-lg text-xs font-bold truncate">Shared</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="space-y-1.5">
+          <label for="tx-note" class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Note (Optional)</label>
+          <input id="tx-note" type="text" placeholder="e.g. Lunch, bill, transfer note..." class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+        </div>
+
+        <div id="tx-save-template-wrap" class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700/70">
+          <label for="tx-save-as-template" class="flex items-center gap-2.5 text-xs font-semibold text-slate-700 dark:text-slate-300 cursor-pointer">
+            <input id="tx-save-as-template" type="checkbox" class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500" />
+            <span>Also save as 1-tap Quick Template</span>
+          </label>
+        </div>
+
+        <div id="tx-form-error" class="hidden p-3 rounded-xl bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs font-semibold"></div>
+
+        <div class="pt-1 flex items-center gap-2.5">
+          <button id="tx-delete-in-modal-btn" type="button" class="hidden px-4 py-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 font-bold text-sm">Delete</button>
+          <button id="tx-submit-btn" type="submit" class="flex-1 py-3.5 px-5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm shadow-lg shadow-indigo-600/25 active:scale-[0.98] transition-all">Save Entry</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL 2: WALLETS, WORKSPACE & ACCOUNT SETTINGS ==================== -->
+  <div id="settings-modal" class="hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-950/60 backdrop-blur-sm p-0 sm:p-4">
+    <div class="bg-white dark:bg-slate-900 w-full sm:max-w-xl rounded-t-3xl sm:rounded-3xl shadow-2xl border border-slate-200/80 dark:border-slate-800 max-h-[92vh] flex flex-col overflow-hidden">
+      <div class="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
+        <div>
+          <h3 class="text-lg font-extrabold text-slate-900 dark:text-white">Wallets &amp; Settings</h3>
+          <p id="settings-account-email" class="text-xs text-slate-500 dark:text-slate-400">Signed in</p>
+        </div>
+        <button id="settings-modal-close" type="button" class="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800">✕</button>
+      </div>
+
+      <form id="settings-form" class="p-5 space-y-6 overflow-y-auto flex-1">
+        <!-- Section 1: Customizable Wallets -->
+        <div class="space-y-3">
+          <div class="flex items-start justify-between gap-2">
+            <div>
+              <h4 class="text-sm font-bold text-slate-900 dark:text-white">Customizable Wallets &amp; Banks</h4>
+              <p class="text-xs text-slate-500 dark:text-slate-400">Add KPay, KBZ Bank, CBPay, or any account &amp; set starting balance</p>
+            </div>
+            <button id="add-wallet-btn" type="button" class="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shrink-0">+ Add Wallet</button>
+          </div>
+          <div id="settings-wallets-list" class="space-y-2.5"></div>
+        </div>
+
+        <!-- Section 2: Names & Currency -->
+        <div class="space-y-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+          <h4 class="text-sm font-bold text-slate-900 dark:text-white">Ledger Profile &amp; Currency</h4>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div class="space-y-1">
+              <label for="setting-ws-name" class="text-xs font-semibold text-slate-500">Ledger Name</label>
+              <input id="setting-ws-name" type="text" maxlength="32" required class="w-full px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            </div>
+            <div class="space-y-1">
+              <label for="setting-currency" class="text-xs font-semibold text-slate-500">Currency Suffix</label>
+              <input id="setting-currency" type="text" maxlength="8" required class="w-full px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div class="space-y-1">
+              <label for="setting-person1" class="text-xs font-semibold text-slate-500">Person 1 Name</label>
+              <input id="setting-person1" type="text" maxlength="24" required class="w-full px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            </div>
+            <div class="space-y-1">
+              <label for="setting-person2" class="text-xs font-semibold text-slate-500">Person 2 Name</label>
+              <input id="setting-person2" type="text" maxlength="24" required class="w-full px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 3: Partner Invite & Workspace Switcher (Isolated & PIN-Protected) -->
+        <div class="space-y-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+          <div class="flex items-center justify-between">
+            <div>
+              <h4 class="text-sm font-bold text-slate-900 dark:text-white">Private Workspace &amp; Partner Invite</h4>
+              <p class="text-xs text-slate-500 dark:text-slate-400">Share both ID &amp; PIN with your partner to sync live</p>
+            </div>
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300">
+              <span class="sync-dot w-2 h-2 rounded-full bg-emerald-500"></span>
+              <span class="sync-text">Synced</span>
+            </span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200/70 dark:border-slate-700/70 flex items-center justify-between gap-2">
+              <div class="min-w-0">
+                <p class="text-[10px] font-bold uppercase text-slate-400">Workspace ID</p>
+                <p id="setting-ws-id-display" class="text-xs font-mono font-bold text-slate-800 dark:text-slate-200 truncate">—</p>
+              </div>
+              <button id="copy-ws-id-btn" type="button" class="px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-[11px] font-bold shrink-0">Copy</button>
+            </div>
+
+            <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200/70 dark:border-slate-700/70 flex items-center justify-between gap-2">
+              <div class="min-w-0 flex-1">
+                <label for="setting-join-pin" class="text-[10px] font-bold uppercase text-slate-400 block">Join PIN (4+ chars)</label>
+                <input id="setting-join-pin" type="text" minlength="4" maxlength="12" required class="w-full bg-transparent text-xs font-mono font-bold text-slate-800 dark:text-slate-200 focus:outline-none" />
+              </div>
+              <button id="copy-ws-pin-btn" type="button" class="px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-[11px] font-bold shrink-0">Copy</button>
+            </div>
+          </div>
+
+          <!-- Switch / Create / Join another Ledger -->
+          <div class="flex flex-wrap items-center gap-2">
+            <select id="setting-ws-switcher" class="flex-1 min-w-[160px] px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold"></select>
+            <button id="open-ws-onboarding-btn" type="button" class="px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs font-bold text-slate-700 dark:text-slate-200">+ New / Join</button>
+          </div>
+        </div>
+
+        <!-- Section 4: Full JSON Backup & Restore -->
+        <div class="space-y-2.5 pt-4 border-t border-slate-100 dark:border-slate-800">
+          <h4 class="text-sm font-bold text-slate-900 dark:text-white">Backup &amp; Restore (JSON)</h4>
+          <div class="grid grid-cols-2 gap-2.5">
+            <button id="backup-export-btn" type="button" class="py-2.5 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs font-bold">↓ Download Backup</button>
+            <button id="backup-import-btn" type="button" class="py-2.5 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs font-bold">↑ Restore JSON</button>
+            <input id="backup-import-file" type="file" accept=".json,application/json" class="hidden" />
+          </div>
+        </div>
+
+        <!-- PWA Install & Sign Out -->
+        <div id="pwa-install-card" class="hidden pt-4 border-t border-slate-100 dark:border-slate-800">
+          <button id="pwa-install-btn" type="button" class="w-full py-3 px-4 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-md">Install Delights Flow App</button>
+        </div>
+
+        <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center gap-2.5">
+          <button id="settings-signout-btn" type="button" class="px-4 py-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 font-bold text-sm">Sign Out</button>
+          <button id="settings-save-btn" type="submit" class="flex-1 py-3.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm shadow-lg shadow-indigo-600/25 active:scale-[0.98] transition-all">Save Settings</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL 3: QUICK TEMPLATES MANAGER ==================== -->
+  <div id="templates-modal" class="hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-950/60 backdrop-blur-sm p-0 sm:p-4">
+    <div class="bg-white dark:bg-slate-900 w-full sm:max-w-lg rounded-t-3xl sm:rounded-3xl shadow-2xl border border-slate-200/80 dark:border-slate-800 max-h-[92vh] flex flex-col overflow-hidden">
+      <div class="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
+        <h3 class="text-lg font-extrabold text-slate-900 dark:text-white">Quick Templates</h3>
+        <button id="templates-modal-close" type="button" class="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white">✕</button>
+      </div>
+      <div class="p-5 space-y-5 overflow-y-auto flex-1">
+        <form id="template-form" class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700/80 space-y-3">
+          <input type="hidden" id="tpl-edit-id" value="" />
+          <div class="flex items-center justify-between">
+            <h4 id="tpl-form-heading" class="text-xs font-extrabold uppercase text-indigo-600 dark:text-indigo-400">Add Template</h4>
+            <button id="tpl-cancel-edit-btn" type="button" class="hidden text-xs font-semibold text-slate-500">Cancel</button>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <input id="tpl-title" type="text" maxlength="28" required placeholder="Name (e.g. Coffee)" class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm font-semibold" />
+            <input id="tpl-amount" type="text" inputmode="decimal" required placeholder="Amount" class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm font-bold tabular-nums" />
+          </div>
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            <select id="tpl-type" class="w-full px-2.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-semibold">
+              <option value="expense">Expense</option>
+              <option value="income">Income</option>
+              <option value="transfer">Transfer</option>
+            </select>
+            <select id="tpl-wallet" class="w-full px-2.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-semibold"></select>
+            <select id="tpl-to-wallet" class="hidden w-full px-2.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-semibold"></select>
+            <select id="tpl-category" class="w-full px-2.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-semibold"></select>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <select id="tpl-person" class="w-full px-2.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-semibold">
+              <option value="person1">Person 1</option>
+              <option value="person2">Person 2</option>
+              <option value="shared">Shared</option>
+            </select>
+            <input id="tpl-note" type="text" maxlength="60" placeholder="Optional note..." class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs" />
+          </div>
+          <button id="tpl-submit-btn" type="submit" class="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-bold">Save Template</button>
+        </form>
+        <div id="templates-modal-list" class="space-y-2"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL 4: CUSTOM CONFIRMATION ==================== -->
+  <div id="confirm-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-sm p-4">
+    <div class="bg-white dark:bg-slate-900 w-full max-w-sm rounded-3xl p-6 shadow-2xl border border-slate-200 dark:border-slate-800 space-y-4">
+      <h3 id="confirm-modal-title" class="text-lg font-extrabold text-slate-900 dark:text-white">Confirm Action</h3>
+      <p id="confirm-modal-desc" class="text-sm text-slate-500 dark:text-slate-400"></p>
+      <div class="grid grid-cols-2 gap-2.5 pt-2">
+        <button id="confirm-cancel-btn" type="button" class="py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold text-sm">Cancel</button>
+        <button id="confirm-ok-btn" type="button" class="py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST CONTAINER -->
+  <div id="toast-container" class="fixed top-4 right-4 left-4 sm:left-auto sm:w-80 z-[60] flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- ==================== FIREBASE CONFIG & APP SCRIPT ==================== -->
+  <script>
+    window.__firebase_config = {
+      apiKey: "AIzaSyAKgqAtXONpTX9h87pm-sUx7MY0JJyEPTE",
+      authDomain: "delights-flow.firebaseapp.com",
+      projectId: "delights-flow",
+      storageBucket: "delights-flow.firebasestorage.app",
+      messagingSenderId: "967458395131",
+      appId: "1:967458395131:web:9cafabf5ed0a6c3bc0b15e"
+    };
+  </script>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import {
+      getAuth, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword,
+      createUserWithEmailAndPassword, sendPasswordResetEmail, updateProfile,
+      signOut, onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import {
+      initializeFirestore, persistentLocalCache, persistentMultipleTabManager, getFirestore,
+      doc, getDoc, setDoc, addDoc, updateDoc, deleteDoc, onSnapshot, collection, arrayUnion
+    } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    // =========================================================================
+    // 1. CONSTANTS (MINIMAL STARTER WALLETS + 18 COLOR PALETTE + CATEGORIES)
+    // =========================================================================
+    const WALLET_ICONS = {
+      cash: `<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 0 1 3 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 0 0-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 0 1-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 0 0 3 15h-.75M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /></svg>`,
+      bank: `<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.332A48.36 48.36 0 0 0 12 9.75c-2.551 0-5.056.2-7.5.582V21M3 21h18M12 6.75h.008v.008H12V6.75Z" /></svg>`,
+      mobile: `<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 0 0 6 3.75v16.5a2.25 2.25 0 0 0 2.25 2.25h7.5A2.25 2.25 0 0 0 18 20.25V3.75a2.25 2.25 0 0 0-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3" /></svg>`,
+      card: `<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z" /></svg>`
+    };
+
+    const WALLET_COLORS = [
+      { key: 'emerald', label: 'Emerald', hex: '#10b981' }, { key: 'green', label: 'Green', hex: '#16a34a' },
+      { key: 'lime', label: 'Lime', hex: '#84cc16' }, { key: 'teal', label: 'Teal', hex: '#14b8a6' },
+      { key: 'cyan', label: 'Cyan', hex: '#06b6d4' }, { key: 'sky', label: 'Sky', hex: '#0ea5e9' },
+      { key: 'blue', label: 'Blue', hex: '#2563eb' }, { key: 'indigo', label: 'Indigo', hex: '#6366f1' },
+      { key: 'violet', label: 'Violet', hex: '#8b5cf6' }, { key: 'purple', label: 'Purple', hex: '#9333ea' },
+      { key: 'fuchsia', label: 'Fuchsia', hex: '#d946ef' }, { key: 'pink', label: 'Pink', hex: '#ec4899' },
+      { key: 'rose', label: 'Rose', hex: '#f43f5e' }, { key: 'red', label: 'Red', hex: '#ef4444' },
+      { key: 'orange', label: 'Orange', hex: '#f97316' }, { key: 'amber', label: 'Amber', hex: '#f59e0b' },
+      { key: 'yellow', label: 'Gold', hex: '#eab308' }, { key: 'slate', label: 'Slate', hex: '#64748b' }
+    ];
+    const COLOR_MAP = Object.fromEntries(WALLET_COLORS.map((c) => [c.key, c]));
+
+    // Minimal starter wallets for brand-new users (fully customizable in Settings)
+    const STARTER_WALLETS = [
+      { id: 'cash', name: 'Cash', iconType: 'cash', colorKey: 'emerald' },
+      { id: 'bank', name: 'Bank', iconType: 'bank', colorKey: 'blue' }
+    ];
+
+    const DEFAULT_EXPENSE_CATS = [
+      { name: 'Food & Dining', icon: '🍽️' }, { name: 'Groceries', icon: '🛒' },
+      { name: 'Transport', icon: '🚕' }, { name: 'Bills & Utilities', icon: '⚡' },
+      { name: 'Shopping', icon: '🛍️' }, { name: 'Health', icon: '💊' },
+      { name: 'Family', icon: '🏠' }, { name: 'Entertainment', icon: '🎬' }, { name: 'Other', icon: '📌' }
+    ];
+    const DEFAULT_INCOME_CATS = [
+      { name: 'Salary', icon: '💼' }, { name: 'Business', icon: '📈' },
+      { name: 'Freelance', icon: '💻' }, { name: 'Gift', icon: '🎁' },
+      { name: 'Refund', icon: '↩️' }, { name: 'Other', icon: '✨' }
+    ];
+    const CHART_COLORS = ['#6366f1','#ec4899','#f59e0b','#10b981','#0ea5e9','#8b5cf6','#ef4444','#14b8a6','#f97316','#64748b'];
+
+    // =========================================================================
+    // 2. STATE & FIREBASE INSTANCES
+    // =========================================================================
+    const getTodayISO = () => {
+      const d = new Date();
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    };
+    const getCurrentMonthKey = () => getTodayISO().slice(0, 7);
+    const randomPin = () => String(Math.floor(100000 + Math.random() * 900000));
+    const randomWsId = () => `df-${Date.now().toString(36).slice(-4)}${Math.random().toString(36).slice(2, 6)}`;
+
+    const app = initializeApp(window.__firebase_config);
+    let db;
+    try {
+      db = initializeFirestore(app, {
+        localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() })
+      });
+    } catch {
+      db = getFirestore(app);
+    }
+    const auth = getAuth(app);
+
+    let unsubWs = null;
+    let unsubTx = null;
+    let deferredInstallPrompt = null;
+
+    const state = {
+      user: null,
+      userProfile: { activeWorkspaceId: '', workspaces: [] },
+      workspaceId: '',
+      authMode: 'signin', // 'signin' | 'signup'
+      currentView: 'overview',
+      darkMode: window.matchMedia?.('(prefers-color-scheme: dark)').matches || false,
+      privacyMode: false,
+      activePerson: 'person1',
+      syncStatus: 'connecting',
+
+      workspace: {
+        name: 'My Ledger',
+        ownerUid: '',
+        memberUids: [],
+        joinPin: '',
+        wallets: STARTER_WALLETS.map((w) => ({ ...w })),
+        archivedWalletNames: {},
+        openingBalances: { cash: 0, bank: 0 },
+        userNames: { person1: 'Person 1', person2: 'Person 2' },
+        currency: 'Ks',
+        customExpenseCategories: [],
+        customIncomeCategories: [],
+        quickTemplates: [],
+        // Shop settings preserved untouched here so shop.html shares the exact same doc
+        shopCategories: [
+          { id: 'hard_toys', name: 'Hard Toys', colorKey: 'amber' },
+          { id: 'preloved_books', name: 'Preloved Books', colorKey: 'teal' }
+        ],
+        shopProfile: { name: '', phone: '', footer: 'Thank you for your purchase!', logoDataUrl: '' }
+      },
+
+      transactions: [],
+      historyMode: 'list',
+      calendarMonth: getCurrentMonthKey(),
+      calendarSelectedDate: getTodayISO(),
+      filters: { search: '', month: getCurrentMonthKey(), wallet: 'all', type: 'all', person: 'all', scope: 'all' },
+      analyticsMonth: getCurrentMonthKey(),
+      analyticsScope: 'all',
+      txDraft: { editId: null, type: 'expense', wallet: 'cash', fromWallet: 'cash', toWallet: 'bank', category: 'Food & Dining', person: 'person1', scope: 'personal' },
+      settingsDraftWallets: [],
+      openColorWalletId: null,
+      confirmCallback: null,
+      charts: { expenseCategory: null, incomeExpense: null, walletDistribution: null, personBreakdown: null }
+    };
+
+    // =========================================================================
+    // 3. HELPERS
+    // =========================================================================
+    const $ = (id) => document.getElementById(id);
+    const esc = (s) => String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+    const isValidPerson = (v) => v === 'person1' || v === 'person2' || v === 'shared';
+    const getPersonName = (k) => k === 'shared' ? 'Shared' : (k === 'person2' ? (state.workspace.userNames?.person2 || 'Person 2') : (state.workspace.userNames?.person1 || 'Person 1'));
+    const fmtNum = (n) => {
+      const num = Number(n) || 0;
+      return `${num < 0 ? '-' : ''}${Math.abs(num).toLocaleString('en-US', { maximumFractionDigits: 2 })}`;
+    };
+    const fmtMoney = (n, plus = false) => `${plus && Number(n) > 0 ? '+' : ''}${fmtNum(n)} ${state.workspace.currency || 'Ks'}`;
+    const fmtDisp = (n, plus = false) => state.privacyMode ? '••••••' : fmtMoney(n, plus);
+    const fmtCompact = (n) => {
+      if (state.privacyMode) return '••';
+      const a = Math.abs(Number(n) || 0);
+      if (a >= 1e6) return `${(a / 1e6).toFixed(a >= 1e7 ? 0 : 1).replace(/\.0$/, '')}M`;
+      if (a >= 1e3) return `${(a / 1e3).toFixed(a >= 1e5 ? 0 : 1).replace(/\.0$/, '')}k`;
+      return String(Math.round(a));
+    };
+    const parseAmt = (v) => { const n = parseFloat(String(v || '').replace(/,/g, '').replace(/[^\d.]/g, '')); return Number.isFinite(n) ? n : 0; };
+    const parseSigned = (v) => (String(v || '').trim().startsWith('-') ? -1 : 1) * parseAmt(v);
+    const fmtMonth = (mk) => {
+      if (!mk || mk === 'all') return 'All Time';
+      const [y, m] = mk.split('-').map(Number);
+      return y && m ? new Date(y, m - 1, 1).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : mk;
+    };
+    const fmtDateHeading = (ds) => {
+      const today = getTodayISO();
+      const yd = new Date(); yd.setDate(yd.getDate() - 1);
+      const yest = `${yd.getFullYear()}-${String(yd.getMonth() + 1).padStart(2, '0')}-${String(yd.getDate()).padStart(2, '0')}`;
+      if (ds === today) return 'Today';
+      if (ds === yest) return 'Yesterday';
+      const [y, m, d] = (ds || '').split('-').map(Number);
+      return y && m && d ? new Date(y, m - 1, d).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }) : ds;
+    };
+
+    function getWallets() {
+      const list = Array.isArray(state.workspace.wallets) && state.workspace.wallets.length ? state.workspace.wallets : STARTER_WALLETS;
+      return list.map((w) => {
+        const c = COLOR_MAP[w.colorKey] || WALLET_COLORS[0];
+        const iconType = WALLET_ICONS[w.iconType] ? w.iconType : 'bank';
+        return { ...w, iconType, colorKey: c.key, hex: c.hex, colorLabel: c.label, icon: WALLET_ICONS[iconType] };
+      });
+    }
+
+    function getWalletById(id) {
+      const found = getWallets().find((w) => w.id === id);
+      if (found) return found;
+      return { id: id || 'removed', name: state.workspace.archivedWalletNames?.[id] || id || 'Removed', iconType: 'bank', hex: '#64748b', icon: WALLET_ICONS.bank };
+    }
+
+    function getCategoriesForType(type) {
+      const defs = type === 'income' ? DEFAULT_INCOME_CATS : DEFAULT_EXPENSE_CATS;
+      const custom = (type === 'income' ? state.workspace.customIncomeCategories : state.workspace.customExpenseCategories) || [];
+      const seen = new Set(defs.map((c) => c.name.toLowerCase()));
+      return [...defs, ...custom.filter((n) => n && !seen.has(n.toLowerCase())).map((name) => ({ name, icon: type === 'income' ? '💵' : '🏷️' }))];
+    }
+
+    function getCategoryIcon(type, name, scope) {
+      if (type === 'transfer') return '🔄';
+      if (scope === 'shop') return type === 'income' ? '🛍️' : '📦';
+      return getCategoriesForType(type).find((c) => c.name === name)?.icon || (type === 'income' ? '💵' : '🏷️');
+    }
+
+    function showToast(msg, variant = 'info') {
+      const styles = { success: 'bg-emerald-600 text-white', error: 'bg-rose-600 text-white', info: 'bg-slate-900 dark:bg-slate-800 text-white' };
+      const el = document.createElement('div');
+      el.className = `pointer-events-auto px-4 py-3 rounded-2xl text-xs sm:text-sm font-semibold shadow-lg transition-all duration-300 ${styles[variant] || styles.info}`;
+      el.textContent = msg;
+      $('toast-container').appendChild(el);
+      setTimeout(() => { el.classList.add('opacity-0', '-translate-y-2'); setTimeout(() => el.remove(), 300); }, 2800);
+    }
+
+    function copyText(text, msg = 'Copied!') {
+      try {
+        const ta = document.createElement('textarea');
+        ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+        document.body.appendChild(ta); ta.focus(); ta.select();
+        document.execCommand('copy'); document.body.removeChild(ta);
+        showToast(msg, 'success');
+      } catch { showToast('Could not copy', 'error'); }
+    }
+
+    function showScreen(name) {
+      $('loading-screen').classList.toggle('hidden', name !== 'loading');
+      $('auth-screen').classList.toggle('hidden', name !== 'auth');
+      $('workspace-screen').classList.toggle('hidden', name !== 'workspace');
+      $('app-shell').classList.toggle('hidden', name !== 'app');
+    }
+
+    // =========================================================================
+    // 4. AUTH & ISOLATED WORKSPACE MANAGEMENT
+    // =========================================================================
+    function friendlyAuthError(err) {
+      const code = err?.code || '';
+      if (code.includes('invalid-credential') || code.includes('wrong-password') || code.includes('user-not-found')) return 'Incorrect email or password.';
+      if (code.includes('email-already-in-use')) return 'This email already has an account. Switch to Sign In.';
+      if (code.includes('weak-password')) return 'Password must be at least 6 characters.';
+      if (code.includes('popup-closed-by-user')) return 'Google sign-in window was closed.';
+      if (code.includes('unauthorized-domain')) return 'Add this domain under Firebase Authentication → Settings → Authorized domains.';
+      if (code.includes('popup-blocked')) return 'Popup blocked by browser. Please allow popups or use Email/Password below.';
+      return err?.message || 'Authentication failed. Please try again.';
+    }
+
+    async function saveUserProfile() {
+      if (!state.user) return;
+      try {
+        localStorage.setItem('df_active_ws', state.workspaceId || '');
+        localStorage.setItem('df_dark', state.darkMode ? '1' : '0');
+        localStorage.setItem('df_privacy', state.privacyMode ? '1' : '0');
+      } catch {}
+      try {
+        await setDoc(doc(db, 'delights_flow_users', state.user.uid), {
+          email: state.user.email || '',
+          displayName: state.user.displayName || '',
+          activeWorkspaceId: state.workspaceId || '',
+          workspaces: state.userProfile.workspaces || [],
+          activePerson: state.activePerson,
+          darkMode: state.darkMode,
+          privacyMode: state.privacyMode,
+          updatedAt: Date.now()
+        }, { merge: true });
+      } catch (err) {
+        console.warn('Could not save user profile:', err);
+      }
+    }
+
+    async function handleSignedInUser(user) {
+      state.user = user;
+      $('ws-user-email').textContent = user.email || user.displayName || 'Signed in';
+      $('settings-account-email').textContent = user.email || user.displayName || 'Signed in';
+
+      try {
+        const snap = await getDoc(doc(db, 'delights_flow_users', user.uid));
+        if (snap.exists()) {
+          const d = snap.data();
+          state.userProfile = {
+            activeWorkspaceId: d.activeWorkspaceId || '',
+            workspaces: Array.isArray(d.workspaces) ? d.workspaces : []
+          };
+          if (isValidPerson(d.activePerson)) state.activePerson = d.activePerson;
+          if (typeof d.darkMode === 'boolean') { state.darkMode = d.darkMode; applyTheme(); }
+          if (typeof d.privacyMode === 'boolean') { state.privacyMode = d.privacyMode; applyPrivacyUI(); }
+        } else {
+          state.userProfile = { activeWorkspaceId: '', workspaces: [] };
+        }
+      } catch (err) {
+        console.warn('Profile load error:', err);
+      }
+
+      const preferredWs = state.userProfile.activeWorkspaceId || state.userProfile.workspaces[0]?.id || '';
+      if (preferredWs) {
+        await openWorkspace(preferredWs);
+      } else {
+        openWorkspaceOnboarding();
+      }
+    }
+
+    function openWorkspaceOnboarding() {
+      $('ws-create-pin').value = randomPin();
+      $('ws-create-error').classList.add('hidden');
+      $('ws-join-error').classList.add('hidden');
+      showScreen('workspace');
+    }
+
+    async function createWorkspace(name, currency, pin) {
+      const wsId = randomWsId();
+      const firstName = (state.user.displayName || state.user.email?.split('@')[0] || 'Person 1').slice(0, 20);
+      const docData = {
+        name: name.trim() || 'My Ledger',
+        ownerUid: state.user.uid,
+        memberUids: [state.user.uid],
+        joinPin: pin.trim(),
+        wallets: STARTER_WALLETS.map((w) => ({ ...w })),
+        archivedWalletNames: {},
+        openingBalances: { cash: 0, bank: 0 },
+        userNames: { person1: firstName, person2: 'Person 2' },
+        currency: currency.trim() || 'Ks',
+        customExpenseCategories: [],
+        customIncomeCategories: [],
+        quickTemplates: [],
+        shopCategories: [
+          { id: 'hard_toys', name: 'Hard Toys', colorKey: 'amber' },
+          { id: 'preloved_books', name: 'Preloved Books', colorKey: 'teal' }
+        ],
+        shopProfile: { name: '', phone: '', footer: 'Thank you for your purchase!', logoDataUrl: '' },
+        createdAt: Date.now(),
+        updatedAt: Date.now()
+      };
+
+      await setDoc(doc(db, 'delights_flow_workspaces', wsId), docData);
+      const list = [...(state.userProfile.workspaces || []).filter((w) => w.id !== wsId), { id: wsId, name: docData.name }];
+      state.userProfile = { activeWorkspaceId: wsId, workspaces: list };
+      state.workspaceId = wsId;
+      await saveUserProfile();
+      await openWorkspace(wsId);
+      showToast(`Created "${docData.name}"!`, 'success');
+    }
+
+    async function joinWorkspaceWithPin(wsId, pin) {
+      const cleanId = wsId.trim();
+      const cleanPin = pin.trim();
+      const wsRef = doc(db, 'delights_flow_workspaces', cleanId);
+
+      // Update ONLY ['memberUids', 'lastJoinPinAttempt', 'updatedAt'] to satisfy Firestore Rules
+      await updateDoc(wsRef, {
+        memberUids: arrayUnion(state.user.uid),
+        lastJoinPinAttempt: cleanPin,
+        updatedAt: Date.now()
+      });
+
+      const snap = await getDoc(wsRef);
+      const wsName = snap.exists() ? (snap.data().name || cleanId) : cleanId;
+      const list = [...(state.userProfile.workspaces || []).filter((w) => w.id !== cleanId), { id: cleanId, name: wsName }];
+      state.userProfile = { activeWorkspaceId: cleanId, workspaces: list };
+      state.workspaceId = cleanId;
+      await saveUserProfile();
+      await openWorkspace(cleanId);
+      showToast(`Joined "${wsName}"!`, 'success');
+    }
+
+    function updateSyncUI(status) {
+      state.syncStatus = status;
+      const effective = navigator.onLine === false ? 'offline' : status;
+      document.querySelectorAll('.sync-dot').forEach((d) => {
+        d.classList.remove('bg-amber-400', 'bg-emerald-500', 'bg-rose-500', 'animate-pulse');
+        d.classList.add(effective === 'synced' ? 'bg-emerald-500' : effective === 'offline' ? 'bg-amber-400' : 'bg-amber-400');
+        if (effective === 'connecting') d.classList.add('animate-pulse');
+      });
+      document.querySelectorAll('.sync-text').forEach((el) => {
+        el.textContent = effective === 'synced' ? 'Live Synced' : effective === 'offline' ? 'Offline (Queued)' : 'Connecting...';
+      });
+    }
+
+    async function openWorkspace(wsId) {
+      if (unsubWs) unsubWs();
+      if (unsubTx) unsubTx();
+
+      state.workspaceId = wsId;
+      try { localStorage.setItem('df_active_ws', wsId); } catch {}
+      showScreen('app');
+      updateSyncUI('connecting');
+
+      const wsRef = doc(db, 'delights_flow_workspaces', wsId);
+      unsubWs = onSnapshot(wsRef, (snap) => {
+        if (!snap.exists()) {
+          showToast('Workspace not found. Please create or join one.', 'error');
+          openWorkspaceOnboarding();
+          return;
+        }
+        const d = snap.data();
+        state.workspace = {
+          ...state.workspace,
+          ...d,
+          wallets: Array.isArray(d.wallets) && d.wallets.length ? d.wallets : STARTER_WALLETS.map((w) => ({ ...w })),
+          archivedWalletNames: d.archivedWalletNames || {},
+          openingBalances: d.openingBalances || {},
+          userNames: { person1: d.userNames?.person1 || 'Person 1', person2: d.userNames?.person2 || 'Person 2' },
+          currency: d.currency || 'Ks',
+          customExpenseCategories: Array.isArray(d.customExpenseCategories) ? d.customExpenseCategories : [],
+          customIncomeCategories: Array.isArray(d.customIncomeCategories) ? d.customIncomeCategories : [],
+          quickTemplates: Array.isArray(d.quickTemplates) ? d.quickTemplates : []
+        };
+        // Keep workspace name fresh in user profile list
+        const idx = (state.userProfile.workspaces || []).findIndex((w) => w.id === wsId);
+        if (idx >= 0 && state.userProfile.workspaces[idx].name !== state.workspace.name) {
+          state.userProfile.workspaces[idx].name = state.workspace.name;
+          saveUserProfile();
+        }
+        updateSyncUI('synced');
+        renderAll();
+      }, (err) => {
+        console.error('Workspace listener error:', err);
+        updateSyncUI('offline');
+        if (err?.code === 'permission-denied') {
+          showToast('Access denied for this workspace.', 'error');
+          openWorkspaceOnboarding();
+        }
+      });
+
+      const txCol = collection(db, 'delights_flow_workspaces', wsId, 'transactions');
+      unsubTx = onSnapshot(txCol, (qSnap) => {
+        const list = [];
+        qSnap.forEach((item) => list.push({ id: item.id, ...item.data() }));
+        list.sort((a, b) => (b.date || '').localeCompare(a.date || '') || (b.createdAt || 0) - (a.createdAt || 0));
+        state.transactions = list;
+        updateSyncUI('synced');
+        renderAll();
+      }, (err) => {
+        console.error('Transactions listener error:', err);
+        updateSyncUI('offline');
+      });
+    }
+
+    async function persistWorkspacePatch(patch) {
+      state.workspace = { ...state.workspace, ...patch };
+      renderAll();
+      await updateDoc(doc(db, 'delights_flow_workspaces', state.workspaceId), { ...patch, updatedAt: Date.now() });
+    }
+
+    async function persistTransaction(payload, editId = null) {
+      const colRef = collection(db, 'delights_flow_workspaces', state.workspaceId, 'transactions');
+      if (editId) {
+        await updateDoc(doc(colRef, editId), { ...payload, updatedAt: Date.now() });
+      } else {
+        await addDoc(colRef, { ...payload, createdByUid: state.user.uid, createdAt: Date.now() });
+      }
+    }
+
+    async function removeTransaction(txId) {
+      await deleteDoc(doc(db, 'delights_flow_workspaces', state.workspaceId, 'transactions', txId));
+    }
+
+    // =========================================================================
+    // 5. COMPUTATIONS
+    // =========================================================================
+    function computeWalletBalances() {
+      const bal = {};
+      for (const w of getWallets()) bal[w.id] = Number(state.workspace.openingBalances?.[w.id]) || 0;
+      for (const tx of state.transactions) {
+        const amt = Number(tx.amount) || 0;
+        if (tx.type === 'income' && bal[tx.wallet] !== undefined) bal[tx.wallet] += amt;
+        else if (tx.type === 'expense' && bal[tx.wallet] !== undefined) bal[tx.wallet] -= amt;
+        else if (tx.type === 'transfer') {
+          if (bal[tx.fromWallet] !== undefined) bal[tx.fromWallet] -= amt;
+          if (bal[tx.toWallet] !== undefined) bal[tx.toWallet] += amt;
+        }
+      }
+      return bal;
+    }
+
+    function getAvailableMonths() {
+      const set = new Set([getCurrentMonthKey()]);
+      if (state.analyticsMonth && state.analyticsMonth !== 'all') set.add(state.analyticsMonth);
+      if (state.filters.month && state.filters.month !== 'all') set.add(state.filters.month);
+      state.transactions.forEach((t) => { if (t.date?.length >= 7) set.add(t.date.slice(0, 7)); });
+      const now = new Date();
+      for (let i = 0; i < 6; i++) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        set.add(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`);
+      }
+      return Array.from(set).sort((a, b) => b.localeCompare(a));
+    }
+
+    function matchesScope(tx, scope) {
+      const txScope = tx.scope === 'shop' ? 'shop' : 'personal';
+      return scope === 'all' || txScope === scope;
+    }
+
+    function getFilteredTransactions(monthOverride = null) {
+      const { search, wallet, type, person, scope } = state.filters;
+      const month = monthOverride !== null ? monthOverride : state.filters.month;
+      const q = search.trim().toLowerCase();
+
+      return state.transactions.filter((tx) => {
+        if (month !== 'all' && (!tx.date || !tx.date.startsWith(month))) return false;
+        if (type !== 'all' && tx.type !== type) return false;
+        if (person !== 'all' && tx.loggedBy !== person) return false;
+        if (!matchesScope(tx, scope)) return false;
+        if (wallet !== 'all') {
+          if (tx.type === 'transfer' ? (tx.fromWallet !== wallet && tx.toWallet !== wallet) : tx.wallet !== wallet) return false;
+        }
+        if (q) {
+          const wName = tx.type === 'transfer'
+            ? `${getWalletById(tx.fromWallet).name} ${getWalletById(tx.toWallet).name}`
+            : getWalletById(tx.wallet).name;
+          const hay = [tx.note, tx.category, tx.customerName, wName, getPersonName(tx.loggedBy), tx.amount].join(' ').toLowerCase();
+          if (!hay.includes(q)) return false;
+        }
+        return true;
+      });
+    }
+
+    // =========================================================================
+    // 6. THEME, PRIVACY & NAVIGATION UI
+    // =========================================================================
+    function applyTheme() {
+      document.documentElement.classList.toggle('dark', state.darkMode);
+      const icon = state.darkMode
+        ? `<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z" /></svg>`
+        : `<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z" /></svg>`;
+      document.querySelectorAll('.theme-icon-slot').forEach((s) => (s.innerHTML = icon));
+      if (state.currentView === 'analytics' && state.workspaceId) renderAnalyticsView();
+    }
+
+    function applyPrivacyUI() {
+      const icon = state.privacyMode
+        ? `<svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 4.242L9.88 9.88" /></svg>`
+        : `<svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /></svg>`;
+      document.querySelectorAll('.privacy-icon-slot').forEach((s) => (s.innerHTML = icon));
+    }
+
+    function switchView(viewName) {
+      state.currentView = viewName;
+      ['overview', 'history', 'analytics'].forEach((v) => $(`view-${v}`).classList.toggle('hidden', v !== viewName));
+      document.querySelectorAll('.nav-btn').forEach((btn) => {
+        const active = btn.dataset.nav === viewName;
+        btn.className = active
+          ? 'nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 transition-all'
+          : 'nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-all';
+      });
+      document.querySelectorAll('.nav-btn-mobile').forEach((btn) => {
+        const active = btn.dataset.nav === viewName;
+        btn.className = active
+          ? 'nav-btn-mobile flex flex-col items-center justify-center py-1.5 gap-1 rounded-xl text-[11px] font-bold text-indigo-600 dark:text-indigo-400'
+          : 'nav-btn-mobile flex flex-col items-center justify-center py-1.5 gap-1 rounded-xl text-[11px] font-semibold text-slate-500 dark:text-slate-400';
+      });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      renderAll();
+    }
+
+    function updateHeaderUI() {
+      const wsName = state.workspace.name || 'My Ledger';
+      const activeName = getPersonName(state.activePerson);
+      $('sidebar-workspace-label').textContent = wsName;
+      $('mobile-header-subtitle').textContent = `${wsName} · ${activeName}`;
+      $('mobile-person-pill').textContent = activeName.length > 8 ? activeName.slice(0, 7) + '…' : activeName;
+
+      document.querySelectorAll('.quick-person-btn').forEach((btn) => {
+        const k = btn.dataset.quickPerson;
+        btn.textContent = getPersonName(k);
+        btn.className = k === state.activePerson
+          ? 'quick-person-btn py-2 px-1.5 rounded-lg bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm transition-all truncate'
+          : 'quick-person-btn py-2 px-1.5 rounded-lg text-slate-500 dark:text-slate-400 transition-all truncate';
+      });
+
+      const fp = $('filter-person');
+      fp.options[1].text = getPersonName('person1');
+      fp.options[2].text = getPersonName('person2');
+    }
+
+    // =========================================================================
+    // 7. RENDER VIEWS (OVERVIEW, HISTORY/CALENDAR, ANALYTICS)
+    // =========================================================================
+    function buildTxRowHTML(tx, showDate = false) {
+      const id = esc(tx.id);
+      const isTr = tx.type === 'transfer';
+      const isIn = tx.type === 'income';
+      const isShop = tx.scope === 'shop';
+      const icon = getCategoryIcon(tx.type, tx.category, tx.scope);
+      const title = isTr ? 'Transfer' : esc(tx.category || (isIn ? 'Income' : 'Expense'));
+
+      let wBadges = '';
+      if (isTr) {
+        const fw = getWalletById(tx.fromWallet), tw = getWalletById(tx.toWallet);
+        wBadges = `<span class="px-2 py-0.5 rounded-lg text-[11px] font-bold" style="background:${fw.hex}20;color:${fw.hex}">${esc(fw.name)}</span>
+                   <span class="text-slate-400 text-[11px]">→</span>
+                   <span class="px-2 py-0.5 rounded-lg text-[11px] font-bold" style="background:${tw.hex}20;color:${tw.hex}">${esc(tw.name)}</span>`;
+      } else {
+        const w = getWalletById(tx.wallet);
+        wBadges = `<span class="px-2 py-0.5 rounded-lg text-[11px] font-bold" style="background:${w.hex}20;color:${w.hex}">${esc(w.name)}</span>`;
+      }
+
+      const amtCls = isIn ? 'text-emerald-600 dark:text-emerald-400' : isTr ? 'text-sky-600 dark:text-sky-400' : 'text-rose-600 dark:text-rose-400';
+      const prefix = isIn ? '+' : isTr ? '' : '-';
+      const pName = getPersonName(tx.loggedBy);
+      const pCls = tx.loggedBy === 'shared'
+        ? 'bg-teal-100 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300'
+        : tx.loggedBy === 'person2'
+          ? 'bg-fuchsia-100 dark:bg-fuchsia-950/60 text-fuchsia-700 dark:text-fuchsia-300'
+          : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300';
+
+      return `
+        <div class="px-4 sm:px-5 py-3.5 hover:bg-slate-50/90 dark:hover:bg-slate-800/40 transition-colors flex items-center justify-between gap-3">
+          <div class="flex items-center gap-3 min-w-0 flex-1 cursor-pointer" data-edit-tx="${id}">
+            <div class="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-lg shrink-0">${icon}</div>
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <span class="text-sm font-bold text-slate-900 dark:text-white truncate">${title}</span>
+                ${isShop ? `<span class="px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-amber-100 dark:bg-amber-950/70 text-amber-700 dark:text-amber-300">Shop</span>` : ''}
+                ${tx.note ? `<span class="text-xs text-slate-500 dark:text-slate-400 truncate max-w-[170px] sm:max-w-xs">· ${esc(tx.note)}</span>` : ''}
+              </div>
+              <div class="flex items-center gap-1.5 flex-wrap mt-1">
+                ${wBadges}
+                <span class="px-2 py-0.5 rounded-lg text-[11px] font-semibold ${pCls}">${tx.loggedBy === 'shared' ? '👥 ' : ''}${esc(pName)}</span>
+                ${showDate ? `<span class="text-[11px] text-slate-400">${esc(tx.date || '')}</span>` : ''}
+              </div>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 shrink-0">
+            <div class="text-sm sm:text-base font-extrabold tabular-nums cursor-pointer ${amtCls}" data-edit-tx="${id}">
+              ${state.privacyMode ? '••••••' : `${prefix}${fmtMoney(tx.amount)}`}
+            </div>
+            <button type="button" data-delete-tx="${id}" title="Delete" class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/50">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /></svg>
+            </button>
+          </div>
+        </div>`;
+    }
+
+    function attachTxHandlers(el) {
+      el.querySelectorAll('[data-edit-tx]').forEach((node) => {
+        node.addEventListener('click', () => {
+          const tx = state.transactions.find((t) => t.id === node.dataset.editTx);
+          if (tx) openTransactionModal(tx);
+        });
+      });
+      el.querySelectorAll('[data-delete-tx]').forEach((node) => {
+        node.addEventListener('click', (e) => {
+          e.stopPropagation();
+          openConfirmModal('Delete Transaction?', 'Wallet balances will update automatically for all members.', 'Delete', true, async () => {
+            try { await removeTransaction(node.dataset.deleteTx); showToast('Entry deleted', 'success'); }
+            catch { showToast('Could not delete entry', 'error'); }
+          });
+        });
+      });
+    }
+
+    function renderQuickTemplates() {
+      const grid = $('quick-templates-grid');
+      const list = state.workspace.quickTemplates || [];
+      if (!list.length) {
+        grid.innerHTML = `<button type="button" id="empty-tpl-btn" class="col-span-2 sm:col-span-3 lg:col-span-4 p-4 rounded-2xl border border-dashed border-slate-300 dark:border-slate-700 bg-white/60 dark:bg-slate-900/60 hover:border-indigo-400 text-center">
+          <p class="text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-200">⚡ Create your first Quick Template</p>
+          <p class="text-[11px] text-slate-500 mt-0.5">Save frequent bills or daily spending for 1-tap logging</p>
+        </button>`;
+        $('empty-tpl-btn')?.addEventListener('click', openTemplatesModal);
+        return;
+      }
+      grid.innerHTML = list.map((t) => {
+        const wText = t.type === 'transfer' ? `${getWalletById(t.fromWallet).name} → ${getWalletById(t.toWallet).name}` : getWalletById(t.wallet).name;
+        const cls = t.type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : t.type === 'transfer' ? 'text-sky-600 dark:text-sky-400' : 'text-rose-600 dark:text-rose-400';
+        const pre = t.type === 'income' ? '+' : t.type === 'transfer' ? '' : '-';
+        return `<button type="button" data-run-tpl="${esc(t.id)}" class="text-left p-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 hover:border-indigo-400 shadow-sm active:scale-95 transition-all space-y-1.5">
+          <div class="flex items-center justify-between gap-1">
+            <span>${getCategoryIcon(t.type, t.category)}</span>
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-300 truncate max-w-[80px]">${esc(getPersonName(t.loggedBy))}</span>
+          </div>
+          <p class="text-xs sm:text-sm font-bold text-slate-900 dark:text-white truncate">${esc(t.title)}</p>
+          <p class="text-[11px] text-slate-400 truncate">${esc(wText)}</p>
+          <div class="text-xs sm:text-sm font-extrabold tabular-nums ${cls}">${state.privacyMode ? '••••••' : `${pre}${fmtMoney(t.amount)}`}</div>
+        </button>`;
+      }).join('');
+
+      grid.querySelectorAll('[data-run-tpl]').forEach((b) => {
+        b.addEventListener('click', async () => {
+          const t = list.find((x) => x.id === b.dataset.runTpl);
+          if (!t) return;
+          try {
+            await persistTransaction({
+              type: t.type || 'expense', amount: Number(t.amount) || 0, date: getTodayISO(),
+              note: t.note || t.title || '', loggedBy: isValidPerson(t.loggedBy) ? t.loggedBy : state.activePerson,
+              wallet: t.type === 'transfer' ? '' : (t.wallet || getWallets()[0]?.id || 'cash'),
+              fromWallet: t.type === 'transfer' ? t.fromWallet : '', toWallet: t.type === 'transfer' ? t.toWallet : '',
+              category: t.type === 'transfer' ? 'Transfer' : (t.category || 'Other'), scope: 'personal'
+            });
+            showToast(`Logged "${t.title}"`, 'success');
+          } catch { showToast('Could not log template', 'error'); }
+        });
+      });
+    }
+
+    function renderOverviewView() {
+      const wallets = getWallets();
+      const bal = computeWalletBalances();
+      const total = Object.values(bal).reduce((a, b) => a + b, 0);
+      const curM = getCurrentMonthKey();
+      let mIn = 0, mOut = 0;
+      state.transactions.forEach((t) => {
+        if (!t.date?.startsWith(curM)) return;
+        if (t.type === 'income') mIn += Number(t.amount) || 0;
+        else if (t.type === 'expense') mOut += Number(t.amount) || 0;
+      });
+
+      $('hero-wallet-count-label').textContent = `Total Net Balance (${wallets.length} ${wallets.length === 1 ? 'Wallet' : 'Wallets'})`;
+      $('overview-wallets-title').textContent = `Your Wallets (${wallets.length})`;
+      $('overview-month-pill').textContent = fmtMonth(curM);
+      $('hero-total-balance').textContent = fmtDisp(total);
+      $('hero-month-income').textContent = fmtDisp(mIn, true);
+      $('hero-month-expense').textContent = state.privacyMode ? '••••••' : `-${fmtMoney(mOut)}`;
+      $('hero-month-net').textContent = fmtDisp(mIn - mOut, true);
+      $('hero-tx-count').textContent = state.transactions.length
+        ? `${state.transactions.length} synced entries · Personal & Shop balances combined`
+        : 'Tap + to add your first entry, or + Customize to add more wallets';
+
+      const wGrid = $('wallets-grid');
+      wGrid.innerHTML = wallets.map((w) => {
+        const v = bal[w.id] || 0;
+        const vCls = !state.privacyMode && v < 0 ? 'text-rose-600 dark:text-rose-400' : 'text-slate-900 dark:text-white';
+        return `<button type="button" data-w-card="${esc(w.id)}" class="text-left bg-white dark:bg-slate-900 rounded-3xl p-4 sm:p-5 border border-slate-200/80 dark:border-slate-800 hover:border-indigo-400 shadow-sm active:scale-[0.98] transition-all flex flex-col justify-between gap-3">
+          <div class="flex items-center justify-between gap-2 w-full">
+            <div class="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0" style="background:${w.hex}20;color:${w.hex}">${w.icon}</div>
+            <span class="px-2.5 py-1 rounded-full text-[11px] font-bold truncate" style="background:${w.hex}20;color:${w.hex}">${esc(w.name)}</span>
+          </div>
+          <div class="min-w-0">
+            <p class="text-[11px] text-slate-400">Live Balance</p>
+            <p class="text-base sm:text-lg font-extrabold tabular-nums truncate mt-0.5 ${vCls}">${fmtDisp(v)}</p>
+          </div>
+        </button>`;
+      }).join('');
+      wGrid.querySelectorAll('[data-w-card]').forEach((c) => c.addEventListener('click', () => {
+        state.filters.wallet = c.dataset.wCard;
+        state.filters.month = 'all';
+        switchView('history');
+      }));
+
+      renderQuickTemplates();
+
+      const recent = $('recent-transactions-list');
+      const items = state.transactions.slice(0, 8);
+      if (!items.length) {
+        recent.innerHTML = `<div class="p-8 text-center space-y-1"><div class="text-3xl">📒</div><p class="text-sm font-bold text-slate-700 dark:text-slate-200">No entries yet</p><p class="text-xs text-slate-400">Tap + to log your first income, expense, or transfer.</p></div>`;
+      } else {
+        recent.innerHTML = items.map((t) => buildTxRowHTML(t, true)).join('');
+        attachTxHandlers(recent);
+      }
+    }
+
+    function populateSelectors() {
+      const months = getAvailableMonths();
+      const fm = $('filter-month');
+      fm.innerHTML = `<option value="all">All Months</option>` + months.map((m) => `<option value="${m}">${fmtMonth(m)}</option>`).join('');
+      fm.value = months.includes(state.filters.month) || state.filters.month === 'all' ? state.filters.month : 'all';
+
+      const am = $('analytics-month-select');
+      am.innerHTML = months.map((m) => `<option value="${m}">${fmtMonth(m)}</option>`).join('') + `<option value="all">All Time</option>`;
+      am.value = months.includes(state.analyticsMonth) || state.analyticsMonth === 'all' ? state.analyticsMonth : getCurrentMonthKey();
+
+      const wallets = getWallets();
+      const fw = $('filter-wallet');
+      fw.innerHTML = `<option value="all">All Wallets (${wallets.length})</option>` + wallets.map((w) => `<option value="${esc(w.id)}">${esc(w.name)}</option>`).join('');
+      if (state.filters.wallet !== 'all' && !wallets.some((w) => w.id === state.filters.wallet)) state.filters.wallet = 'all';
+      fw.value = state.filters.wallet;
+    }
+
+    function renderHistoryView() {
+      populateSelectors();
+      $('filter-type').value = state.filters.type;
+      $('filter-person').value = state.filters.person;
+      $('filter-scope').value = state.filters.scope;
+
+      const isCal = state.historyMode === 'calendar';
+      $('history-mode-list').className = !isCal ? 'px-3 py-1.5 rounded-lg text-xs font-bold bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'px-3 py-1.5 rounded-lg text-xs font-bold text-slate-500';
+      $('history-mode-calendar').className = isCal ? 'px-3 py-1.5 rounded-lg text-xs font-bold bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'px-3 py-1.5 rounded-lg text-xs font-bold text-slate-500';
+      $('history-calendar-wrap').classList.toggle('hidden', !isCal);
+      $('history-grouped-list').classList.toggle('hidden', isCal);
+
+      const list = getFilteredTransactions();
+      let sIn = 0, sOut = 0;
+      list.forEach((t) => { if (t.type === 'income') sIn += Number(t.amount) || 0; else if (t.type === 'expense') sOut += Number(t.amount) || 0; });
+      $('history-summary-stats').innerHTML = `
+        <span class="text-slate-600 dark:text-slate-300">${list.length} entries</span>
+        <span class="text-emerald-600 dark:text-emerald-400">${state.privacyMode ? '••••••' : `+${fmtMoney(sIn)}`}</span>
+        <span class="text-rose-600 dark:text-rose-400">${state.privacyMode ? '••••••' : `-${fmtMoney(sOut)}`}</span>`;
+
+      const dirty = state.filters.search || state.filters.wallet !== 'all' || state.filters.type !== 'all' || state.filters.person !== 'all' || state.filters.scope !== 'all' || state.filters.month !== getCurrentMonthKey();
+      $('clear-filters-btn').classList.toggle('hidden', !dirty);
+
+      if (isCal) { renderCalendarView(); return; }
+
+      const wrap = $('history-grouped-list');
+      if (!list.length) {
+        wrap.innerHTML = `<div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-10 text-center text-sm text-slate-400">No matching transactions found.</div>`;
+        return;
+      }
+
+      const groups = new Map();
+      list.forEach((t) => { const k = t.date || 'Unknown'; if (!groups.has(k)) groups.set(k, []); groups.get(k).push(t); });
+
+      wrap.innerHTML = Array.from(groups.entries()).map(([dk, items]) => {
+        let dIn = 0, dOut = 0;
+        items.forEach((t) => { if (t.type === 'income') dIn += Number(t.amount) || 0; else if (t.type === 'expense') dOut += Number(t.amount) || 0; });
+        const net = dIn - dOut;
+        return `<div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
+          <div class="px-4 sm:px-5 py-2.5 bg-slate-50/90 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs font-bold">
+            <span class="text-slate-700 dark:text-slate-200">${esc(fmtDateHeading(dk))}</span>
+            <span class="tabular-nums ${net > 0 ? 'text-emerald-600 dark:text-emerald-400' : net < 0 ? 'text-rose-600 dark:text-rose-400' : 'text-slate-400'}">${dIn === 0 && dOut === 0 ? 'Transfer' : fmtDisp(net, true)}</span>
+          </div>
+          <div class="divide-y divide-slate-100 dark:divide-slate-800/70">${items.map((t) => buildTxRowHTML(t, false)).join('')}</div>
+        </div>`;
+      }).join('');
+      attachTxHandlers(wrap);
+    }
+
+    function renderCalendarView() {
+      const mk = state.calendarMonth || getCurrentMonthKey();
+      const [y, m] = mk.split('-').map(Number);
+      $('cal-month-title').textContent = fmtMonth(mk);
+
+      const monthTxs = getFilteredTransactions(mk);
+      const byDay = {};
+      monthTxs.forEach((t) => {
+        if (!t.date) return;
+        if (!byDay[t.date]) byDay[t.date] = { in: 0, out: 0, tr: 0, items: [] };
+        byDay[t.date].items.push(t);
+        if (t.type === 'income') byDay[t.date].in += Number(t.amount) || 0;
+        else if (t.type === 'expense') byDay[t.date].out += Number(t.amount) || 0;
+        else byDay[t.date].tr++;
+      });
+
+      const today = getTodayISO();
+      if (!state.calendarSelectedDate?.startsWith(mk)) state.calendarSelectedDate = today.startsWith(mk) ? today : `${mk}-01`;
+
+      const startDay = new Date(y, m - 1, 1).getDay();
+      const daysCount = new Date(y, m, 0).getDate();
+      let html = '';
+      for (let i = 0; i < startDay; i++) html += `<div class="min-h-[58px] rounded-2xl bg-slate-50/40 dark:bg-slate-900/30"></div>`;
+      for (let d = 1; d <= daysCount; d++) {
+        const iso = `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        const info = byDay[iso];
+        const sel = iso === state.calendarSelectedDate;
+        const cls = sel ? 'bg-indigo-50 dark:bg-indigo-950/60 border-indigo-500 ring-1 ring-indigo-500' : iso === today ? 'bg-slate-50 dark:bg-slate-800/80 border-indigo-300 dark:border-indigo-700' : 'bg-slate-50/70 dark:bg-slate-800/40 border-slate-200/60 dark:border-slate-800';
+        html += `<button type="button" data-cal-day="${iso}" class="min-h-[58px] sm:min-h-[68px] p-1.5 rounded-2xl border text-left flex flex-col justify-between transition-all ${cls}">
+          <div class="flex items-center justify-between w-full"><span class="text-[11px] font-extrabold ${sel ? 'text-indigo-600 dark:text-indigo-300' : ''}">${d}</span>${info?.tr ? '<span class="w-1.5 h-1.5 rounded-full bg-sky-500"></span>' : ''}</div>
+          <div class="w-full overflow-hidden space-y-0.5">
+            ${info?.in ? `<div class="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 truncate">+${fmtCompact(info.in)}</div>` : ''}
+            ${info?.out ? `<div class="text-[9px] font-bold text-rose-600 dark:text-rose-400 truncate">-${fmtCompact(info.out)}</div>` : ''}
+          </div>
+        </button>`;
+      }
+      const grid = $('calendar-days-grid');
+      grid.innerHTML = html;
+      grid.querySelectorAll('[data-cal-day]').forEach((b) => b.addEventListener('click', () => { state.calendarSelectedDate = b.dataset.calDay; renderCalendarView(); }));
+
+      const selInfo = byDay[state.calendarSelectedDate] || { in: 0, out: 0, items: [] };
+      $('cal-selected-date-title').textContent = fmtDateHeading(state.calendarSelectedDate);
+      $('cal-selected-date-summary').textContent = selInfo.items.length ? `${selInfo.items.length} entries · In ${fmtDisp(selInfo.in)} · Out ${fmtDisp(selInfo.out)}` : 'No entries on this day';
+      const dayList = $('cal-selected-day-list');
+      dayList.innerHTML = selInfo.items.length ? selInfo.items.map((t) => buildTxRowHTML(t, false)).join('') : `<div class="p-6 text-center text-xs text-slate-400">No transactions on this date.</div>`;
+      if (selInfo.items.length) attachTxHandlers(dayList);
+    }
+
+    function destroyChart(k) { if (state.charts[k]) { state.charts[k].destroy(); state.charts[k] = null; } }
+
+    function renderAnalyticsView() {
+      populateSelectors();
+      if (state.currentView !== 'analytics') return;
+      $('analytics-scope-select').value = state.analyticsScope;
+
+      const mk = state.analyticsMonth;
+      const txs = state.transactions.filter((t) => (mk === 'all' || t.date?.startsWith(mk)) && matchesScope(t, state.analyticsScope));
+
+      let inc = 0, exp = 0;
+      const cats = {};
+      const pStats = { person1: { in: 0, out: 0, n: 0 }, person2: { in: 0, out: 0, n: 0 }, shared: { in: 0, out: 0, n: 0 } };
+      txs.forEach((t) => {
+        const a = Number(t.amount) || 0;
+        const pk = isValidPerson(t.loggedBy) ? t.loggedBy : 'person1';
+        pStats[pk].n++;
+        if (t.type === 'income') { inc += a; pStats[pk].in += a; }
+        else if (t.type === 'expense') { exp += a; pStats[pk].out += a; const c = t.category || 'Other'; cats[c] = (cats[c] || 0) + a; }
+      });
+
+      const net = inc - exp;
+      $('kpi-income').textContent = fmtDisp(inc);
+      $('kpi-expense').textContent = fmtDisp(exp);
+      $('kpi-net').textContent = fmtDisp(net, true);
+      $('kpi-net').className = `text-lg sm:text-xl font-extrabold mt-1 tabular-nums ${net >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`;
+      $('kpi-rate').textContent = state.privacyMode ? '••%' : `${inc > 0 ? Math.round((net / inc) * 100) : 0}%`;
+
+      const txtCol = state.darkMode ? '#cbd5e1' : '#475569';
+      const gridCol = state.darkMode ? 'rgba(148,163,184,0.12)' : 'rgba(15,23,42,0.07)';
+      const hasChart = typeof Chart !== 'undefined';
+
+      // Chart 1: Expense by Category
+      destroyChart('expenseCategory');
+      const sortedCats = Object.entries(cats).sort((a, b) => b[1] - a[1]);
+      $('empty-expense-chart').classList.toggle('hidden', sortedCats.length > 0);
+      if (!sortedCats.length) {
+        $('category-breakdown-list').innerHTML = `<p class="text-xs text-slate-400 text-center py-2">No expenses in ${fmtMonth(mk)}.</p>`;
+      } else {
+        const cols = sortedCats.map((_, i) => CHART_COLORS[i % CHART_COLORS.length]);
+        if (hasChart) {
+          state.charts.expenseCategory = new Chart($('chart-expense-category').getContext('2d'), {
+            type: 'doughnut',
+            data: { labels: sortedCats.map(([k]) => k), datasets: [{ data: sortedCats.map(([, v]) => v), backgroundColor: cols, borderWidth: 0 }] },
+            options: { responsive: true, maintainAspectRatio: false, cutout: '66%', plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => ` ${c.label}: ${fmtDisp(c.raw)}` } } } }
+          });
+        }
+        $('category-breakdown-list').innerHTML = sortedCats.map(([name, val], i) => {
+          const pct = exp > 0 ? ((val / exp) * 100).toFixed(1) : '0.0';
+          return `<div class="space-y-1"><div class="flex justify-between text-xs font-semibold"><span class="truncate"><span class="inline-block w-2.5 h-2.5 rounded-full mr-1.5" style="background:${cols[i]}"></span>${esc(name)}</span><span class="tabular-nums shrink-0">${fmtDisp(val)} (${pct}%)</span></div><div class="w-full h-1.5 rounded-full bg-slate-100 dark:bg-slate-800"><div class="h-full rounded-full" style="width:${pct}%;background:${cols[i]}"></div></div></div>`;
+        }).join('');
+      }
+
+      // Chart 2: 6-Month Trend
+      destroyChart('incomeExpense');
+      const base = mk === 'all' ? new Date() : new Date(Number(mk.split('-')[0]), Number(mk.split('-')[1]) - 1, 1);
+      const trend = [];
+      for (let i = 5; i >= 0; i--) { const d = new Date(base.getFullYear(), base.getMonth() - i, 1); trend.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`); }
+      if (hasChart) {
+        state.charts.incomeExpense = new Chart($('chart-income-expense').getContext('2d'), {
+          type: 'bar',
+          data: {
+            labels: trend.map(fmtMonth),
+            datasets: [
+              { label: 'Income', data: trend.map((m) => state.transactions.filter((t) => t.type === 'income' && t.date?.startsWith(m) && matchesScope(t, state.analyticsScope)).reduce((s, t) => s + (Number(t.amount) || 0), 0)), backgroundColor: '#10b981', borderRadius: 6, maxBarThickness: 24 },
+              { label: 'Expense', data: trend.map((m) => state.transactions.filter((t) => t.type === 'expense' && t.date?.startsWith(m) && matchesScope(t, state.analyticsScope)).reduce((s, t) => s + (Number(t.amount) || 0), 0)), backgroundColor: '#f43f5e', borderRadius: 6, maxBarThickness: 24 }
+            ]
+          },
+          options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: txtCol, usePointStyle: true } }, tooltip: { callbacks: { label: (c) => ` ${c.dataset.label}: ${fmtDisp(c.raw)}` } } }, scales: { x: { ticks: { color: txtCol }, grid: { display: false } }, y: { ticks: { color: txtCol }, grid: { color: gridCol } } } }
+        });
+      }
+
+      // Chart 3: Live Wallet Balances
+      destroyChart('walletDistribution');
+      const wallets = getWallets();
+      const bal = computeWalletBalances();
+      $('analytics-wallets-chart-title').textContent = `Live Balance Across ${wallets.length} ${wallets.length === 1 ? 'Wallet' : 'Wallets'}`;
+      $('chart-wallet-distribution').parentElement.style.height = `${Math.max(220, wallets.length * 42)}px`;
+      if (hasChart) {
+        state.charts.walletDistribution = new Chart($('chart-wallet-distribution').getContext('2d'), {
+          type: 'bar',
+          data: { labels: wallets.map((w) => w.name), datasets: [{ data: wallets.map((w) => bal[w.id] || 0), backgroundColor: wallets.map((w) => w.hex), borderRadius: 8, maxBarThickness: 26 }] },
+          options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => ` ${fmtDisp(c.raw)}` } } }, scales: { x: { ticks: { color: txtCol }, grid: { color: gridCol } }, y: { ticks: { color: txtCol, font: { weight: 'bold' } }, grid: { display: false } } } }
+        });
+      }
+
+      // Chart 4: Owner Breakdown
+      destroyChart('personBreakdown');
+      const keys = ['person1', 'person2', 'shared'];
+      if (hasChart) {
+        state.charts.personBreakdown = new Chart($('chart-person-breakdown').getContext('2d'), {
+          type: 'bar',
+          data: {
+            labels: keys.map(getPersonName),
+            datasets: [
+              { label: 'Income', data: keys.map((k) => pStats[k].in), backgroundColor: '#10b981', borderRadius: 8, maxBarThickness: 30 },
+              { label: 'Expense', data: keys.map((k) => pStats[k].out), backgroundColor: '#6366f1', borderRadius: 8, maxBarThickness: 30 }
+            ]
+          },
+          options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: txtCol, usePointStyle: true } }, tooltip: { callbacks: { label: (c) => ` ${c.dataset.label}: ${fmtDisp(c.raw)}` } } }, scales: { x: { ticks: { color: txtCol, font: { weight: 'bold' } }, grid: { display: false } }, y: { ticks: { color: txtCol }, grid: { color: gridCol } } } }
+        });
+      }
+
+      const totExp = pStats.person1.out + pStats.person2.out + pStats.shared.out;
+      const dots = { person1: 'bg-indigo-500', person2: 'bg-fuchsia-500', shared: 'bg-teal-500' };
+      $('person-comparison-cards').innerHTML = keys.map((k) => `
+        <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/70 border border-slate-100 dark:border-slate-700/60 space-y-1">
+          <div class="flex justify-between text-xs font-bold"><span class="flex items-center gap-1.5 truncate"><span class="w-2 h-2 rounded-full ${dots[k]}"></span>${esc(getPersonName(k))}</span><span class="text-slate-400">${totExp ? Math.round((pStats[k].out / totExp) * 100) : 0}%</span></div>
+          <div class="text-xs font-semibold text-rose-600 dark:text-rose-400 tabular-nums">Out: ${fmtDisp(pStats[k].out)}</div>
+          <div class="text-xs font-semibold text-emerald-600 dark:text-emerald-400 tabular-nums">In: ${fmtDisp(pStats[k].in)}</div>
+        </div>`).join('');
+    }
+
+    function renderAll() {
+      updateHeaderUI();
+      if (state.currentView === 'overview') renderOverviewView();
+      else if (state.currentView === 'history') renderHistoryView();
+      else renderAnalyticsView();
+    }
+
+    // =========================================================================
+    // 8. MODALS (TRANSACTION, SETTINGS, TEMPLATES, CONFIRM)
+    // =========================================================================
+    function openTransactionModal(tx = null, presetDate = null) {
+      const wallets = getWallets();
+      const fId = wallets[0]?.id || 'cash', sId = wallets[1]?.id || fId;
+      $('tx-form-error').classList.add('hidden');
+      $('custom-cat-inline').classList.add('hidden');
+      $('tx-save-as-template').checked = false;
+      $('tx-currency-badge').textContent = state.workspace.currency || 'Ks';
+
+      if (tx) {
+        state.txDraft = {
+          editId: tx.id, type: tx.type || 'expense', wallet: tx.wallet || fId,
+          fromWallet: tx.fromWallet || fId, toWallet: tx.toWallet || sId,
+          category: tx.category || 'Food & Dining', person: isValidPerson(tx.loggedBy) ? tx.loggedBy : 'person1',
+          scope: tx.scope === 'shop' ? 'shop' : 'personal'
+        };
+        $('tx-modal-title').textContent = 'Edit Transaction';
+        $('tx-submit-btn').textContent = 'Update Entry';
+        $('tx-delete-in-modal-btn').classList.remove('hidden');
+        $('tx-save-template-wrap').classList.add('hidden');
+        $('tx-amount').value = fmtNum(tx.amount);
+        $('tx-date').value = tx.date || getTodayISO();
+        $('tx-note').value = tx.note || '';
+      } else {
+        const fwValid = state.filters.wallet !== 'all' && wallets.some((w) => w.id === state.filters.wallet);
+        state.txDraft = {
+          editId: null, type: 'expense', wallet: fwValid ? state.filters.wallet : fId,
+          fromWallet: fId, toWallet: sId, category: 'Food & Dining',
+          person: isValidPerson(state.activePerson) ? state.activePerson : 'person1', scope: 'personal'
+        };
+        $('tx-modal-title').textContent = 'New Transaction';
+        $('tx-submit-btn').textContent = 'Save Entry';
+        $('tx-delete-in-modal-btn').classList.add('hidden');
+        $('tx-save-template-wrap').classList.remove('hidden');
+        $('tx-amount').value = '';
+        $('tx-date').value = presetDate || getTodayISO();
+        $('tx-note').value = '';
+      }
+      renderTxModalControls();
+      $('tx-modal').classList.remove('hidden');
+    }
+
+    function renderWalletPills(id, selected, onPick) {
+      const box = $(id);
+      box.innerHTML = getWallets().map((w) => {
+        const act = w.id === selected;
+        return `<button type="button" data-wp="${esc(w.id)}" class="px-3 py-2.5 rounded-xl border text-xs font-bold flex items-center gap-2 transition-all ${act ? 'bg-indigo-50 dark:bg-indigo-950/60 border-indigo-500 text-indigo-700 dark:text-indigo-200 ring-1 ring-indigo-500' : 'bg-slate-50 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300'}">
+          <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:${w.hex}"></span>
+          <span class="truncate">${esc(w.name)}</span>
+        </button>`;
+      }).join('');
+      box.querySelectorAll('[data-wp]').forEach((b) => b.addEventListener('click', () => onPick(b.dataset.wp)));
+    }
+
+    function renderTxModalControls() {
+      const wallets = getWallets();
+      const fId = wallets[0]?.id || 'cash', sId = wallets[1]?.id || fId;
+      if (!wallets.some((w) => w.id === state.txDraft.wallet)) state.txDraft.wallet = fId;
+      if (!wallets.some((w) => w.id === state.txDraft.fromWallet)) state.txDraft.fromWallet = fId;
+      if (!wallets.some((w) => w.id === state.txDraft.toWallet)) state.txDraft.toWallet = sId;
+
+      const { type, wallet, fromWallet, toWallet, person } = state.txDraft;
+      document.querySelectorAll('.tx-type-tab').forEach((b) => {
+        const t = b.dataset.txType;
+        b.className = t === type
+          ? `tx-type-tab py-2.5 rounded-xl text-sm font-bold text-white shadow-sm ${t === 'income' ? 'bg-emerald-600' : t === 'transfer' ? 'bg-sky-600' : 'bg-rose-600'}`
+          : 'tx-type-tab py-2.5 rounded-xl text-sm font-bold text-slate-500 dark:text-slate-400';
+      });
+
+      const isTr = type === 'transfer';
+      $('tx-single-wallet-wrap').classList.toggle('hidden', isTr);
+      $('tx-category-wrap').classList.toggle('hidden', isTr);
+      $('tx-transfer-wallets-wrap').classList.toggle('hidden', !isTr);
+
+      if (isTr) {
+        renderWalletPills('tx-from-wallet-pills', fromWallet, (id) => { state.txDraft.fromWallet = id; renderTxModalControls(); });
+        renderWalletPills('tx-to-wallet-pills', toWallet, (id) => { state.txDraft.toWallet = id; renderTxModalControls(); });
+      } else {
+        $('tx-wallet-label').textContent = type === 'income' ? 'Deposit Into Wallet' : 'Paid From Wallet';
+        renderWalletPills('tx-wallet-pills', wallet, (id) => { state.txDraft.wallet = id; renderTxModalControls(); });
+
+        const cats = getCategoriesForType(type);
+        if (!cats.some((c) => c.name === state.txDraft.category)) state.txDraft.category = cats[0]?.name || 'Other';
+        const cg = $('tx-category-grid');
+        cg.innerHTML = cats.map((c) => {
+          const act = c.name === state.txDraft.category;
+          return `<button type="button" data-cat="${esc(c.name)}" class="px-2 py-2.5 rounded-xl border text-xs font-semibold flex flex-col items-center gap-1 ${act ? 'bg-indigo-50 dark:bg-indigo-950/60 border-indigo-500 text-indigo-700 dark:text-indigo-200 ring-1 ring-indigo-500' : 'bg-slate-50 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700'}">
+            <span class="text-base leading-none">${c.icon}</span>
+            <span class="truncate max-w-full">${esc(c.name)}</span>
+          </button>`;
+        }).join('');
+        cg.querySelectorAll('[data-cat]').forEach((b) => b.addEventListener('click', () => { state.txDraft.category = b.dataset.cat; renderTxModalControls(); }));
+      }
+
+      document.querySelectorAll('.tx-person-toggle').forEach((b) => {
+        const k = b.dataset.txPerson;
+        b.textContent = getPersonName(k);
+        b.className = k === person
+          ? 'tx-person-toggle py-2 px-1.5 rounded-lg text-xs font-bold bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm truncate'
+          : 'tx-person-toggle py-2 px-1.5 rounded-lg text-xs font-bold text-slate-500 truncate';
+      });
+    }
+
+    function renderSettingsWalletsList(focusId = null) {
+      const box = $('settings-wallets-list');
+      const curr = $('setting-currency').value.trim() || state.workspace.currency || 'Ks';
+      const canDel = state.settingsDraftWallets.length > 1;
+
+      box.innerHTML = state.settingsDraftWallets.map((w, i) => {
+        const c = COLOR_MAP[w.colorKey] || WALLET_COLORS[0];
+        const openPal = state.openColorWalletId === w.id;
+        return `<div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700/80 space-y-2.5" data-w-row="${esc(w.id)}">
+          <div class="flex items-center gap-2">
+            <button type="button" data-pal="${esc(w.id)}" class="w-8 h-8 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 flex items-center justify-center shrink-0">
+              <span class="w-4 h-4 rounded-full" style="background:${c.hex}"></span>
+            </button>
+            <input type="text" maxlength="28" required placeholder="Account name (e.g. KBZ Bank, KPay)" value="${esc(w.name)}" data-dn="${i}" class="flex-1 min-w-0 px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm font-bold" />
+            <button type="button" data-dr="${i}" class="p-2 rounded-xl text-slate-400 hover:text-rose-600 ${canDel ? '' : 'opacity-30'}">✕</button>
+          </div>
+          <div class="grid grid-cols-12 gap-2">
+            <select data-di="${i}" class="col-span-5 px-2.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-semibold">
+              <option value="cash" ${w.iconType === 'cash' ? 'selected' : ''}>Cash</option>
+              <option value="bank" ${w.iconType === 'bank' ? 'selected' : ''}>Bank</option>
+              <option value="mobile" ${w.iconType === 'mobile' ? 'selected' : ''}>Mobile Pay</option>
+              <option value="card" ${w.iconType === 'card' ? 'selected' : ''}>Card / Pay</option>
+            </select>
+            <div class="col-span-7 relative flex items-center">
+              <input type="text" inputmode="decimal" value="${fmtNum(w.openingBalance || 0)}" data-dob="${i}" class="w-full px-2.5 py-2 pr-10 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm font-bold tabular-nums" />
+              <span class="absolute right-2.5 text-[11px] font-semibold text-slate-400">${esc(curr)}</span>
+            </div>
+          </div>
+          ${openPal ? `<div class="pt-2 border-t border-slate-200/70 dark:border-slate-700 flex flex-wrap gap-2">
+            ${WALLET_COLORS.map((col) => `<button type="button" data-pick="${i}:${col.key}" title="${col.label}" class="w-6 h-6 rounded-full transition-transform ${col.key === w.colorKey ? 'ring-2 ring-offset-2 ring-indigo-600 scale-110' : ''}" style="background:${col.hex}"></button>`).join('')}
+          </div>` : ''}
+        </div>`;
+      }).join('');
+
+      box.querySelectorAll('[data-dn]').forEach((el) => el.addEventListener('input', () => (state.settingsDraftWallets[+el.dataset.dn].name = el.value)));
+      box.querySelectorAll('[data-di]').forEach((el) => el.addEventListener('change', () => (state.settingsDraftWallets[+el.dataset.di].iconType = el.value)));
+      box.querySelectorAll('[data-dob]').forEach((el) => {
+        el.addEventListener('input', () => (state.settingsDraftWallets[+el.dataset.dob].openingBalance = parseSigned(el.value)));
+        el.addEventListener('blur', () => { const v = parseSigned(el.value); state.settingsDraftWallets[+el.dataset.dob].openingBalance = v; el.value = fmtNum(v); });
+      });
+      box.querySelectorAll('[data-pal]').forEach((b) => b.addEventListener('click', () => { state.openColorWalletId = state.openColorWalletId === b.dataset.pal ? null : b.dataset.pal; renderSettingsWalletsList(); }));
+      box.querySelectorAll('[data-pick]').forEach((b) => b.addEventListener('click', () => {
+        const [idx, key] = b.dataset.pick.split(':');
+        state.settingsDraftWallets[+idx].colorKey = key;
+        state.openColorWalletId = null;
+        renderSettingsWalletsList();
+      }));
+      box.querySelectorAll('[data-dr]').forEach((b) => b.addEventListener('click', () => {
+        if (state.settingsDraftWallets.length <= 1) return showToast('Keep at least 1 wallet', 'info');
+        state.settingsDraftWallets.splice(+b.dataset.dr, 1);
+        renderSettingsWalletsList();
+      }));
+      if (focusId) box.querySelector(`[data-w-row="${focusId}"] input[data-dn]`)?.focus();
+    }
+
+    function openSettingsModal() {
+      state.openColorWalletId = null;
+      $('setting-ws-name').value = state.workspace.name || 'My Ledger';
+      $('setting-currency').value = state.workspace.currency || 'Ks';
+      $('setting-person1').value = state.workspace.userNames?.person1 || 'Person 1';
+      $('setting-person2').value = state.workspace.userNames?.person2 || 'Person 2';
+      $('setting-ws-id-display').textContent = state.workspaceId;
+      $('setting-join-pin').value = state.workspace.joinPin || randomPin();
+
+      const sw = $('setting-ws-switcher');
+      const wsList = state.userProfile.workspaces || [];
+      sw.innerHTML = wsList.map((w) => `<option value="${esc(w.id)}">${esc(w.name || w.id)}</option>`).join('');
+      sw.value = state.workspaceId;
+
+      state.settingsDraftWallets = getWallets().map((w) => ({
+        id: w.id, name: w.name, iconType: w.iconType, colorKey: w.colorKey,
+        openingBalance: Number(state.workspace.openingBalances?.[w.id]) || 0
+      }));
+      renderSettingsWalletsList();
+      $('settings-modal').classList.remove('hidden');
+    }
+
+    function openTemplatesModal() {
+      $('tpl-edit-id').value = '';
+      $('tpl-title').value = ''; $('tpl-amount').value = ''; $('tpl-note').value = '';
+      $('tpl-type').value = 'expense'; $('tpl-person').value = state.activePerson;
+      $('tpl-form-heading').textContent = 'Add Template';
+      $('tpl-cancel-edit-btn').classList.add('hidden');
+      syncTemplateSelects();
+      renderTemplatesList();
+      $('templates-modal').classList.remove('hidden');
+    }
+
+    function syncTemplateSelects() {
+      const wallets = getWallets(), type = $('tpl-type').value;
+      const wOpts = wallets.map((w) => `<option value="${esc(w.id)}">${esc(w.name)}</option>`).join('');
+      $('tpl-wallet').innerHTML = wOpts;
+      $('tpl-to-wallet').innerHTML = wOpts;
+      if (wallets[1]) $('tpl-to-wallet').value = wallets[1].id;
+      const isTr = type === 'transfer';
+      $('tpl-to-wallet').classList.toggle('hidden', !isTr);
+      $('tpl-category').classList.toggle('hidden', isTr);
+      if (!isTr) $('tpl-category').innerHTML = getCategoriesForType(type).map((c) => `<option value="${esc(c.name)}">${c.icon} ${esc(c.name)}</option>`).join('');
+      $('tpl-person').options[0].text = getPersonName('person1');
+      $('tpl-person').options[1].text = getPersonName('person2');
+    }
+
+    function renderTemplatesList() {
+      const list = state.workspace.quickTemplates || [];
+      const box = $('templates-modal-list');
+      box.innerHTML = list.length ? list.map((t) => `
+        <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700 flex items-center justify-between gap-2">
+          <div class="min-w-0"><p class="text-xs sm:text-sm font-bold truncate">${getCategoryIcon(t.type, t.category)} ${esc(t.title)}</p><p class="text-[11px] text-slate-400 truncate">${fmtMoney(t.amount)} · ${esc(getPersonName(t.loggedBy))}</p></div>
+          <button type="button" data-del-tpl="${esc(t.id)}" class="px-2.5 py-1 rounded-lg bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 text-xs font-bold">Delete</button>
+        </div>`).join('') : `<p class="text-xs text-slate-400 text-center py-3">No templates saved yet.</p>`;
+      box.querySelectorAll('[data-del-tpl]').forEach((b) => b.addEventListener('click', async () => {
+        await persistWorkspacePatch({ quickTemplates: list.filter((x) => x.id !== b.dataset.delTpl) });
+        renderTemplatesList();
+        showToast('Template removed', 'info');
+      }));
+    }
+
+    function openConfirmModal(title, desc, okText, danger, onOk) {
+      state.confirmCallback = onOk;
+      $('confirm-modal-title').textContent = title;
+      $('confirm-modal-desc').textContent = desc;
+      $('confirm-ok-btn').textContent = okText;
+      $('confirm-ok-btn').className = danger ? 'py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm' : 'py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm';
+      $('confirm-modal').classList.remove('hidden');
+    }
+
+    // =========================================================================
+    // 9. CSV & JSON BACKUP / RESTORE
+    // =========================================================================
+    function exportCSV() {
+      const rows = getFilteredTransactions();
+      if (!rows.length) return showToast('No transactions to export', 'info');
+      const q = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+      const lines = [['Date', 'Scope', 'Type', 'Amount', 'Currency', 'Wallet/From', 'To Wallet', 'Category', 'Owner', 'Note'].join(',')];
+      rows.forEach((t) => {
+        lines.push([
+          q(t.date), q(t.scope === 'shop' ? 'Shop' : 'Personal'), q(t.type), Number(t.amount) || 0, q(state.workspace.currency),
+          q(t.type === 'transfer' ? getWalletById(t.fromWallet).name : getWalletById(t.wallet).name),
+          q(t.type === 'transfer' ? getWalletById(t.toWallet).name : ''),
+          q(t.type === 'transfer' ? 'Transfer' : t.category), q(getPersonName(t.loggedBy)), q(t.note)
+        ].join(','));
+      });
+      const blob = new Blob(['\uFEFF' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
+      const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: `DelightsFlow_${state.filters.month}.csv` });
+      a.click(); URL.revokeObjectURL(a.href);
+      showToast(`Exported ${rows.length} rows`, 'success');
+    }
+
+    function exportBackupJSON() {
+      const data = { app: 'Delights Flow', version: 3, exportedAt: new Date().toISOString(), workspace: state.workspace, transactions: state.transactions };
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: `DelightsFlow_Backup_${getTodayISO()}.json` });
+      a.click(); URL.revokeObjectURL(a.href);
+      showToast('Backup downloaded', 'success');
+    }
+
+    function handleRestoreFile(file) {
+      const r = new FileReader();
+      r.onload = () => {
+        try {
+          const parsed = JSON.parse(String(r.result || '{}'));
+          const srcSettings = parsed.workspace || parsed.settings;
+          if (!srcSettings || !Array.isArray(parsed.transactions)) return showToast('Invalid backup file', 'error');
+
+          openConfirmModal('Restore JSON Backup?', `Restore wallets, templates, and import up to ${parsed.transactions.length} entries into "${state.workspace.name}"?`, 'Restore', false, async () => {
+            await persistWorkspacePatch({
+              wallets: Array.isArray(srcSettings.wallets) && srcSettings.wallets.length ? srcSettings.wallets : state.workspace.wallets,
+              archivedWalletNames: srcSettings.archivedWalletNames || {},
+              openingBalances: srcSettings.openingBalances || {},
+              userNames: srcSettings.userNames || state.workspace.userNames,
+              currency: srcSettings.currency || state.workspace.currency,
+              customExpenseCategories: srcSettings.customExpenseCategories || [],
+              customIncomeCategories: srcSettings.customIncomeCategories || [],
+              quickTemplates: srcSettings.quickTemplates || []
+            });
+            const sig = (t) => `${t.date}|${t.type}|${Number(t.amount) || 0}|${t.wallet || ''}|${t.fromWallet || ''}|${t.toWallet || ''}|${t.category || ''}|${t.note || ''}`;
+            const seen = new Set(state.transactions.map(sig));
+            let count = 0;
+            for (const t of parsed.transactions) {
+              if (!t || !(Number(t.amount) > 0)) continue;
+              const clean = {
+                type: t.type || 'expense', amount: Number(t.amount), date: t.date || getTodayISO(),
+                note: t.note || '', loggedBy: isValidPerson(t.loggedBy) ? t.loggedBy : 'person1',
+                wallet: t.type === 'transfer' ? '' : (t.wallet || 'cash'),
+                fromWallet: t.type === 'transfer' ? (t.fromWallet || '') : '', toWallet: t.type === 'transfer' ? (t.toWallet || '') : '',
+                category: t.type === 'transfer' ? 'Transfer' : (t.category || 'Other'), scope: t.scope === 'shop' ? 'shop' : 'personal'
+              };
+              if (seen.has(sig(clean))) continue;
+              seen.add(sig(clean));
+              await persistTransaction(clean);
+              count++;
+            }
+            $('settings-modal').classList.add('hidden');
+            showToast(`Restored settings & ${count} new entries`, 'success');
+          });
+        } catch { showToast('Could not read JSON file', 'error'); }
+      };
+      r.readAsText(file);
+    }
+
+    // =========================================================================
+    // 10. EVENT BINDINGS
+    // =========================================================================
+    function bindEvents() {
+      // Auth Screen Tabs & Handlers
+      const setAuthMode = (m) => {
+        state.authMode = m;
+        $('auth-name-wrap').classList.toggle('hidden', m !== 'signup');
+        $('auth-forgot-btn').classList.toggle('hidden', m === 'signup');
+        $('auth-submit-btn').textContent = m === 'signup' ? 'Create Account' : 'Sign In';
+        $('auth-tab-signin').className = m === 'signin' ? 'py-2 rounded-xl text-xs font-bold bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'py-2 rounded-xl text-xs font-bold text-slate-500';
+        $('auth-tab-signup').className = m === 'signup' ? 'py-2 rounded-xl text-xs font-bold bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'py-2 rounded-xl text-xs font-bold text-slate-500';
+        $('auth-error-box').classList.add('hidden');
+      };
+      $('auth-tab-signin').addEventListener('click', () => setAuthMode('signin'));
+      $('auth-tab-signup').addEventListener('click', () => setAuthMode('signup'));
+
+      $('google-signin-btn').addEventListener('click', async () => {
+        $('auth-error-box').classList.add('hidden');
+        try {
+          const provider = new GoogleAuthProvider();
+          await signInWithPopup(auth, provider);
+        } catch (err) {
+          $('auth-error-box').textContent = friendlyAuthError(err);
+          $('auth-error-box').classList.remove('hidden');
+        }
+      });
+
+      $('auth-email-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        $('auth-error-box').classList.add('hidden');
+        const email = $('auth-email').value.trim();
+        const pass = $('auth-password').value;
+        const btn = $('auth-submit-btn');
+        btn.disabled = true;
+        try {
+          if (state.authMode === 'signup') {
+            const cred = await createUserWithEmailAndPassword(auth, email, pass);
+            const name = $('auth-name').value.trim();
+            if (name) await updateProfile(cred.user, { displayName: name });
+          } else {
+            await signInWithEmailAndPassword(auth, email, pass);
+          }
+        } catch (err) {
+          $('auth-error-box').textContent = friendlyAuthError(err);
+          $('auth-error-box').classList.remove('hidden');
+        } finally {
+          btn.disabled = false;
+        }
+      });
+
+      $('auth-forgot-btn').addEventListener('click', async () => {
+        const email = $('auth-email').value.trim();
+        if (!email) { $('auth-error-box').textContent = 'Enter your email address first.'; $('auth-error-box').classList.remove('hidden'); return; }
+        try {
+          await sendPasswordResetEmail(auth, email);
+          showToast('Password reset email sent!', 'success');
+        } catch (err) {
+          $('auth-error-box').textContent = friendlyAuthError(err);
+          $('auth-error-box').classList.remove('hidden');
+        }
+      });
+
+      // Workspace Onboarding Screen
+      const setWsTab = (t) => {
+        $('ws-create-form').classList.toggle('hidden', t !== 'create');
+        $('ws-join-form').classList.toggle('hidden', t !== 'join');
+        $('ws-tab-create').className = t === 'create' ? 'py-2 rounded-xl text-xs font-bold bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'py-2 rounded-xl text-xs font-bold text-slate-500';
+        $('ws-tab-join').className = t === 'join' ? 'py-2 rounded-xl text-xs font-bold bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'py-2 rounded-xl text-xs font-bold text-slate-500';
+      };
+      $('ws-tab-create').addEventListener('click', () => setWsTab('create'));
+      $('ws-tab-join').addEventListener('click', () => setWsTab('join'));
+
+      $('ws-create-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        $('ws-create-error').classList.add('hidden');
+        const btn = $('ws-create-btn'); btn.disabled = true; btn.textContent = 'Creating...';
+        try {
+          await createWorkspace($('ws-create-name').value, $('ws-create-currency').value, $('ws-create-pin').value);
+        } catch (err) {
+          $('ws-create-error').textContent = err?.message || 'Could not create ledger.';
+          $('ws-create-error').classList.remove('hidden');
+        } finally { btn.disabled = false; btn.textContent = 'Create Private Ledger'; }
+      });
+
+      $('ws-join-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        $('ws-join-error').classList.add('hidden');
+        const btn = $('ws-join-btn'); btn.disabled = true; btn.textContent = 'Joining...';
+        try {
+          await joinWorkspaceWithPin($('ws-join-id').value, $('ws-join-pin').value);
+        } catch (err) {
+          $('ws-join-error').textContent = 'Wrong Workspace ID or Join PIN. Double-check with your partner.';
+          $('ws-join-error').classList.remove('hidden');
+        } finally { btn.disabled = false; btn.textContent = 'Join Shared Ledger'; }
+      });
+
+      const doSignOut = async () => {
+        if (unsubWs) unsubWs();
+        if (unsubTx) unsubTx();
+        await signOut(auth);
+      };
+      $('ws-signout-btn').addEventListener('click', doSignOut);
+      $('settings-signout-btn').addEventListener('click', () => { $('settings-modal').classList.add('hidden'); doSignOut(); });
+
+      // Shop link guard for iframe preview before Step 3 is uploaded
+      document.querySelectorAll('.shop-nav-link').forEach((link) => {
+        link.addEventListener('click', (e) => {
+          if (location.protocol === 'about:' || location.protocol === 'blob:' || location.href.includes('srcdoc')) {
+            e.preventDefault();
+            showToast('Shop page (shop.html) comes in Step 3!', 'info');
+          }
+        });
+      });
+
+      // Navigation & Theme & Privacy
+      document.querySelectorAll('[data-nav]').forEach((b) => b.addEventListener('click', () => switchView(b.dataset.nav)));
+      $('overview-view-all-btn').addEventListener('click', () => switchView('history'));
+      ['overview-edit-wallets-btn', 'desktop-settings-btn', 'mobile-settings-btn', 'sidebar-open-sync'].forEach((id) => $(id).addEventListener('click', openSettingsModal));
+
+      const toggleTheme = () => { state.darkMode = !state.darkMode; applyTheme(); saveUserProfile(); };
+      $('desktop-theme-btn').addEventListener('click', toggleTheme);
+      $('mobile-theme-btn').addEventListener('click', toggleTheme);
+
+      const togglePrivacy = () => { state.privacyMode = !state.privacyMode; applyPrivacyUI(); saveUserProfile(); renderAll(); };
+      $('hero-privacy-btn').addEventListener('click', togglePrivacy);
+      $('mobile-privacy-btn').addEventListener('click', togglePrivacy);
+
+      // Owner Switcher
+      document.querySelectorAll('.quick-person-btn').forEach((b) => b.addEventListener('click', () => {
+        state.activePerson = b.dataset.quickPerson; updateHeaderUI(); saveUserProfile();
+      }));
+      $('mobile-person-pill').addEventListener('click', () => {
+        const ord = ['person1', 'person2', 'shared'];
+        state.activePerson = ord[(ord.indexOf(state.activePerson) + 1) % 3];
+        updateHeaderUI(); saveUserProfile();
+        showToast(`Logging as ${getPersonName(state.activePerson)}`, 'info');
+      });
+
+      // Transaction Modal
+      $('desktop-add-btn').addEventListener('click', () => openTransactionModal());
+      $('mobile-fab-add').addEventListener('click', () => openTransactionModal());
+      $('tx-modal-close').addEventListener('click', () => $('tx-modal').classList.add('hidden'));
+      $('tx-modal').addEventListener('click', (e) => { if (e.target.id === 'tx-modal') $('tx-modal').classList.add('hidden'); });
+      $('tx-delete-in-modal-btn').addEventListener('click', () => {
+        const id = state.txDraft.editId; if (!id) return;
+        $('tx-modal').classList.add('hidden');
+        openConfirmModal('Delete Transaction?', 'Wallet balances will update automatically.', 'Delete', true, async () => {
+          await removeTransaction(id); showToast('Entry deleted', 'success');
+        });
+      });
+      document.querySelectorAll('.tx-type-tab').forEach((b) => b.addEventListener('click', () => { state.txDraft.type = b.dataset.txType; renderTxModalControls(); }));
+      document.querySelectorAll('.tx-person-toggle').forEach((b) => b.addEventListener('click', () => { state.txDraft.person = b.dataset.txPerson; state.activePerson = b.dataset.txPerson; updateHeaderUI(); saveUserProfile(); renderTxModalControls(); }));
+      $('tx-swap-wallets-btn').addEventListener('click', () => { [state.txDraft.fromWallet, state.txDraft.toWallet] = [state.txDraft.toWallet, state.txDraft.fromWallet]; renderTxModalControls(); });
+
+      const formatAmtField = (inp) => {
+        const raw = inp.value.replace(/,/g, '').replace(/[^\d.]/g, '');
+        if (!raw) { inp.value = ''; return; }
+        const [i, d] = raw.split('.');
+        inp.value = d !== undefined ? `${Number(i || 0).toLocaleString('en-US')}.${d.slice(0, 2)}` : Number(i || 0).toLocaleString('en-US');
+      };
+      $('tx-amount').addEventListener('input', () => formatAmtField($('tx-amount')));
+      $('tpl-amount').addEventListener('input', () => formatAmtField($('tpl-amount')));
+      document.querySelectorAll('.quick-amt-btn').forEach((b) => b.addEventListener('click', () => { $('tx-amount').value = fmtNum(parseAmt($('tx-amount').value) + Number(b.dataset.quickAmt)); }));
+
+      $('toggle-add-custom-cat').addEventListener('click', () => { $('custom-cat-inline').classList.toggle('hidden'); $('custom-cat-input').focus(); });
+      $('save-custom-cat-btn').addEventListener('click', async () => {
+        const name = $('custom-cat-input').value.trim(); if (!name) return;
+        const key = state.txDraft.type === 'income' ? 'customIncomeCategories' : 'customExpenseCategories';
+        const next = [...new Set([...(state.workspace[key] || []), name])];
+        await persistWorkspacePatch({ [key]: next });
+        state.txDraft.category = name; $('custom-cat-input').value = ''; $('custom-cat-inline').classList.add('hidden');
+        renderTxModalControls(); showToast(`Added "${name}"`, 'success');
+      });
+
+      $('tx-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const err = $('tx-form-error'); err.classList.add('hidden');
+        const amount = parseAmt($('tx-amount').value);
+        const { type, wallet, fromWallet, toWallet, category, person, editId, scope } = state.txDraft;
+        if (amount <= 0) { err.textContent = 'Enter an amount greater than 0.'; err.classList.remove('hidden'); return; }
+        if (type === 'transfer' && fromWallet === toWallet) { err.textContent = 'Choose two different wallets.'; err.classList.remove('hidden'); return; }
+
+        const payload = {
+          type, amount, date: $('tx-date').value || getTodayISO(), note: $('tx-note').value.trim(),
+          loggedBy: person, wallet: type === 'transfer' ? '' : wallet,
+          fromWallet: type === 'transfer' ? fromWallet : '', toWallet: type === 'transfer' ? toWallet : '',
+          category: type === 'transfer' ? 'Transfer' : category, scope: scope || 'personal'
+        };
+
+        const btn = $('tx-submit-btn'); btn.disabled = true; btn.textContent = 'Saving...';
+        try {
+          await persistTransaction(payload, editId);
+          if (!editId && $('tx-save-as-template').checked) {
+            const title = (payload.note || (type === 'transfer' ? `${getWalletById(fromWallet).name} → ${getWalletById(toWallet).name}` : category)).slice(0, 28);
+            const tpl = { id: `tpl_${Date.now().toString(36)}`, title, ...payload };
+            await persistWorkspacePatch({ quickTemplates: [...(state.workspace.quickTemplates || []), tpl] });
+          }
+          $('tx-modal').classList.add('hidden');
+          showToast(editId ? 'Entry updated' : 'Entry saved', 'success');
+        } catch {
+          err.textContent = 'Could not save entry.'; err.classList.remove('hidden');
+        } finally { btn.disabled = false; btn.textContent = editId ? 'Update Entry' : 'Save Entry'; }
+      });
+
+      // Settings Modal
+      $('settings-modal-close').addEventListener('click', () => $('settings-modal').classList.add('hidden'));
+      $('settings-modal').addEventListener('click', (e) => { if (e.target.id === 'settings-modal') $('settings-modal').classList.add('hidden'); });
+      $('setting-currency').addEventListener('input', () => renderSettingsWalletsList());
+      $('add-wallet-btn').addEventListener('click', () => {
+        const id = `acct_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 5)}`;
+        state.settingsDraftWallets.push({ id, name: '', iconType: 'bank', colorKey: WALLET_COLORS[state.settingsDraftWallets.length % WALLET_COLORS.length].key, openingBalance: 0 });
+        renderSettingsWalletsList(id);
+      });
+      $('copy-ws-id-btn').addEventListener('click', () => copyText(state.workspaceId, 'Workspace ID copied!'));
+      $('copy-ws-pin-btn').addEventListener('click', () => copyText($('setting-join-pin').value.trim(), 'Join PIN copied!'));
+      $('setting-ws-switcher').addEventListener('change', async (e) => {
+        const nextId = e.target.value;
+        if (!nextId || nextId === state.workspaceId) return;
+        $('settings-modal').classList.add('hidden');
+        state.userProfile.activeWorkspaceId = nextId;
+        state.workspaceId = nextId;
+        await saveUserProfile();
+        await openWorkspace(nextId);
+      });
+      $('open-ws-onboarding-btn').addEventListener('click', () => { $('settings-modal').classList.add('hidden'); openWorkspaceOnboarding(); });
+      $('backup-export-btn').addEventListener('click', exportBackupJSON);
+      $('backup-import-btn').addEventListener('click', () => { $('backup-import-file').value = ''; $('backup-import-file').click(); });
+      $('backup-import-file').addEventListener('change', (e) => { if (e.target.files?.[0]) handleRestoreFile(e.target.files[0]); });
+
+      $('settings-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = $('settings-save-btn'); btn.disabled = true; btn.textContent = 'Saving...';
+        try {
+          const prevW = getWallets();
+          const newW = state.settingsDraftWallets.map((w, i) => ({
+            id: w.id, name: w.name.trim() || `Account ${i + 1}`,
+            iconType: WALLET_ICONS[w.iconType] ? w.iconType : 'bank',
+            colorKey: COLOR_MAP[w.colorKey] ? w.colorKey : WALLET_COLORS[i % WALLET_COLORS.length].key
+          }));
+          const ob = {};
+          state.settingsDraftWallets.forEach((w) => (ob[w.id] = Number(w.openingBalance) || 0));
+          const archived = { ...(state.workspace.archivedWalletNames || {}) };
+          const activeSet = new Set(newW.map((w) => w.id));
+          prevW.forEach((p) => { if (!activeSet.has(p.id)) archived[p.id] = p.name; });
+
+          await persistWorkspacePatch({
+            name: $('setting-ws-name').value.trim() || 'My Ledger',
+            currency: $('setting-currency').value.trim() || 'Ks',
+            joinPin: $('setting-join-pin').value.trim(),
+            wallets: newW, archivedWalletNames: archived, openingBalances: ob,
+            userNames: { person1: $('setting-person1').value.trim() || 'Person 1', person2: $('setting-person2').value.trim() || 'Person 2' }
+          });
+          $('settings-modal').classList.add('hidden');
+          showToast('Settings saved', 'success');
+        } catch { showToast('Could not save settings', 'error'); }
+        finally { btn.disabled = false; btn.textContent = 'Save Settings'; }
+      });
+
+      // Templates Modal
+      $('open-templates-modal-btn').addEventListener('click', openTemplatesModal);
+      $('templates-modal-close').addEventListener('click', () => $('templates-modal').classList.add('hidden'));
+      $('tpl-type').addEventListener('change', syncTemplateSelects);
+      $('template-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const title = $('tpl-title').value.trim(), amount = parseAmt($('tpl-amount').value), type = $('tpl-type').value;
+        if (!title || amount <= 0) return showToast('Enter name & amount', 'error');
+        const entry = {
+          id: $('tpl-edit-id').value || `tpl_${Date.now().toString(36)}`, title, type, amount,
+          wallet: type === 'transfer' ? '' : $('tpl-wallet').value,
+          fromWallet: type === 'transfer' ? $('tpl-wallet').value : '', toWallet: type === 'transfer' ? $('tpl-to-wallet').value : '',
+          category: type === 'transfer' ? 'Transfer' : $('tpl-category').value,
+          loggedBy: $('tpl-person').value, note: $('tpl-note').value.trim()
+        };
+        await persistWorkspacePatch({ quickTemplates: [...(state.workspace.quickTemplates || []), entry] });
+        openTemplatesModal(); showToast('Template saved', 'success');
+      });
+
+      // Confirm Modal
+      $('confirm-cancel-btn').addEventListener('click', () => $('confirm-modal').classList.add('hidden'));
+      $('confirm-ok-btn').addEventListener('click', async () => {
+        const cb = state.confirmCallback; $('confirm-modal').classList.add('hidden');
+        if (cb) await cb();
+      });
+
+      // History, Calendar & Analytics Filters
+      $('history-mode-list').addEventListener('click', () => { state.historyMode = 'list'; renderHistoryView(); });
+      $('history-mode-calendar').addEventListener('click', () => { state.historyMode = 'calendar'; state.calendarMonth = state.filters.month !== 'all' ? state.filters.month : getCurrentMonthKey(); renderHistoryView(); });
+      const shiftCal = (delta) => { const [y, m] = state.calendarMonth.split('-').map(Number); const d = new Date(y, m - 1 + delta, 1); state.calendarMonth = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`; renderCalendarView(); };
+      $('cal-prev-month').addEventListener('click', () => shiftCal(-1));
+      $('cal-next-month').addEventListener('click', () => shiftCal(1));
+      $('cal-today-btn').addEventListener('click', () => { state.calendarMonth = getCurrentMonthKey(); state.calendarSelectedDate = getTodayISO(); renderCalendarView(); });
+      $('cal-add-for-date-btn').addEventListener('click', () => openTransactionModal(null, state.calendarSelectedDate));
+
+      $('filter-search').addEventListener('input', (e) => { state.filters.search = e.target.value; renderHistoryView(); });
+      $('filter-month').addEventListener('change', (e) => { state.filters.month = e.target.value; if (e.target.value !== 'all') state.calendarMonth = e.target.value; renderHistoryView(); });
+      $('filter-wallet').addEventListener('change', (e) => { state.filters.wallet = e.target.value; renderHistoryView(); });
+      $('filter-type').addEventListener('change', (e) => { state.filters.type = e.target.value; renderHistoryView(); });
+      $('filter-person').addEventListener('change', (e) => { state.filters.person = e.target.value; renderHistoryView(); });
+      $('filter-scope').addEventListener('change', (e) => { state.filters.scope = e.target.value; renderHistoryView(); });
+      $('clear-filters-btn').addEventListener('click', () => { state.filters = { search: '', month: getCurrentMonthKey(), wallet: 'all', type: 'all', person: 'all', scope: 'all' }; $('filter-search').value = ''; renderHistoryView(); });
+      $('export-csv-btn').addEventListener('click', exportCSV);
+
+      $('analytics-scope-select').addEventListener('change', (e) => { state.analyticsScope = e.target.value; renderAnalyticsView(); });
+      $('analytics-month-select').addEventListener('change', (e) => { state.analyticsMonth = e.target.value; renderAnalyticsView(); });
+      const shiftAna = (delta) => { const cur = state.analyticsMonth === 'all' ? getCurrentMonthKey() : state.analyticsMonth; const [y, m] = cur.split('-').map(Number); const d = new Date(y, m - 1 + delta, 1); state.analyticsMonth = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`; renderAnalyticsView(); };
+      $('analytics-prev-month').addEventListener('click', () => shiftAna(-1));
+      $('analytics-next-month').addEventListener('click', () => shiftAna(1));
+
+      window.addEventListener('online', () => updateSyncUI('synced'));
+      window.addEventListener('offline', () => updateSyncUI('offline'));
+    }
+
+    // =========================================================================
+    // 11. PWA ICON, SERVICE WORKER & BOOTSTRAP
+    // =========================================================================
+    function initPWA() {
+      try {
+        const c = document.createElement('canvas'); c.width = 180; c.height = 180;
+        const ctx = c.getContext('2d');
+        const g = ctx.createLinearGradient(0, 0, 180, 180); g.addColorStop(0, '#4f46e5'); g.addColorStop(1, '#0ea5e9');
+        ctx.fillStyle = g; ctx.fillRect(0, 0, 180, 180);
+        ctx.save(); ctx.translate(39, 39); ctx.scale(4.25, 4.25);
+        ctx.strokeStyle = '#fff'; ctx.lineWidth = 2.1; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+        ctx.stroke(new Path2D('M21 12a2.25 2.25 0 0 0-2.25-2.25H15a3 3 0 1 1-6 0H5.25A2.25 2.25 0 0 0 3 12m18 0v6a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 18v-6m18 0V9M3 12V9m18 0a2.25 2.25 0 0 0-2.25-2.25H5.25A2.25 2.25 0 0 0 3 9m18 0V6a2.25 2.25 0 0 0-2.25-2.25H5.25A2.25 2.25 0 0 0 3 6v3'));
+        ctx.restore();
+        $('apple-touch-icon-link').href = c.toDataURL('image/png');
+      } catch {}
+
+      if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+        navigator.serviceWorker.register('./sw.js').catch(() => {});
+      }
+      window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredInstallPrompt = e; $('pwa-install-card').classList.remove('hidden'); });
+      $('pwa-install-btn').addEventListener('click', async () => {
+        if (!deferredInstallPrompt) return;
+        deferredInstallPrompt.prompt(); await deferredInstallPrompt.userChoice;
+        deferredInstallPrompt = null; $('pwa-install-card').classList.add('hidden');
+      });
+    }
+
+    function bootstrap() {
+      try {
+        if (localStorage.getItem('df_dark') === '1') state.darkMode = true;
+        else if (localStorage.getItem('df_dark') === '0') state.darkMode = false;
+        if (localStorage.getItem('df_privacy') === '1') state.privacyMode = true;
+      } catch {}
+      initPWA();
+      applyTheme();
+      applyPrivacyUI();
+      bindEvents();
+      switchView('overview');
+
+      onAuthStateChanged(auth, (user) => {
+        if (user) handleSignedInUser(user);
+        else {
+          state.user = null;
+          state.workspaceId = '';
+          if (unsubWs) unsubWs();
+          if (unsubTx) unsubTx();
+          showScreen('auth');
+        }
+      });
+    }
+
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootstrap);
+    else bootstrap();
+  </script>
+</body>
+</html>
