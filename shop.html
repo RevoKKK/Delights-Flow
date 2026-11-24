@@ -9,17 +9,14 @@
   <meta name="apple-mobile-web-app-title" content="Delights Flow" />
   <title>Delights Flow — Online Shop &amp; Receipts</title>
 
-  <!-- App Icon & PWA Manifest -->
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%234f46e5'/%3E%3Cstop offset='100%25' stop-color='%230ea5e9'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='512' height='512' rx='112' fill='url(%23g)'/%3E%3Cg transform='translate(112 112) scale(12)' fill='none' stroke='%23ffffff' stroke-width='2.1' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 12a2.25 2.25 0 0 0-2.25-2.25H15a3 3 0 1 1-6 0H5.25A2.25 2.25 0 0 0 3 12m18 0v6a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 18v-6m18 0V9M3 12V9m18 0a2.25 2.25 0 0 0-2.25-2.25H5.25A2.25 2.25 0 0 0 3 9m18 0V6a2.25 2.25 0 0 0-2.25-2.25H5.25A2.25 2.25 0 0 0 3 6v3'/%3E%3C/g%3E%3C/svg%3E" />
   <link id="apple-touch-icon-link" rel="apple-touch-icon" sizes="180x180" href="" />
   <link rel="manifest" href="manifest.json" />
 
-  <!-- Inter Font -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 
-  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -27,18 +24,19 @@
       theme: { extend: { fontFamily: { sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'] } } }
     };
   </script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
 <body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 font-sans min-h-screen overflow-x-hidden transition-colors duration-200 selection:bg-amber-500 selection:text-white">
 
-  <!-- ==================== LOADING SCREEN ==================== -->
+  <!-- LOADING SCREEN -->
   <div id="loading-screen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-950 gap-4">
     <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-white shadow-xl shadow-amber-500/30 animate-pulse">
-      <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349M3.75 21V9.349m0 0a3.001 3.001 0 0 0 3.75-.615A2.993 2.993 0 0 0 9.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 0 0 2.25 1.016c.896 0 1.7-.393 2.25-1.015a3.001 3.001 0 0 0 3.75.614m-16.5 0a3.004 3.004 0 0 1-.621-4.72l1.189-1.19A1.5 1.5 0 0 1 5.378 3h13.243a1.5 1.5 0 0 1 1.06.44l1.19 1.189a3 3 0 0 1-.621 4.72" /></svg>
+      <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349M3.75 21V9.349m0 0a3.001 3.001 0 0 0 3.75-.615A2.993 2.993 0 0 0 9.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 0 0 2.25 1.016c.896 0 1.7-.393 2.25-1.015a3.001 3.001 0 0 0 3.75.614" /></svg>
     </div>
     <p class="text-sm font-bold text-slate-500 dark:text-slate-400">Loading Online Shop...</p>
   </div>
 
-  <!-- ==================== SIGN-IN REQUIRED PROMPT ==================== -->
+  <!-- SIGN-IN REQUIRED PROMPT -->
   <div id="signin-required-screen" class="hidden min-h-screen flex items-center justify-center p-4 bg-slate-50 dark:bg-slate-950">
     <div class="w-full max-w-sm bg-white dark:bg-slate-900 rounded-3xl shadow-xl border border-slate-200 dark:border-slate-800 p-7 text-center space-y-4">
       <div class="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-br from-indigo-600 to-sky-500 flex items-center justify-center text-white shadow-lg">
@@ -46,13 +44,11 @@
       </div>
       <h2 class="text-xl font-extrabold text-slate-900 dark:text-white">Sign In Required</h2>
       <p id="signin-required-msg" class="text-xs sm:text-sm text-slate-500 dark:text-slate-400">Please sign in to Delights Flow first to access your private Online Shop ledger and receipts.</p>
-      <a href="index.html" class="block w-full py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm shadow-lg shadow-indigo-600/25 transition-all">
-        Go to Sign In
-      </a>
+      <a href="index.html" data-nav-page="index.html" class="block w-full py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm shadow-lg shadow-indigo-600/25 transition-all">Go to Sign In</a>
     </div>
   </div>
 
-  <!-- ==================== MAIN SHOP APP SHELL ==================== -->
+  <!-- MAIN SHOP APP SHELL -->
   <div id="shop-shell" class="hidden min-h-screen flex flex-col md:flex-row">
 
     <!-- DESKTOP SIDEBAR -->
@@ -60,53 +56,42 @@
       <div class="p-5 flex items-center justify-between border-b border-slate-100 dark:border-slate-800/80">
         <div class="flex items-center gap-3 min-w-0">
           <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-white shadow-lg shadow-amber-500/25 shrink-0">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349M3.75 21V9.349m0 0a3.001 3.001 0 0 0 3.75-.615A2.993 2.993 0 0 0 9.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 0 0 2.25 1.016c.896 0 1.7-.393 2.25-1.015a3.001 3.001 0 0 0 3.75.614m-16.5 0a3.004 3.004 0 0 1-.621-4.72l1.189-1.19A1.5 1.5 0 0 1 5.378 3h13.243a1.5 1.5 0 0 1 1.06.44l1.19 1.189a3 3 0 0 1-.621 4.72" /></svg>
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349M3.75 21V9.349m0 0a3.001 3.001 0 0 0 3.75-.615A2.993 2.993 0 0 0 9.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 0 0 2.25 1.016c.896 0 1.7-.393 2.25-1.015a3.001 3.001 0 0 0 3.75.614" /></svg>
           </div>
           <div class="min-w-0">
             <h1 id="sidebar-shop-title" class="text-base font-extrabold tracking-tight text-slate-900 dark:text-white leading-none truncate">Online Shop</h1>
             <p id="sidebar-ws-subtitle" class="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium truncate">Delights Flow</p>
           </div>
         </div>
-        <button id="desktop-theme-btn" type="button" title="Toggle Dark Mode" class="p-2 rounded-xl text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 shrink-0">
-          <span class="theme-icon-slot"></span>
-        </button>
+        <button id="desktop-theme-btn" type="button" title="Toggle Dark Mode" class="p-2 rounded-xl text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 shrink-0"><span class="theme-icon-slot"></span></button>
       </div>
 
-      <!-- Primary Shop Actions -->
       <div class="p-4 space-y-2">
-        <button id="desktop-new-sale-btn" type="button" class="w-full py-3 px-4 rounded-2xl bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/25 transition-all">
-          <span>+ Record Sale</span>
-        </button>
-        <button id="desktop-new-capital-btn" type="button" class="w-full py-2.5 px-4 rounded-2xl bg-rose-50 dark:bg-rose-950/50 hover:bg-rose-100 dark:hover:bg-rose-900/60 text-rose-700 dark:text-rose-300 border border-rose-200/70 dark:border-rose-800/60 font-bold text-xs flex items-center justify-center gap-2 transition-all">
-          <span>+ Record Capital / Cost</span>
-        </button>
+        <button id="desktop-new-sale-btn" type="button" class="w-full py-3 px-4 rounded-2xl bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/25 transition-all">+ Record Sale</button>
+        <button id="desktop-new-capital-btn" type="button" class="w-full py-2.5 px-4 rounded-2xl bg-rose-50 dark:bg-rose-950/50 hover:bg-rose-100 dark:hover:bg-rose-900/60 text-rose-700 dark:text-rose-300 border border-rose-200/70 dark:border-rose-800/60 font-bold text-xs flex items-center justify-center gap-2 transition-all">+ Record Capital / Cost</button>
       </div>
 
-      <!-- Navigation Links -->
       <nav class="flex-1 px-3 space-y-1.5">
-        <a href="index.html" class="back-money-link w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/80 hover:text-slate-900 dark:hover:text-white transition-all">
+        <a href="index.html" data-nav-page="index.html" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/80 hover:text-slate-900 dark:hover:text-white transition-all">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" /></svg>
           <span>Money Tracker</span>
         </a>
-
-        <div class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349M3.75 21V9.349m0 0a3.001 3.001 0 0 0 3.75-.615A2.993 2.993 0 0 0 9.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 0 0 2.25 1.016c.896 0 1.7-.393 2.25-1.015a3.001 3.001 0 0 0 3.75.614" /></svg>
+        <button type="button" data-shop-tab="dashboard" class="shop-side-nav w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349M3.75 21V9.349" /></svg>
           <span>Shop Dashboard</span>
-        </div>
-
+        </button>
+        <button type="button" data-shop-tab="analytics" class="shop-side-nav w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6a7.5 7.5 0 1 0 7.5 7.5h-7.5V6Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0 0 13.5 3v7.5Z" /></svg>
+          <span>Shop Analytics</span>
+        </button>
         <button id="desktop-shop-settings-btn" type="button" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/80 hover:text-slate-900 dark:hover:text-white transition-all">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /></svg>
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" /></svg>
           <span>Shop Profile &amp; Lines</span>
         </button>
       </nav>
 
-      <!-- Active Owner & Sync Footer -->
       <div class="p-4 border-t border-slate-100 dark:border-slate-800/80 space-y-3">
-        <div class="bg-slate-100 dark:bg-slate-800/80 p-1 rounded-xl grid grid-cols-3 gap-1 text-[11px] font-semibold">
-          <button data-quick-person="person1" type="button" class="quick-person-btn py-2 px-1 rounded-lg truncate">P1</button>
-          <button data-quick-person="person2" type="button" class="quick-person-btn py-2 px-1 rounded-lg truncate">P2</button>
-          <button data-quick-person="shared" type="button" class="quick-person-btn py-2 px-1 rounded-lg truncate">Shared</button>
-        </div>
+        <div class="px-3 py-2 rounded-xl bg-amber-50 dark:bg-amber-950/50 border border-amber-200/70 dark:border-amber-800/60 text-xs font-bold text-amber-700 dark:text-amber-300 text-center">🛍️ Logging Under: Shop</div>
         <div class="flex items-center justify-between px-2 text-xs">
           <div class="flex items-center gap-2 min-w-0">
             <span class="sync-dot w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse shrink-0"></span>
@@ -122,7 +107,7 @@
       <div class="flex items-center justify-between gap-2">
         <div class="flex items-center gap-2.5 min-w-0">
           <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-white shadow-md shrink-0">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349M3.75 21V9.349m0 0a3.001 3.001 0 0 0 3.75-.615A2.993 2.993 0 0 0 9.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 0 0 2.25 1.016c.896 0 1.7-.393 2.25-1.015a3.001 3.001 0 0 0 3.75.614" /></svg>
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349M3.75 21V9.349" /></svg>
           </div>
           <div class="min-w-0">
             <div class="flex items-center gap-1.5">
@@ -136,7 +121,7 @@
           <button id="mobile-privacy-btn" type="button" title="Toggle Privacy Mode" class="p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"><span class="privacy-icon-slot"></span></button>
           <button id="mobile-theme-btn" type="button" title="Toggle Dark Mode" class="p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"><span class="theme-icon-slot"></span></button>
           <button id="mobile-shop-settings-btn" type="button" title="Shop Profile &amp; Categories" class="p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /></svg>
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" /></svg>
           </button>
         </div>
       </div>
@@ -146,147 +131,253 @@
     <main class="flex-1 md:ml-64 lg:ml-72 pb-28 md:pb-10">
       <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-7 space-y-6">
 
-        <!-- ==================== HERO DAILY & TOTAL REVENUE CARD ==================== -->
-        <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-amber-950/90 to-slate-900 text-white p-6 sm:p-8 shadow-xl border border-white/10">
+        <!-- HERO DAILY & TOTAL REVENUE CARD (2+1 GRID) -->
+        <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-amber-950/90 to-slate-900 text-white p-5 sm:p-7 shadow-xl border border-white/10">
           <div class="pointer-events-none absolute -top-20 -right-20 w-64 h-64 rounded-full bg-amber-500/20 blur-3xl"></div>
           <div class="pointer-events-none absolute -bottom-24 -left-12 w-56 h-56 rounded-full bg-emerald-500/15 blur-3xl"></div>
 
-          <div class="relative z-10 flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
+          <div class="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
             <div class="space-y-2">
               <div class="flex items-center gap-2 flex-wrap">
-                <span class="text-xs sm:text-sm font-medium uppercase tracking-wider text-amber-200/90">Today's Sales (Daily Income)</span>
+                <span class="text-xs sm:text-sm font-medium uppercase tracking-wider text-amber-200/90">Today's Sales</span>
                 <span id="hero-today-date" class="px-2.5 py-0.5 rounded-full bg-white/10 text-[11px] font-semibold text-amber-100">Today</span>
                 <button id="hero-privacy-btn" type="button" title="Toggle Privacy Mode" class="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-amber-100 transition-colors">
                   <span class="privacy-icon-slot"></span>
                 </button>
               </div>
-              <div id="hero-daily-sales" class="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight tabular-nums">0 Ks</div>
-              <p id="hero-daily-count" class="text-xs sm:text-sm text-slate-300">0 sales recorded today · Synced to your live wallets</p>
+              <div id="hero-daily-sales" class="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight tabular-nums break-words">0 Ks</div>
             </div>
 
-            <!-- Total Revenue / Capital / Net Profit Grid -->
-            <div class="grid grid-cols-3 gap-2.5 sm:gap-4 w-full lg:w-auto lg:min-w-[400px]">
-              <div class="rounded-2xl bg-white/10 backdrop-blur-sm p-3 sm:p-4 border border-white/10">
-                <div class="text-emerald-300 text-[11px] sm:text-xs font-semibold mb-1">Total Revenue</div>
-                <div id="hero-total-revenue" class="text-sm sm:text-base font-bold tabular-nums truncate">0 Ks</div>
+            <!-- 2+1 Grid: Top row Revenue | Capital, Bottom full-width Net Profit & Pending COD -->
+            <div class="grid grid-cols-2 gap-2.5 sm:gap-3 w-full lg:w-auto lg:min-w-[380px]">
+              <div class="rounded-2xl bg-white/10 backdrop-blur-sm p-3.5 border border-white/10">
+                <div class="text-emerald-300 text-xs font-semibold mb-1">↗ Total Revenue</div>
+                <div id="hero-total-revenue" class="text-sm sm:text-base font-extrabold tabular-nums break-words">0 Ks</div>
               </div>
-              <div class="rounded-2xl bg-white/10 backdrop-blur-sm p-3 sm:p-4 border border-white/10">
-                <div class="text-rose-300 text-[11px] sm:text-xs font-semibold mb-1">Total Capital</div>
-                <div id="hero-total-capital" class="text-sm sm:text-base font-bold tabular-nums truncate">0 Ks</div>
+              <div class="rounded-2xl bg-white/10 backdrop-blur-sm p-3.5 border border-white/10">
+                <div class="text-rose-300 text-xs font-semibold mb-1">↘ Total Capital</div>
+                <div id="hero-total-capital" class="text-sm sm:text-base font-extrabold tabular-nums break-words">0 Ks</div>
               </div>
-              <div class="rounded-2xl bg-white/10 backdrop-blur-sm p-3 sm:p-4 border border-white/10">
-                <div id="hero-net-label" class="text-amber-300 text-[11px] sm:text-xs font-semibold mb-1">Net Profit</div>
-                <div id="hero-net-profit" class="text-sm sm:text-base font-bold tabular-nums truncate">0 Ks</div>
+              <div class="col-span-2 rounded-2xl bg-white/10 backdrop-blur-sm px-4 py-3 border border-white/10 flex items-center justify-between gap-3">
+                <span id="hero-net-label" class="text-amber-300 text-xs sm:text-sm font-semibold shrink-0">═ Net Profit</span>
+                <span id="hero-net-profit" class="text-base sm:text-lg font-extrabold tabular-nums text-right break-words">0 Ks</span>
               </div>
+              <button id="hero-pending-cod-btn" type="button" class="col-span-2 rounded-2xl bg-amber-500/20 hover:bg-amber-500/30 active:scale-[0.99] transition-all px-4 py-2.5 border border-amber-300/30 flex items-center justify-between gap-3 text-left">
+                <span class="text-amber-200 text-xs font-bold shrink-0">⏳ Pending COD</span>
+                <span id="hero-pending-cod" class="text-sm sm:text-base font-extrabold text-amber-200 tabular-nums text-right break-words">0 Ks</span>
+              </button>
             </div>
-          </div>
-
-          <!-- Quick Action Buttons inside Hero for Mobile & Desktop -->
-          <div class="relative z-10 flex flex-wrap items-center gap-2.5 mt-5 pt-4 border-t border-white/10">
-            <button id="hero-add-sale-btn" type="button" class="px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs sm:text-sm shadow-md active:scale-95 transition-all">
-              + Record Sale &amp; Receipt
-            </button>
-            <button id="hero-add-capital-btn" type="button" class="px-4 py-2.5 rounded-xl bg-white/15 hover:bg-white/25 text-white font-bold text-xs sm:text-sm active:scale-95 transition-all">
-              + Record Capital / Cost
-            </button>
-            <button id="hero-setup-shop-btn" type="button" class="ml-auto px-3.5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-amber-100 font-semibold text-xs active:scale-95 transition-all">
-              Shop Profile &amp; Logo
-            </button>
           </div>
         </div>
 
-        <!-- ==================== LIVE LINKED WALLETS STRIP ==================== -->
-        <div class="space-y-2">
-          <div class="flex items-center justify-between">
-            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Live Shared Wallets (Auto-Updated)</span>
-            <a href="index.html" class="back-money-link text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">Manage in Money Tracker →</a>
-          </div>
-          <div id="shop-wallets-strip" class="flex gap-2.5 overflow-x-auto pb-1"></div>
+        <!-- VIEW SWITCHER: SHOP & HISTORY vs SHOP ANALYTICS -->
+        <div class="grid grid-cols-2 gap-1.5 p-1.5 rounded-2xl bg-slate-200/80 dark:bg-slate-900 border border-slate-200/70 dark:border-slate-800 max-w-md">
+          <button type="button" data-shop-tab="dashboard" class="shop-top-tab py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all">🛍️ Shop &amp; History</button>
+          <button type="button" data-shop-tab="analytics" class="shop-top-tab py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all">📊 Shop Analytics</button>
         </div>
 
-        <!-- ==================== SHOP CATEGORIES (CAPITAL VS SALES) ==================== -->
-        <div class="space-y-3">
-          <div class="flex items-center justify-between gap-2">
-            <div>
-              <h2 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white">Shop Categories (Capital vs. Sales)</h2>
-              <p class="text-xs text-slate-500 dark:text-slate-400">Tap any category card to filter records below</p>
+        <!-- TAB 1: SHOP CATEGORIES & HISTORY -->
+        <section id="shop-tab-dashboard" class="space-y-6">
+          <div class="space-y-3">
+            <div class="flex items-center justify-between gap-2">
+              <div>
+                <h2 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white">Shop Categories</h2>
+                <p class="text-xs text-slate-500 dark:text-slate-400">Tap any shop card to view its dedicated history</p>
+              </div>
+              <button id="manage-categories-btn" type="button" class="text-xs sm:text-sm font-semibold text-amber-700 dark:text-amber-300 px-3 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/50 hover:bg-amber-100 dark:hover:bg-amber-900/50 transition-colors shrink-0">+ Categories</button>
             </div>
-            <button id="manage-categories-btn" type="button" class="text-xs sm:text-sm font-semibold text-amber-700 dark:text-amber-300 px-3 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/50 hover:bg-amber-100 dark:hover:bg-amber-900/50 transition-colors shrink-0">
-              + Categories
-            </button>
+            <div id="shop-categories-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5"></div>
           </div>
-          <div id="shop-categories-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5"></div>
-        </div>
 
-        <!-- ==================== SHOP RECORDS & RECEIPTS LEDGER ==================== -->
-        <div class="space-y-4">
+          <div class="space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div>
+                <h2 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white">All Shop History</h2>
+                <p class="text-xs text-slate-500 dark:text-slate-400">Tap Receipt on any sale to download PNG or copy text slip</p>
+              </div>
+              <button id="export-shop-csv-btn" type="button" class="self-start sm:self-auto px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 shadow-sm">↓ Export Shop CSV</button>
+            </div>
+
+            <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-4 shadow-sm space-y-3">
+              <div class="grid grid-cols-1 sm:grid-cols-12 gap-2.5">
+                <input id="shop-search" type="text" placeholder="Search customer, item, receipt #, or note..." class="sm:col-span-5 px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500" />
+                <select id="shop-filter-month" class="sm:col-span-3 px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500"></select>
+                <select id="shop-filter-cat" class="sm:col-span-2 px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500"></select>
+                <select id="shop-filter-type" class="sm:col-span-2 px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500">
+                  <option value="all">Sales + Capital</option>
+                  <option value="sale">Sales Only</option>
+                  <option value="pending_cod">Pending COD</option>
+                  <option value="capital">Capital Only</option>
+                </select>
+              </div>
+              <div class="pt-2 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2 text-xs font-semibold">
+                <div id="shop-filter-summary" class="flex flex-wrap items-center gap-3"></div>
+                <button id="shop-reset-filters-btn" type="button" class="hidden text-amber-600 dark:text-amber-400 hover:underline">Reset filters</button>
+              </div>
+            </div>
+
+            <div id="shop-history-list" class="space-y-3"></div>
+          </div>
+        </section>
+
+        <!-- TAB 2: SHOP ANALYTICS -->
+        <section id="shop-tab-analytics" class="hidden space-y-5">
           <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
-              <h2 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white">Shop Sales &amp; Capital History</h2>
-              <p class="text-xs text-slate-500 dark:text-slate-400">Tap Receipt on any sale to download PNG or copy text slip</p>
+              <h2 class="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white">Shop Analytics</h2>
+              <p class="text-xs text-slate-500 dark:text-slate-400">Daily sales trend, category comparison, and capital breakdown</p>
             </div>
-            <button id="export-shop-csv-btn" type="button" class="self-start sm:self-auto px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 shadow-sm">
-              ↓ Export Shop CSV
-            </button>
-          </div>
-
-          <!-- Filter Bar -->
-          <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-4 shadow-sm space-y-3">
-            <div class="grid grid-cols-1 sm:grid-cols-12 gap-2.5">
-              <input id="shop-search" type="text" placeholder="Search customer, item, receipt #, or note..." class="sm:col-span-5 px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500" />
-              <select id="shop-filter-month" class="sm:col-span-3 px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500"></select>
-              <select id="shop-filter-cat" class="sm:col-span-2 px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500"></select>
-              <select id="shop-filter-type" class="sm:col-span-2 px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500">
-                <option value="all">Sales + Capital</option>
-                <option value="sale">Sales Only</option>
-                <option value="capital">Capital Only</option>
-              </select>
-            </div>
-            <div class="pt-2 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2 text-xs font-semibold">
-              <div id="shop-filter-summary" class="flex flex-wrap items-center gap-3"></div>
-              <button id="shop-reset-filters-btn" type="button" class="hidden text-amber-600 dark:text-amber-400 hover:underline">Reset filters</button>
+            <div class="flex items-center gap-1 bg-white dark:bg-slate-900 p-1 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm self-start sm:self-auto">
+              <button id="sa-prev-month" type="button" class="px-3 py-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 font-bold">‹</button>
+              <select id="sa-month-select" class="bg-transparent text-xs sm:text-sm font-bold text-slate-900 dark:text-white px-1 py-1 focus:outline-none"></select>
+              <button id="sa-next-month" type="button" class="px-3 py-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 font-bold">›</button>
             </div>
           </div>
 
-          <!-- Transactions List -->
-          <div id="shop-history-list" class="space-y-3"></div>
-        </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div class="bg-white dark:bg-slate-900 rounded-3xl p-4 sm:p-5 border border-slate-200/80 dark:border-slate-800 shadow-sm">
+              <p class="text-xs font-semibold text-slate-500">Period Sales</p>
+              <p id="sa-kpi-sales" class="text-base sm:text-xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-1 tabular-nums break-words">0 Ks</p>
+            </div>
+            <div class="bg-white dark:bg-slate-900 rounded-3xl p-4 sm:p-5 border border-slate-200/80 dark:border-slate-800 shadow-sm">
+              <p class="text-xs font-semibold text-slate-500">Period Capital</p>
+              <p id="sa-kpi-capital" class="text-base sm:text-xl font-extrabold text-rose-600 dark:text-rose-400 mt-1 tabular-nums break-words">0 Ks</p>
+            </div>
+            <div class="bg-white dark:bg-slate-900 rounded-3xl p-4 sm:p-5 border border-slate-200/80 dark:border-slate-800 shadow-sm">
+              <p class="text-xs font-semibold text-slate-500">Period Net</p>
+              <p id="sa-kpi-net" class="text-base sm:text-xl font-extrabold mt-1 tabular-nums break-words">0 Ks</p>
+            </div>
+            <div class="bg-white dark:bg-slate-900 rounded-3xl p-4 sm:p-5 border border-slate-200/80 dark:border-slate-800 shadow-sm">
+              <p class="text-xs font-semibold text-slate-500">Avg. Order Value</p>
+              <p id="sa-kpi-avg" class="text-base sm:text-xl font-extrabold text-amber-600 dark:text-amber-400 mt-1 tabular-nums break-words">0 Ks</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            <div class="bg-white dark:bg-slate-900 rounded-3xl p-5 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-3 lg:col-span-2">
+              <div>
+                <h3 id="sa-trend-title" class="text-base font-bold text-slate-900 dark:text-white">Daily Sales &amp; Capital Trend</h3>
+                <p id="sa-trend-sub" class="text-xs text-slate-400">Daily breakdown for selected month</p>
+              </div>
+              <div class="relative h-64 w-full">
+                <canvas id="sa-chart-trend"></canvas>
+                <div id="sa-empty-trend" class="hidden absolute inset-0 flex items-center justify-center text-xs text-slate-400">No shop activity in this period</div>
+              </div>
+            </div>
+
+            <div class="bg-white dark:bg-slate-900 rounded-3xl p-5 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4">
+              <div>
+                <h3 class="text-base font-bold text-slate-900 dark:text-white">Sales vs Capital by Shop</h3>
+                <p class="text-xs text-slate-400">Performance across your shop categories</p>
+              </div>
+              <div class="relative h-56 w-full">
+                <canvas id="sa-chart-cats"></canvas>
+                <div id="sa-empty-cats" class="hidden absolute inset-0 flex items-center justify-center text-xs text-slate-400">No category data</div>
+              </div>
+              <div id="sa-cats-list" class="space-y-2.5 pt-2 border-t border-slate-100 dark:border-slate-800"></div>
+            </div>
+
+            <div class="bg-white dark:bg-slate-900 rounded-3xl p-5 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4">
+              <div>
+                <h3 class="text-base font-bold text-slate-900 dark:text-white">Capital &amp; Cost Breakdown</h3>
+                <p class="text-xs text-slate-400">Stock, packaging, delivery, ads &amp; other costs</p>
+              </div>
+              <div class="relative h-56 w-full">
+                <canvas id="sa-chart-costs"></canvas>
+                <div id="sa-empty-costs" class="hidden absolute inset-0 flex items-center justify-center text-xs text-slate-400">No capital/cost entries in this period</div>
+              </div>
+              <div id="sa-costs-list" class="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800"></div>
+            </div>
+          </div>
+        </section>
+
       </div>
     </main>
 
     <!-- MOBILE BOTTOM NAV -->
     <nav class="md:hidden fixed bottom-0 inset-x-0 z-30 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200/80 dark:border-slate-800 px-2 pb-2 pt-1.5">
       <div class="grid grid-cols-5 items-center max-w-md mx-auto">
-        <a href="index.html" class="back-money-link flex flex-col items-center justify-center py-1.5 gap-1 rounded-xl text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+        <a href="index.html" data-nav-page="index.html" class="flex flex-col items-center justify-center py-1.5 gap-1 rounded-xl text-[11px] font-semibold text-slate-500 dark:text-slate-400">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a2.25 2.25 0 0 0-2.25-2.25H15a3 3 0 1 1-6 0H5.25A2.25 2.25 0 0 0 3 12m18 0v6a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 18v-6" /></svg>
           <span>Money</span>
         </a>
-
-        <button id="mobile-nav-sales" type="button" class="flex flex-col items-center justify-center py-1.5 gap-1 rounded-xl text-[11px] font-bold text-amber-600 dark:text-amber-400">
+        <button type="button" data-shop-tab="dashboard" class="shop-mobile-tab flex flex-col items-center justify-center py-1.5 gap-1 rounded-xl text-[11px] font-bold">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349M3.75 21V9.349" /></svg>
           <span>Shop</span>
         </button>
-
         <div class="flex justify-center -mt-7">
           <button id="mobile-fab-sale" type="button" aria-label="Record Sale" class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white shadow-xl shadow-emerald-600/35 flex items-center justify-center active:scale-90 transition-transform ring-4 ring-white dark:ring-slate-900">
             <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2.6" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
           </button>
         </div>
-
         <button id="mobile-nav-capital" type="button" class="flex flex-col items-center justify-center py-1.5 gap-1 rounded-xl text-[11px] font-semibold text-slate-500 dark:text-slate-400">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m20.25 7.5-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z" /></svg>
           <span>+ Capital</span>
         </button>
-
-        <button id="mobile-nav-settings" type="button" class="flex flex-col items-center justify-center py-1.5 gap-1 rounded-xl text-[11px] font-semibold text-slate-500 dark:text-slate-400">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" /></svg>
-          <span>Setup</span>
+        <button type="button" data-shop-tab="analytics" class="shop-mobile-tab flex flex-col items-center justify-center py-1.5 gap-1 rounded-xl text-[11px] font-semibold">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6a7.5 7.5 0 1 0 7.5 7.5h-7.5V6Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0 0 13.5 3v7.5Z" /></svg>
+          <span>Analytics</span>
         </button>
       </div>
     </nav>
   </div>
 
-  <!-- ==================== MODAL 1: RECORD SALE OR CAPITAL / COST ==================== -->
+  <!-- MODAL 0: DEDICATED SHOP CATEGORY HISTORY POPUP -->
+  <div id="cat-history-modal" class="hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-950/60 backdrop-blur-sm p-0 sm:p-4">
+    <div class="bg-white dark:bg-slate-900 w-full sm:max-w-xl rounded-t-3xl sm:rounded-3xl shadow-2xl border border-slate-200/80 dark:border-slate-800 max-h-[92vh] flex flex-col overflow-hidden">
+      <div class="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between gap-3 shrink-0">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <span id="chm-dot" class="w-3.5 h-3.5 rounded-full shrink-0 bg-amber-500"></span>
+          <div class="min-w-0">
+            <h3 id="chm-title" class="text-lg font-extrabold text-slate-900 dark:text-white truncate">Shop1</h3>
+            <p class="text-[11px] text-slate-500">Category History &amp; Summary</p>
+          </div>
+        </div>
+        <button id="chm-close" type="button" class="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white">✕</button>
+      </div>
+
+      <div class="p-4 sm:p-5 space-y-4 overflow-y-auto flex-1">
+        <div class="grid grid-cols-2 gap-2.5">
+          <div class="p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/70 dark:border-emerald-800/60">
+            <p class="text-[11px] font-bold text-emerald-700 dark:text-emerald-300">Total Sales</p>
+            <p id="chm-sales" class="text-sm sm:text-base font-extrabold text-emerald-700 dark:text-emerald-300 tabular-nums break-words mt-0.5">0 Ks</p>
+          </div>
+          <div class="p-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200/70 dark:border-rose-800/60">
+            <p class="text-[11px] font-bold text-rose-700 dark:text-rose-300">Total Capital</p>
+            <p id="chm-capital" class="text-sm sm:text-base font-extrabold text-rose-700 dark:text-rose-300 tabular-nums break-words mt-0.5">0 Ks</p>
+          </div>
+          <div class="col-span-2 p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 flex items-center justify-between gap-2">
+            <div>
+              <p id="chm-net-label" class="text-xs font-bold text-slate-500">Net Profit</p>
+              <p id="chm-recovery" class="text-[11px] text-slate-400">Capital recovery: 0%</p>
+            </div>
+            <p id="chm-net" class="text-base sm:text-lg font-extrabold tabular-nums text-right break-words">0 Ks</p>
+          </div>
+          <div id="chm-cod-wrap" class="hidden col-span-2 px-3.5 py-2.5 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200/70 dark:border-amber-800/60 flex items-center justify-between gap-2">
+            <span class="text-xs font-bold text-amber-700 dark:text-amber-300">⏳ Pending COD</span>
+            <span id="chm-cod" class="text-sm font-extrabold text-amber-700 dark:text-amber-300 tabular-nums">0 Ks</span>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div class="inline-flex p-1 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-bold">
+            <button type="button" data-chm-type="all" class="chm-type-btn px-2.5 py-1.5 rounded-lg">All</button>
+            <button type="button" data-chm-type="sale" class="chm-type-btn px-2.5 py-1.5 rounded-lg">Sales</button>
+            <button type="button" data-chm-type="pending_cod" class="chm-type-btn px-2.5 py-1.5 rounded-lg">COD</button>
+            <button type="button" data-chm-type="capital" class="chm-type-btn px-2.5 py-1.5 rounded-lg">Capital</button>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <button id="chm-add-sale-btn" type="button" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold">+ Sale</button>
+            <button id="chm-add-cap-btn" type="button" class="px-3 py-1.5 rounded-xl bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-300 border border-rose-200 dark:border-rose-800 text-xs font-bold">+ Capital</button>
+          </div>
+        </div>
+
+        <div id="chm-list" class="rounded-2xl border border-slate-200/80 dark:border-slate-800 divide-y divide-slate-100 dark:divide-slate-800/70 overflow-hidden bg-white dark:bg-slate-900"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 1: RECORD SALE OR CAPITAL / COST -->
   <div id="shop-tx-modal" class="hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-950/60 backdrop-blur-sm p-0 sm:p-4">
     <div class="bg-white dark:bg-slate-900 w-full sm:max-w-lg rounded-t-3xl sm:rounded-3xl shadow-2xl border border-slate-200/80 dark:border-slate-800 max-h-[92vh] flex flex-col overflow-hidden">
       <div class="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
@@ -295,19 +386,17 @@
       </div>
 
       <form id="stx-form" class="p-5 space-y-5 overflow-y-auto flex-1">
-        <!-- Mode Switcher: Sale vs Capital/Cost -->
         <div class="grid grid-cols-2 gap-1.5 p-1.5 rounded-2xl bg-slate-100 dark:bg-slate-800/90">
           <button type="button" data-stx-mode="sale" class="stx-mode-btn py-2.5 rounded-xl text-sm font-bold transition-all">🛍️ Shop Sale</button>
           <button type="button" data-stx-mode="capital" class="stx-mode-btn py-2.5 rounded-xl text-sm font-bold transition-all">📦 Capital / Cost</button>
         </div>
 
-        <!-- Shop Category Selector -->
         <div class="space-y-2">
           <label class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Shop Category</label>
           <div id="stx-category-pills" class="flex flex-wrap gap-2"></div>
         </div>
 
-        <!-- ===== SALE FIELDS (MULTI-ITEM RECEIPT BUILDER) ===== -->
+        <!-- SALE FIELDS -->
         <div id="stx-sale-fields" class="space-y-4">
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div class="space-y-1">
@@ -320,7 +409,6 @@
             </div>
           </div>
 
-          <!-- Itemized Rows -->
           <div class="space-y-2">
             <div class="flex items-center justify-between">
               <label class="text-xs font-bold uppercase tracking-wider text-slate-500">Items Sold</label>
@@ -329,7 +417,6 @@
             <div id="stx-items-list" class="space-y-2"></div>
           </div>
 
-          <!-- Delivery Fee & Discount -->
           <div class="grid grid-cols-2 gap-3">
             <div class="space-y-1">
               <label for="stx-delivery" class="text-xs font-semibold text-slate-500">Delivery Fee (+)</label>
@@ -341,24 +428,43 @@
             </div>
           </div>
 
-          <!-- Live Grand Total Banner -->
           <div class="p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800/70 flex items-center justify-between">
             <span class="text-xs font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-300">Grand Total</span>
             <span id="stx-sale-total-display" class="text-xl font-extrabold tabular-nums text-emerald-700 dark:text-emerald-300">0 Ks</span>
           </div>
+
+          <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700 space-y-3">
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Payment Split (Paid / COD)</span>
+              <div class="flex items-center gap-1.5">
+                <button id="stx-quick-full-paid" type="button" class="px-2.5 py-1 rounded-lg bg-emerald-100 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 text-[11px] font-bold">Full Paid</button>
+                <button id="stx-quick-full-cod" type="button" class="px-2.5 py-1 rounded-lg bg-amber-100 dark:bg-amber-950/70 text-amber-700 dark:text-amber-300 text-[11px] font-bold">Full COD</button>
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div class="space-y-1">
+                <label for="stx-paid-amount" class="text-xs font-semibold text-emerald-700 dark:text-emerald-400">Paid Amount</label>
+                <input id="stx-paid-amount" type="text" inputmode="decimal" placeholder="0" class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm font-extrabold tabular-nums text-emerald-700 dark:text-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+              </div>
+              <div class="space-y-1">
+                <label for="stx-cod-amount" class="text-xs font-semibold text-amber-700 dark:text-amber-400">COD Amount</label>
+                <input id="stx-cod-amount" type="text" inputmode="decimal" placeholder="0" class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm font-extrabold tabular-nums text-amber-700 dark:text-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-500" />
+              </div>
+            </div>
+            <p id="stx-cod-hint" class="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">Full amount goes into the selected wallet now.</p>
+          </div>
         </div>
 
-        <!-- ===== CAPITAL / COST FIELDS ===== -->
+        <!-- CAPITAL / COST FIELDS -->
         <div id="stx-capital-fields" class="hidden space-y-4">
-          <div class="space-y-1.5">
+          <div class="space-y-2">
             <label class="text-xs font-bold uppercase tracking-wider text-slate-500">Cost Type</label>
             <div id="stx-cost-types" class="flex flex-wrap gap-1.5"></div>
           </div>
-
           <div class="space-y-2">
             <label for="stx-capital-amount" class="text-xs font-bold uppercase tracking-wider text-slate-500">Capital / Cost Amount</label>
             <div class="relative flex items-center">
-              <input id="stx-capital-amount" type="text" inputmode="decimal" placeholder="0" class="w-full text-2xl font-extrabold tabular-nums px-4 py-3 pr-14 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-rose-500" />
+              <input id="stx-capital-amount" type="text" inputmode="decimal" placeholder="0" class="w-full text-2xl font-extrabold tabular-nums px-4 py-3 pr-16 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-rose-500" />
               <span id="stx-cap-currency" class="absolute right-4 text-sm font-bold text-slate-400">Ks</span>
             </div>
             <div class="flex flex-wrap gap-1.5">
@@ -370,35 +476,21 @@
           </div>
         </div>
 
-        <!-- Shared Wallet Selector (Live Balance Sync) -->
         <div class="space-y-2">
-          <label id="stx-wallet-label" class="text-xs font-bold uppercase tracking-wider text-slate-500">Deposit Into Wallet</label>
+          <label id="stx-wallet-label" class="text-xs font-bold uppercase tracking-wider text-slate-500">Payment Received Into Wallet</label>
           <div id="stx-wallet-pills" class="grid grid-cols-2 sm:grid-cols-3 gap-2"></div>
         </div>
 
-        <!-- Date & Owner -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-          <div class="space-y-1">
-            <label for="stx-date" class="text-xs font-bold uppercase tracking-wider text-slate-500">Date</label>
-            <input id="stx-date" type="date" required class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-amber-500" />
-          </div>
-          <div class="space-y-1">
-            <label class="text-xs font-bold uppercase tracking-wider text-slate-500">Logged By</label>
-            <div class="grid grid-cols-3 gap-1 p-1 rounded-xl bg-slate-100 dark:bg-slate-800">
-              <button type="button" data-stx-person="person1" class="stx-person-btn py-2 px-1 rounded-lg text-xs font-bold truncate">P1</button>
-              <button type="button" data-stx-person="person2" class="stx-person-btn py-2 px-1 rounded-lg text-xs font-bold truncate">P2</button>
-              <button type="button" data-stx-person="shared" class="stx-person-btn py-2 px-1 rounded-lg text-xs font-bold truncate">Shared</button>
-            </div>
-          </div>
+        <div class="space-y-1">
+          <label for="stx-date" class="text-xs font-bold uppercase tracking-wider text-slate-500">Date</label>
+          <input id="stx-date" type="date" required class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-amber-500" />
         </div>
 
-        <!-- Optional Note -->
         <div class="space-y-1">
           <label for="stx-note" class="text-xs font-bold uppercase tracking-wider text-slate-500">Note (Optional)</label>
-          <input id="stx-note" type="text" placeholder="e.g. Bulk 30 books lot, Royal Express COD..." class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500" />
+          <input id="stx-note" type="text" placeholder="e.g. Bulk lot, delivery note..." class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500" />
         </div>
 
-        <!-- Auto-open Receipt checkbox for new sales -->
         <div id="stx-open-receipt-wrap" class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700/70">
           <label for="stx-open-receipt" class="flex items-center gap-2.5 text-xs font-semibold text-slate-700 dark:text-slate-300 cursor-pointer">
             <input id="stx-open-receipt" type="checkbox" checked class="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500" />
@@ -416,7 +508,7 @@
     </div>
   </div>
 
-  <!-- ==================== MODAL 2: CUSTOMER RECEIPT GENERATOR (PNG + TEXT) ==================== -->
+  <!-- MODAL 2: CUSTOMER RECEIPT GENERATOR (PNG + TEXT) -->
   <div id="receipt-modal" class="hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-950/70 backdrop-blur-sm p-0 sm:p-4">
     <div class="bg-white dark:bg-slate-900 w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl shadow-2xl border border-slate-200/80 dark:border-slate-800 max-h-[94vh] flex flex-col overflow-hidden">
       <div class="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
@@ -427,47 +519,36 @@
         <button id="receipt-modal-close" type="button" class="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white">✕</button>
       </div>
 
-      <!-- Rendered PNG Canvas Preview -->
       <div class="p-4 bg-slate-100 dark:bg-slate-950/80 overflow-y-auto flex-1 flex justify-center">
         <canvas id="receipt-canvas" class="w-full max-w-[360px] h-auto rounded-2xl shadow-lg border border-slate-200 dark:border-slate-800 bg-white"></canvas>
       </div>
 
-      <!-- Share / Download / Copy Actions -->
       <div class="p-4 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 space-y-2.5 shrink-0">
         <div class="grid grid-cols-2 gap-2.5">
-          <button id="receipt-share-btn" type="button" class="py-3 px-4 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs sm:text-sm shadow-md active:scale-95 transition-all">
-            ↗ Share PNG
-          </button>
-          <button id="receipt-download-btn" type="button" class="py-3 px-4 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm shadow-md active:scale-95 transition-all">
-            ↓ Download PNG
-          </button>
+          <button id="receipt-share-btn" type="button" class="py-3 px-4 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs sm:text-sm shadow-md active:scale-95 transition-all">↗ Share PNG</button>
+          <button id="receipt-download-btn" type="button" class="py-3 px-4 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm shadow-md active:scale-95 transition-all">↓ Download PNG</button>
         </div>
-        <button id="receipt-copy-text-btn" type="button" class="w-full py-2.5 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs sm:text-sm transition-all">
-          📋 Copy Text Receipt (Messenger / Viber)
-        </button>
+        <button id="receipt-copy-text-btn" type="button" class="w-full py-2.5 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs sm:text-sm transition-all">📋 Copy Text Receipt (Messenger / Viber)</button>
       </div>
     </div>
   </div>
 
-  <!-- ==================== MODAL 3: PRIVATE SHOP PROFILE & CUSTOM CATEGORIES ==================== -->
+  <!-- MODAL 3: PRIVATE SHOP PROFILE & CUSTOM CATEGORIES -->
   <div id="shop-settings-modal" class="hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-950/60 backdrop-blur-sm p-0 sm:p-4">
     <div class="bg-white dark:bg-slate-900 w-full sm:max-w-xl rounded-t-3xl sm:rounded-3xl shadow-2xl border border-slate-200/80 dark:border-slate-800 max-h-[92vh] flex flex-col overflow-hidden">
       <div class="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
         <div>
           <h3 class="text-lg font-extrabold text-slate-900 dark:text-white">Shop Profile &amp; Categories</h3>
-          <p class="text-xs text-slate-500">Stored privately inside your workspace (invisible to other users)</p>
+          <p class="text-xs text-slate-500">Stored privately inside your workspace</p>
         </div>
         <button id="shop-settings-close" type="button" class="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white">✕</button>
       </div>
 
       <form id="shop-settings-form" class="p-5 space-y-6 overflow-y-auto flex-1">
-        <!-- Shop Brand Profile for Receipts -->
         <div class="space-y-3">
           <h4 class="text-sm font-bold text-slate-900 dark:text-white">Private Receipt Branding</h4>
           <div class="flex items-center gap-4 p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700">
-            <div id="shop-logo-preview-wrap" class="w-16 h-16 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 flex items-center justify-center overflow-hidden shrink-0">
-              <span class="text-2xl">🛍️</span>
-            </div>
+            <div id="shop-logo-preview-wrap" class="w-16 h-16 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 flex items-center justify-center overflow-hidden shrink-0"><span class="text-2xl">🛍️</span></div>
             <div class="flex-1 space-y-1.5">
               <p class="text-xs font-bold text-slate-700 dark:text-slate-200">Shop Logo (Optional)</p>
               <div class="flex flex-wrap gap-2">
@@ -479,42 +560,70 @@
             </div>
           </div>
 
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div class="space-y-1">
-              <label for="sp-name" class="text-xs font-semibold text-slate-500">Shop Name</label>
-              <input id="sp-name" type="text" maxlength="40" placeholder="e.g. Little Delights Shop" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500" />
-            </div>
-            <div class="space-y-1">
-              <label for="sp-phone" class="text-xs font-semibold text-slate-500">Phone / Page Handle</label>
-              <input id="sp-phone" type="text" maxlength="40" placeholder="e.g. 09-79xxxxxxx / @myshop" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500" />
-            </div>
+          <div class="space-y-1">
+            <label for="sp-name" class="text-xs font-semibold text-slate-500">Shop Name</label>
+            <input id="sp-name" type="text" maxlength="40" placeholder="e.g. Little Delights Shop" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-bold" />
           </div>
           <div class="space-y-1">
             <label for="sp-footer" class="text-xs font-semibold text-slate-500">Receipt Footer Message</label>
-            <input id="sp-footer" type="text" maxlength="80" placeholder="Thank you for shopping with us!" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500" />
+            <input id="sp-footer" type="text" maxlength="100" placeholder="Thank you for shopping with us!" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm" />
           </div>
         </div>
 
-        <!-- Customizable Shop Categories -->
         <div class="space-y-3 pt-4 border-t border-slate-100 dark:border-slate-800">
           <div class="flex items-start justify-between gap-2">
             <div>
               <h4 class="text-sm font-bold text-slate-900 dark:text-white">Shop Categories</h4>
-              <p class="text-xs text-slate-500">Track capital &amp; sales separately per product line</p>
+              <p class="text-xs text-slate-500">Customize shop lines (each tracks its own capital &amp; sales)</p>
             </div>
-            <button id="add-shop-cat-btn" type="button" class="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold shrink-0">+ Add Category</button>
+            <button id="add-shop-cat-btn" type="button" class="px-3 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold shrink-0">+ Add Line</button>
           </div>
           <div id="shop-cats-editor" class="space-y-2"></div>
         </div>
 
-        <button id="shop-settings-save-btn" type="submit" class="w-full py-3.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm shadow-lg active:scale-[0.98] transition-all">
-          Save Shop Settings
-        </button>
+        <button id="shop-settings-save-btn" type="submit" class="w-full py-3.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm shadow-lg">Save Shop Settings</button>
       </form>
     </div>
   </div>
 
-  <!-- ==================== MODAL 4: CONFIRM DIALOG ==================== -->
+  <!-- MODAL 3B: MARK COD PAID -->
+  <div id="cod-pay-modal" class="hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-950/60 backdrop-blur-sm p-0 sm:p-4">
+    <div class="bg-white dark:bg-slate-900 w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl shadow-2xl border border-slate-200/80 dark:border-slate-800 overflow-hidden">
+      <div class="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+        <div>
+          <h3 class="text-base font-extrabold text-slate-900 dark:text-white">Receive COD Payment</h3>
+          <p id="cod-modal-sub" class="text-xs text-slate-500 mt-0.5">Add collected COD to your wallet</p>
+        </div>
+        <button id="cod-modal-close" type="button" class="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white">✕</button>
+      </div>
+      <form id="cod-pay-form" class="p-5 space-y-4">
+        <div class="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 flex items-center justify-between gap-2">
+          <div>
+            <p class="text-[11px] font-bold uppercase text-amber-700 dark:text-amber-300">COD Amount to Receive</p>
+            <p id="cod-modal-customer" class="text-xs font-semibold text-slate-600 dark:text-slate-300 mt-0.5"></p>
+          </div>
+          <p id="cod-modal-amount" class="text-xl font-extrabold text-amber-700 dark:text-amber-300 tabular-nums">0 Ks</p>
+        </div>
+
+        <div class="space-y-2">
+          <label class="text-xs font-bold uppercase tracking-wider text-slate-500">Deposit COD Into Wallet</label>
+          <div id="cod-wallet-pills" class="grid grid-cols-2 sm:grid-cols-3 gap-2"></div>
+        </div>
+
+        <div class="space-y-1">
+          <label for="cod-paid-date" class="text-xs font-bold uppercase tracking-wider text-slate-500">Date Received</label>
+          <input id="cod-paid-date" type="date" required class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-medium" />
+        </div>
+
+        <div class="grid grid-cols-2 gap-2.5 pt-1">
+          <button id="cod-cancel-btn" type="button" class="py-3 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold text-sm">Cancel</button>
+          <button id="cod-confirm-btn" type="submit" class="py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-lg">✓ Mark COD Paid</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL 4: CONFIRM DIALOG -->
   <div id="confirm-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-sm p-4">
     <div class="bg-white dark:bg-slate-900 w-full max-w-sm rounded-3xl p-6 shadow-2xl border border-slate-200 dark:border-slate-800 space-y-4">
       <h3 id="confirm-title" class="text-lg font-extrabold text-slate-900 dark:text-white">Delete Entry?</h3>
@@ -526,10 +635,24 @@
     </div>
   </div>
 
+  <!-- MODAL 5: PHONE BACK EXIT CONFIRMATION -->
+  <div id="exit-modal" class="hidden fixed inset-0 z-[55] flex items-center justify-center bg-slate-950/60 backdrop-blur-sm p-4">
+    <div class="bg-white dark:bg-slate-900 w-full max-w-xs rounded-3xl p-6 shadow-2xl border border-slate-200 dark:border-slate-800 space-y-4 text-center">
+      <div class="w-12 h-12 mx-auto rounded-2xl bg-amber-50 dark:bg-amber-950/70 text-amber-600 dark:text-amber-400 flex items-center justify-center text-xl">👋</div>
+      <div class="space-y-1">
+        <h3 class="text-lg font-extrabold text-slate-900 dark:text-white">Exit Delights Flow?</h3>
+        <p class="text-xs text-slate-500 dark:text-slate-400">Are you sure you want to close the app?</p>
+      </div>
+      <div class="grid grid-cols-2 gap-2.5 pt-1">
+        <button id="exit-cancel-btn" type="button" class="py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold text-sm">Cancel</button>
+        <button id="exit-confirm-btn" type="button" class="py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm">Yes, Exit</button>
+      </div>
+    </div>
+  </div>
+
   <!-- TOAST CONTAINER -->
   <div id="toast-container" class="fixed top-4 right-4 left-4 sm:left-auto sm:w-80 z-[60] flex flex-col gap-2 pointer-events-none"></div>
 
-  <!-- ==================== FIREBASE CONFIG & SHOP SCRIPT ==================== -->
   <script>
     window.__firebase_config = {
       apiKey: "AIzaSyAKgqAtXONpTX9h87pm-sUx7MY0JJyEPTE",
@@ -550,7 +673,7 @@
     } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
     // =========================================================================
-    // 1. CONSTANTS & SHARED COLOR PALETTE
+    // 1. CONSTANTS & FIREBASE SETUP
     // =========================================================================
     const COLORS = [
       { key: 'amber', hex: '#f59e0b' }, { key: 'teal', hex: '#14b8a6' }, { key: 'indigo', hex: '#6366f1' },
@@ -562,18 +685,13 @@
     ];
     const COLOR_MAP = Object.fromEntries(COLORS.map((c) => [c.key, c.hex]));
     const COST_SUBTYPES = ['Stock / Capital', 'Packaging', 'Delivery', 'Ads / Boost', 'Other'];
-    const DEFAULT_SHOP_CATS = [
-      { id: 'hard_toys', name: 'Hard Toys', colorKey: 'amber' },
-      { id: 'preloved_books', name: 'Preloved Books', colorKey: 'teal' }
-    ];
+    const COST_COLORS = ['#f43f5e', '#f59e0b', '#0ea5e9', '#8b5cf6', '#64748b'];
+    const DEFAULT_SHOP_CATS = [{ id: 'shop1', name: 'Shop1', colorKey: 'amber' }];
     const STARTER_WALLETS = [
       { id: 'cash', name: 'Cash', iconType: 'cash', colorKey: 'emerald' },
       { id: 'bank', name: 'Bank', iconType: 'bank', colorKey: 'blue' }
     ];
 
-    // =========================================================================
-    // 2. FIREBASE & STATE
-    // =========================================================================
     const app = initializeApp(window.__firebase_config);
     let db;
     try {
@@ -593,9 +711,10 @@
     const state = {
       user: null,
       workspaceId: '',
+      currentTab: 'dashboard',
+      analyticsMonth: getCurrentMonthKey(),
       darkMode: window.matchMedia?.('(prefers-color-scheme: dark)').matches || false,
       privacyMode: false,
-      activePerson: 'person1',
 
       workspace: {
         name: 'My Ledger',
@@ -605,36 +724,31 @@
         userNames: { person1: 'Person 1', person2: 'Person 2' },
         currency: 'Ks',
         shopCategories: DEFAULT_SHOP_CATS.map((c) => ({ ...c })),
-        shopProfile: { name: '', phone: '', footer: 'Thank you for your purchase!', logoDataUrl: '' }
+        shopProfile: { name: '', footer: 'Thank you for your purchase!', logoDataUrl: '' }
       },
-      allTransactions: [], // Needed for live wallet balances across Personal + Shop
+      allTransactions: [],
       filters: { search: '', month: 'all', category: 'all', type: 'all' },
+      catModal: { open: false, categoryId: null, typeFilter: 'all' },
 
-      // Entry form draft
       draft: {
-        editId: null,
-        mode: 'sale', // 'sale' | 'capital'
-        shopCategoryId: 'hard_toys',
-        costSubType: 'Stock / Capital',
-        wallet: 'cash',
-        person: 'person1',
-        items: [{ name: '', qty: 1, price: '' }]
+        editId: null, mode: 'sale', shopCategoryId: 'shop1', costSubType: 'Stock / Capital',
+        wallet: 'cash', items: [{ name: '', qty: 1, price: '' }],
+        splitMode: 'full_paid', existingCodStatus: 'none', existingCodWallet: '', existingCodPaidDate: ''
       },
+      codPayDraft: { txId: null, wallet: 'cash' },
 
-      // Shop settings draft
       settingsCatsDraft: [],
       settingsLogoDraft: '',
       activeReceiptTx: null,
-      confirmCallback: null
+      confirmCallback: null,
+      charts: { trend: null, cats: null, costs: null }
     };
 
     // =========================================================================
-    // 3. HELPERS
+    // 2. HELPERS
     // =========================================================================
     const $ = (id) => document.getElementById(id);
     const esc = (s) => String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
-    const isValidPerson = (v) => v === 'person1' || v === 'person2' || v === 'shared';
-    const getPersonName = (k) => k === 'shared' ? 'Shared' : (k === 'person2' ? (state.workspace.userNames?.person2 || 'Person 2') : (state.workspace.userNames?.person1 || 'Person 1'));
     const fmtNum = (n) => { const x = Number(n) || 0; return `${x < 0 ? '-' : ''}${Math.abs(x).toLocaleString('en-US', { maximumFractionDigits: 2 })}`; };
     const fmtMoney = (n, plus = false) => `${plus && Number(n) > 0 ? '+' : ''}${fmtNum(n)} ${state.workspace.currency || 'Ks'}`;
     const fmtDisp = (n, plus = false) => state.privacyMode ? '••••••' : fmtMoney(n, plus);
@@ -645,20 +759,23 @@
       return y && m ? new Date(y, m - 1, 1).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : mk;
     };
 
-    const getWallets = () => {
-      const list = Array.isArray(state.workspace.wallets) && state.workspace.wallets.length ? state.workspace.wallets : STARTER_WALLETS;
-      return list.map((w) => ({ ...w, hex: COLOR_MAP[w.colorKey] || '#6366f1' }));
-    };
+    const getWallets = () => (Array.isArray(state.workspace.wallets) && state.workspace.wallets.length ? state.workspace.wallets : STARTER_WALLETS)
+      .map((w) => ({ ...w, hex: COLOR_MAP[w.colorKey] || '#10b981' }));
     const getWalletById = (id) => getWallets().find((w) => w.id === id) || { id: id || 'removed', name: state.workspace.archivedWalletNames?.[id] || id || 'Account', hex: '#64748b' };
-
-    const getShopCategories = () => {
-      const list = Array.isArray(state.workspace.shopCategories) && state.workspace.shopCategories.length ? state.workspace.shopCategories : DEFAULT_SHOP_CATS;
-      return list.map((c) => ({ ...c, hex: COLOR_MAP[c.colorKey] || '#f59e0b' }));
-    };
+    const getShopCategories = () => (Array.isArray(state.workspace.shopCategories) && state.workspace.shopCategories.length ? state.workspace.shopCategories : DEFAULT_SHOP_CATS)
+      .map((c) => ({ ...c, hex: COLOR_MAP[c.colorKey] || '#f59e0b' }));
     const getShopCatById = (id, fallbackName = '') => {
       if (id === 'general') return { id: 'general', name: 'General Shop', hex: '#64748b' };
       return getShopCategories().find((c) => c.id === id) || { id: id || 'general', name: fallbackName || 'Shop', hex: '#64748b' };
     };
+
+    // Paid / COD Sale Calculation Helpers (Method A)
+    const getSaleOrderTotal = (t) => t.orderTotal !== undefined ? (Number(t.orderTotal) || 0) : (Number(t.amount) || 0);
+    const getSalePaidUpfront = (t) => t.paidAmount !== undefined ? (Number(t.paidAmount) || 0) : (Number(t.amount) || 0);
+    const getSaleCodAmount = (t) => Number(t.codAmount) || 0;
+    const getSaleCodStatus = (t) => getSaleCodAmount(t) <= 0 ? 'none' : (t.codStatus === 'paid' ? 'paid' : 'pending');
+    const getSaleCollected = (t) => getSalePaidUpfront(t) + (getSaleCodStatus(t) === 'paid' ? getSaleCodAmount(t) : 0);
+    const getSalePendingCod = (t) => getSaleCodStatus(t) === 'pending' ? getSaleCodAmount(t) : 0;
 
     function showToast(msg, variant = 'info') {
       const cls = { success: 'bg-emerald-600 text-white', error: 'bg-rose-600 text-white', info: 'bg-slate-900 dark:bg-slate-800 text-white' };
@@ -686,7 +803,7 @@
     }
 
     // =========================================================================
-    // 4. FIREBASE SUBSCRIPTION (SAME ISOLATED WORKSPACE AS index.html)
+    // 3. FIREBASE SUBSCRIPTION
     // =========================================================================
     function updateSyncUI(status) {
       const eff = navigator.onLine === false ? 'offline' : status;
@@ -708,7 +825,7 @@
       if (!state.user) return;
       try {
         await setDoc(doc(db, 'delights_flow_users', state.user.uid), {
-          activePerson: state.activePerson, darkMode: state.darkMode, privacyMode: state.privacyMode, updatedAt: Date.now()
+          darkMode: state.darkMode, privacyMode: state.privacyMode, updatedAt: Date.now()
         }, { merge: true });
       } catch {}
     }
@@ -721,14 +838,11 @@
         if (snap.exists()) {
           const d = snap.data();
           wsId = d.activeWorkspaceId || d.workspaces?.[0]?.id || '';
-          if (isValidPerson(d.activePerson)) state.activePerson = d.activePerson;
           if (typeof d.darkMode === 'boolean') { state.darkMode = d.darkMode; applyTheme(); }
           if (typeof d.privacyMode === 'boolean') { state.privacyMode = d.privacyMode; applyPrivacyUI(); }
         }
       } catch {}
-      if (!wsId) {
-        try { wsId = localStorage.getItem('df_active_ws') || ''; } catch {}
-      }
+      if (!wsId) { try { wsId = localStorage.getItem('df_active_ws') || ''; } catch {} }
       if (!wsId) {
         $('signin-required-msg').textContent = 'Create or join a ledger on the main Money Tracker page first.';
         showScreen('signin');
@@ -756,7 +870,6 @@
           shopCategories: Array.isArray(d.shopCategories) && d.shopCategories.length ? d.shopCategories : DEFAULT_SHOP_CATS.map((c) => ({ ...c })),
           shopProfile: {
             name: d.shopProfile?.name || '',
-            phone: d.shopProfile?.phone || '',
             footer: d.shopProfile?.footer || 'Thank you for your purchase!',
             logoDataUrl: d.shopProfile?.logoDataUrl || ''
           }
@@ -792,29 +905,15 @@
     }
 
     // =========================================================================
-    // 5. COMPUTATIONS & RENDERING
+    // 4. THEME, PRIVACY, TABS & ROW BUILDER
     // =========================================================================
-    function computeLiveWalletBalances() {
-      const bal = {};
-      getWallets().forEach((w) => (bal[w.id] = Number(state.workspace.openingBalances?.[w.id]) || 0));
-      state.allTransactions.forEach((t) => {
-        const a = Number(t.amount) || 0;
-        if (t.type === 'income' && bal[t.wallet] !== undefined) bal[t.wallet] += a;
-        else if (t.type === 'expense' && bal[t.wallet] !== undefined) bal[t.wallet] -= a;
-        else if (t.type === 'transfer') {
-          if (bal[t.fromWallet] !== undefined) bal[t.fromWallet] -= a;
-          if (bal[t.toWallet] !== undefined) bal[t.toWallet] += a;
-        }
-      });
-      return bal;
-    }
-
     function applyTheme() {
       document.documentElement.classList.toggle('dark', state.darkMode);
       const icon = state.darkMode
         ? `<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z" /></svg>`
         : `<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z" /></svg>`;
       document.querySelectorAll('.theme-icon-slot').forEach((s) => (s.innerHTML = icon));
+      if (state.currentTab === 'analytics') renderShopAnalytics();
     }
 
     function applyPrivacyUI() {
@@ -824,13 +923,129 @@
       document.querySelectorAll('.privacy-icon-slot').forEach((s) => (s.innerHTML = icon));
     }
 
+    function switchShopTab(tab) {
+      state.currentTab = tab;
+      $('shop-tab-dashboard').classList.toggle('hidden', tab !== 'dashboard');
+      $('shop-tab-analytics').classList.toggle('hidden', tab !== 'analytics');
+
+      document.querySelectorAll('.shop-top-tab').forEach((b) => {
+        const act = b.dataset.shopTab === tab;
+        b.className = act
+          ? 'shop-top-tab py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold bg-white dark:bg-slate-800 text-amber-600 dark:text-amber-400 shadow-sm transition-all'
+          : 'shop-top-tab py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold text-slate-500 dark:text-slate-400 transition-all';
+      });
+      document.querySelectorAll('.shop-side-nav').forEach((b) => {
+        const act = b.dataset.shopTab === tab;
+        b.className = act
+          ? 'shop-side-nav w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 transition-all'
+          : 'shop-side-nav w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-all';
+      });
+      document.querySelectorAll('.shop-mobile-tab').forEach((b) => {
+        const act = b.dataset.shopTab === tab;
+        b.className = act
+          ? 'shop-mobile-tab flex flex-col items-center justify-center py-1.5 gap-1 rounded-xl text-[11px] font-bold text-amber-600 dark:text-amber-400'
+          : 'shop-mobile-tab flex flex-col items-center justify-center py-1.5 gap-1 rounded-xl text-[11px] font-semibold text-slate-500 dark:text-slate-400';
+      });
+      if (tab === 'analytics') renderShopAnalytics();
+    }
+
+    function buildShopTxRowHTML(t, showCatBadge = true) {
+      const isSale = (t.shopEntryType || (t.type === 'income' ? 'sale' : 'capital')) === 'sale';
+      const cat = getShopCatById(t.shopCategoryId, t.shopCategoryName || t.category);
+      const w = getWalletById(t.wallet);
+      const itemsSummary = isSale && Array.isArray(t.items) && t.items.length
+        ? t.items.map((i) => `${i.name}${Number(i.qty) > 1 ? ` ×${i.qty}` : ''}`).join(', ')
+        : '';
+      const headline = isSale ? `${t.customerName ? esc(t.customerName) : 'Customer Sale'}` : `${esc(t.costSubType || 'Capital / Cost')}`;
+      const subline = [itemsSummary, t.note].filter(Boolean).join(' · ');
+
+      const orderTotal = isSale ? getSaleOrderTotal(t) : Number(t.amount) || 0;
+      const paidUpfront = isSale ? getSalePaidUpfront(t) : 0;
+      const codAmt = isSale ? getSaleCodAmount(t) : 0;
+      const codStatus = isSale ? getSaleCodStatus(t) : 'none';
+      const isPendingCod = isSale && codStatus === 'pending';
+      const isCodSettled = isSale && codStatus === 'paid';
+      const codWalletObj = isCodSettled && t.codWallet ? getWalletById(t.codWallet) : null;
+
+      let codBadgesHtml = '';
+      if (isPendingCod) {
+        if (paidUpfront > 0) codBadgesHtml += `<span class="px-2 py-0.5 rounded-lg text-[11px] font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300">Paid: ${fmtDisp(paidUpfront)}</span>`;
+        codBadgesHtml += `<span class="px-2 py-0.5 rounded-lg text-[11px] font-bold bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300">⏳ COD: ${fmtDisp(codAmt)}</span>`;
+      } else if (isCodSettled) {
+        codBadgesHtml += `<span class="px-2 py-0.5 rounded-lg text-[11px] font-bold bg-emerald-100 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300">✓ COD Paid${codWalletObj ? ` (${esc(codWalletObj.name)})` : ''}</span>`;
+      }
+
+      const showUpfrontWallet = !isSale || paidUpfront > 0 || !isPendingCod;
+
+      return `<div class="p-4 sm:px-5 hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div class="flex items-start gap-3 min-w-0 flex-1 cursor-pointer" data-edit-stx="${esc(t.id)}">
+          <div class="w-10 h-10 rounded-2xl flex items-center justify-center text-lg shrink-0" style="background:${cat.hex}20">${isSale ? '🛍️' : '📦'}</div>
+          <div class="min-w-0 flex-1">
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="text-sm font-extrabold text-slate-900 dark:text-white truncate">${headline}</span>
+              ${t.receiptNo ? `<span class="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500">${esc(t.receiptNo)}</span>` : ''}
+            </div>
+            ${subline ? `<p class="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 mt-0.5">${esc(subline)}</p>` : ''}
+            <div class="flex items-center gap-1.5 flex-wrap mt-1.5">
+              ${showCatBadge ? `<span class="px-2 py-0.5 rounded-lg text-[11px] font-bold" style="background:${cat.hex}20;color:${cat.hex}">${esc(cat.name)}</span>` : ''}
+              ${showUpfrontWallet ? `<span class="px-2 py-0.5 rounded-lg text-[11px] font-bold" style="background:${w.hex}20;color:${w.hex}">${esc(w.name)}</span>` : ''}
+              ${codBadgesHtml}
+              <span class="text-[11px] text-slate-400 font-medium">${esc(t.date || '')}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap items-center justify-between sm:justify-end gap-2 shrink-0">
+          <div class="text-base font-extrabold tabular-nums ${isSale ? (isPendingCod ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400') : 'text-rose-600 dark:text-rose-400'}">
+            ${state.privacyMode ? '••••••' : `${isSale ? '+' : '-'}${fmtMoney(orderTotal)}`}
+          </div>
+          <div class="flex items-center gap-1.5 flex-wrap">
+            ${isPendingCod ? `<button type="button" data-mark-cod-paid="${esc(t.id)}" class="px-2.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm">✓ Mark COD Paid</button>` : ''}
+            ${isSale ? `<button type="button" data-open-receipt="${esc(t.id)}" class="px-2.5 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 text-xs font-bold">🧾 Receipt</button>` : ''}
+            <button type="button" data-edit-stx="${esc(t.id)}" title="Edit" class="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-950/50">✎</button>
+            <button type="button" data-del-stx="${esc(t.id)}" title="Delete" class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/50">✕</button>
+          </div>
+        </div>
+      </div>`;
+    }
+
+    function bindShopRowActions(container) {
+      const shopTxs = getShopTransactions();
+      container.querySelectorAll('[data-mark-cod-paid]').forEach((b) => b.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const tx = shopTxs.find((x) => x.id === b.dataset.markCodPaid);
+        if (tx) openCodPayModal(tx);
+      }));
+      container.querySelectorAll('[data-open-receipt]').forEach((b) => b.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const tx = shopTxs.find((x) => x.id === b.dataset.openReceipt);
+        if (tx) openReceiptModal(tx);
+      }));
+      container.querySelectorAll('[data-edit-stx]').forEach((b) => b.addEventListener('click', () => {
+        const tx = shopTxs.find((x) => x.id === b.dataset.editStx);
+        if (tx) openShopTxModal(tx.shopEntryType || (tx.type === 'income' ? 'sale' : 'capital'), tx);
+      }));
+      container.querySelectorAll('[data-del-stx]').forEach((b) => b.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openConfirm('Delete Shop Record?', 'This will remove the record and adjust your linked wallet balance automatically.', async () => {
+          await removeTx(b.dataset.delStx);
+          showToast('Shop entry deleted', 'success');
+        });
+      }));
+    }
+
+    // =========================================================================
+    // 5. MAIN RENDERING
+    // =========================================================================
     function getFilteredShopTxs() {
       const { search, month, category, type } = state.filters;
       const q = search.trim().toLowerCase();
       return getShopTransactions().filter((t) => {
         const entryType = t.shopEntryType || (t.type === 'income' ? 'sale' : 'capital');
         if (month !== 'all' && (!t.date || !t.date.startsWith(month))) return false;
-        if (type !== 'all' && entryType !== type) return false;
+        if (type === 'pending_cod') {
+          if (entryType !== 'sale' || getSaleCodStatus(t) !== 'pending') return false;
+        } else if (type !== 'all' && entryType !== type) return false;
         if (category !== 'all' && (t.shopCategoryId || 'general') !== category) return false;
         if (q) {
           const itemNames = (t.items || []).map((i) => i.name).join(' ');
@@ -848,37 +1063,32 @@
       $('sidebar-ws-subtitle').textContent = state.workspace.name || 'Delights Flow';
       $('mobile-ws-subtitle').textContent = state.workspace.name || 'Delights Flow';
 
-      document.querySelectorAll('.quick-person-btn').forEach((b) => {
-        const k = b.dataset.quickPerson;
-        b.textContent = getPersonName(k);
-        b.className = k === state.activePerson
-          ? 'quick-person-btn py-2 px-1 rounded-lg bg-white dark:bg-slate-900 text-amber-600 dark:text-amber-400 shadow-sm truncate'
-          : 'quick-person-btn py-2 px-1 rounded-lg text-slate-500 truncate';
-      });
-
       const shopTxs = getShopTransactions();
       const today = getTodayISO();
-      let todaySales = 0, todaySalesCount = 0, totalRev = 0, totalCap = 0;
+      let todaySales = 0, totalRev = 0, totalCap = 0, totalPendingCod = 0;
 
-      // Per-category stats
       const cats = getShopCategories();
       const catStats = {};
-      cats.forEach((c) => (catStats[c.id] = { ...c, sales: 0, capital: 0, salesCount: 0 }));
+      cats.forEach((c) => (catStats[c.id] = { ...c, sales: 0, capital: 0, pendingCod: 0 }));
 
       shopTxs.forEach((t) => {
-        const amt = Number(t.amount) || 0;
         const isSale = (t.shopEntryType || (t.type === 'income' ? 'sale' : 'capital')) === 'sale';
         const cId = t.shopCategoryId || 'general';
         if (!catStats[cId]) {
           const info = getShopCatById(cId, t.shopCategoryName || t.category);
-          catStats[cId] = { ...info, sales: 0, capital: 0, salesCount: 0 };
+          catStats[cId] = { ...info, sales: 0, capital: 0, pendingCod: 0 };
         }
         if (isSale) {
-          totalRev += amt;
-          catStats[cId].sales += amt;
-          catStats[cId].salesCount++;
-          if (t.date === today) { todaySales += amt; todaySalesCount++; }
+          const collected = getSaleCollected(t);
+          const pendingCod = getSalePendingCod(t);
+          totalRev += collected;
+          totalPendingCod += pendingCod;
+          catStats[cId].sales += collected;
+          catStats[cId].pendingCod += pendingCod;
+          if (t.date === today) todaySales += getSalePaidUpfront(t);
+          if (getSaleCodStatus(t) === 'paid' && (t.codPaidDate || t.date) === today) todaySales += getSaleCodAmount(t);
         } else {
+          const amt = Number(t.amount) || 0;
           totalCap += amt;
           catStats[cId].capital += amt;
         }
@@ -887,43 +1097,43 @@
       const netProfit = totalRev - totalCap;
       $('hero-today-date').textContent = today;
       $('hero-daily-sales').textContent = fmtDisp(todaySales);
-      $('hero-daily-count').textContent = `${todaySalesCount} ${todaySalesCount === 1 ? 'sale' : 'sales'} recorded today · Synced to live wallets`;
       $('hero-total-revenue').textContent = fmtDisp(totalRev);
       $('hero-total-capital').textContent = fmtDisp(totalCap);
-      $('hero-net-label').textContent = netProfit >= 0 ? 'Net Profit' : 'To Break Even';
+      $('hero-net-label').textContent = netProfit >= 0 ? '═ Net Profit' : '═ To Break Even';
       $('hero-net-profit').textContent = netProfit >= 0 ? fmtDisp(netProfit, true) : fmtDisp(Math.abs(netProfit));
-      $('hero-net-profit').className = `text-sm sm:text-base font-bold tabular-nums truncate ${netProfit >= 0 ? 'text-emerald-300' : 'text-amber-300'}`;
+      $('hero-net-profit').className = `text-base sm:text-lg font-extrabold tabular-nums text-right break-words ${netProfit >= 0 ? 'text-emerald-300' : 'text-amber-300'}`;
+      $('hero-pending-cod').textContent = fmtDisp(totalPendingCod);
 
-      // Live Wallets Strip
-      const balances = computeLiveWalletBalances();
-      $('shop-wallets-strip').innerHTML = getWallets().map((w) => `
-        <div class="shrink-0 px-3.5 py-2.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex items-center gap-2.5">
-          <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:${w.hex}"></span>
-          <div>
-            <p class="text-[11px] font-bold text-slate-500 dark:text-slate-400 leading-none">${esc(w.name)}</p>
-            <p class="text-xs sm:text-sm font-extrabold tabular-nums text-slate-900 dark:text-white mt-1">${fmtDisp(balances[w.id] || 0)}</p>
-          </div>
-        </div>`).join('');
-
-      // Shop Categories Cards
-      const catCardsData = Object.values(catStats).filter((c) => cats.some((x) => x.id === c.id) || c.sales > 0 || c.capital > 0);
+      const catCardsData = Object.values(catStats).filter((c) => cats.some((x) => x.id === c.id) || c.sales > 0 || c.capital > 0 || c.pendingCod > 0);
       const grid = $('shop-categories-grid');
       grid.innerHTML = catCardsData.map((c) => {
         const net = c.sales - c.capital;
         const pct = c.capital > 0 ? Math.min(100, Math.round((c.sales / c.capital) * 100)) : (c.sales > 0 ? 100 : 0);
-        const active = state.filters.category === c.id;
-        return `<button type="button" data-filter-cat-card="${esc(c.id)}" class="text-left bg-white dark:bg-slate-900 rounded-3xl p-4 sm:p-5 border transition-all shadow-sm hover:shadow-md active:scale-[0.98] space-y-3 ${active ? 'border-amber-500 ring-2 ring-amber-500/40' : 'border-slate-200/80 dark:border-slate-800'}">
+        return `<button type="button" data-open-cat-history="${esc(c.id)}" class="text-left bg-white dark:bg-slate-900 rounded-3xl p-4 sm:p-5 border border-slate-200/80 dark:border-slate-800 hover:border-amber-400 dark:hover:border-amber-600 transition-all shadow-sm hover:shadow-md active:scale-[0.98] space-y-3">
           <div class="flex items-center justify-between gap-2">
             <span class="inline-flex items-center gap-2 font-extrabold text-sm text-slate-900 dark:text-white truncate">
               <span class="w-3 h-3 rounded-full shrink-0" style="background:${c.hex}"></span>
               <span class="truncate">${esc(c.name)}</span>
             </span>
-            <span class="text-[11px] font-bold px-2 py-0.5 rounded-full" style="background:${c.hex}20;color:${c.hex}">${c.salesCount} ${c.salesCount === 1 ? 'sale' : 'sales'}</span>
+            <span class="text-[11px] font-bold px-2.5 py-0.5 rounded-full shrink-0" style="background:${c.hex}20;color:${c.hex}">History →</span>
           </div>
-          <div class="grid grid-cols-3 gap-2 text-xs">
-            <div><p class="text-[10px] font-semibold uppercase text-slate-400">Sales</p><p class="font-extrabold text-emerald-600 dark:text-emerald-400 tabular-nums truncate">${fmtDisp(c.sales)}</p></div>
-            <div><p class="text-[10px] font-semibold uppercase text-slate-400">Capital</p><p class="font-extrabold text-rose-600 dark:text-rose-400 tabular-nums truncate">${fmtDisp(c.capital)}</p></div>
-            <div><p class="text-[10px] font-semibold uppercase text-slate-400">${net >= 0 ? 'Profit' : 'Left'}</p><p class="font-extrabold tabular-nums truncate ${net >= 0 ? 'text-indigo-600 dark:text-indigo-400' : 'text-amber-600 dark:text-amber-400'}">${net >= 0 ? fmtDisp(net, true) : fmtDisp(Math.abs(net))}</p></div>
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60">
+              <p class="text-[10px] font-semibold uppercase text-slate-400">Sales</p>
+              <p class="font-extrabold text-emerald-600 dark:text-emerald-400 tabular-nums break-words mt-0.5">${fmtDisp(c.sales)}</p>
+            </div>
+            <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60">
+              <p class="text-[10px] font-semibold uppercase text-slate-400">Capital</p>
+              <p class="font-extrabold text-rose-600 dark:text-rose-400 tabular-nums break-words mt-0.5">${fmtDisp(c.capital)}</p>
+            </div>
+            <div class="col-span-2 px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 flex items-center justify-between gap-2">
+              <span class="text-[10px] font-bold uppercase text-slate-400">${net >= 0 ? 'Net Profit' : 'Left to Break Even'}</span>
+              <span class="font-extrabold tabular-nums break-words ${net >= 0 ? 'text-indigo-600 dark:text-indigo-400' : 'text-amber-600 dark:text-amber-400'}">${net >= 0 ? fmtDisp(net, true) : fmtDisp(Math.abs(net))}</span>
+            </div>
+            ${c.pendingCod > 0 ? `<div class="col-span-2 px-3 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 flex items-center justify-between gap-2 text-amber-700 dark:text-amber-300">
+              <span class="text-[10px] font-bold uppercase">⏳ Pending COD</span>
+              <span class="font-extrabold tabular-nums">${fmtDisp(c.pendingCod)}</span>
+            </div>` : ''}
           </div>
           <div class="space-y-1">
             <div class="flex justify-between text-[10px] font-semibold text-slate-400"><span>Capital Recovery</span><span>${state.privacyMode ? '••%' : `${pct}%`}</span></div>
@@ -931,35 +1141,37 @@
           </div>
         </button>`;
       }).join('');
+      grid.querySelectorAll('[data-open-cat-history]').forEach((b) => b.addEventListener('click', () => openCategoryHistoryModal(b.dataset.openCatHistory)));
 
-      grid.querySelectorAll('[data-filter-cat-card]').forEach((b) => b.addEventListener('click', () => {
-        const id = b.dataset.filterCatCard;
-        state.filters.category = state.filters.category === id ? 'all' : id;
-        renderAll();
-      }));
-
-      // Populate Filter Dropdowns
       const monthsSet = new Set([getCurrentMonthKey()]);
       shopTxs.forEach((t) => { if (t.date?.length >= 7) monthsSet.add(t.date.slice(0, 7)); });
+      const now = new Date();
+      for (let i = 0; i < 6; i++) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        monthsSet.add(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`);
+      }
       const months = Array.from(monthsSet).sort((a, b) => b.localeCompare(a));
+
       $('shop-filter-month').innerHTML = `<option value="all">All Time</option>` + months.map((m) => `<option value="${m}">${fmtMonth(m)}</option>`).join('');
       $('shop-filter-month').value = months.includes(state.filters.month) ? state.filters.month : 'all';
-
       $('shop-filter-cat').innerHTML = `<option value="all">All Categories</option>` + cats.map((c) => `<option value="${esc(c.id)}">${esc(c.name)}</option>`).join('') + `<option value="general">General Shop</option>`;
       $('shop-filter-cat').value = state.filters.category;
       $('shop-filter-type').value = state.filters.type;
 
-      // Render Filtered Shop History
+      $('sa-month-select').innerHTML = months.map((m) => `<option value="${m}">${fmtMonth(m)}</option>`).join('') + `<option value="all">All Time</option>`;
+      $('sa-month-select').value = months.includes(state.analyticsMonth) || state.analyticsMonth === 'all' ? state.analyticsMonth : getCurrentMonthKey();
+
       const filtered = getFilteredShopTxs();
-      let fRev = 0, fCap = 0;
+      let fRev = 0, fCap = 0, fCod = 0;
       filtered.forEach((t) => {
         const isSale = (t.shopEntryType || (t.type === 'income' ? 'sale' : 'capital')) === 'sale';
-        if (isSale) fRev += Number(t.amount) || 0;
+        if (isSale) { fRev += getSaleCollected(t); fCod += getSalePendingCod(t); }
         else fCap += Number(t.amount) || 0;
       });
       $('shop-filter-summary').innerHTML = `
         <span class="text-slate-500 dark:text-slate-400">${filtered.length} records</span>
-        <span class="text-emerald-600 dark:text-emerald-400">Sales: ${fmtDisp(fRev)}</span>
+        <span class="text-emerald-600 dark:text-emerald-400">Received: ${fmtDisp(fRev)}</span>
+        ${fCod > 0 ? `<span class="text-amber-600 dark:text-amber-400">COD: ${fmtDisp(fCod)}</span>` : ''}
         <span class="text-rose-600 dark:text-rose-400">Capital: ${fmtDisp(fCap)}</span>`;
 
       const dirty = state.filters.search || state.filters.month !== 'all' || state.filters.category !== 'all' || state.filters.type !== 'all';
@@ -969,74 +1181,176 @@
       if (!filtered.length) {
         listEl.innerHTML = `<div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-10 text-center space-y-2">
           <div class="text-3xl">🛍️</div>
-          <p class="text-sm font-bold text-slate-700 dark:text-slate-200">No shop records yet</p>
-          <p class="text-xs text-slate-400">Tap <strong>+ Record Sale &amp; Receipt</strong> or <strong>+ Record Capital / Cost</strong> to begin.</p>
+          <p class="text-sm font-bold text-slate-700 dark:text-slate-200">No shop records found</p>
+          <p class="text-xs text-slate-400">Tap <strong>+</strong> to record a sale or <strong>+ Capital</strong> to log stock/costs.</p>
         </div>`;
-        return;
+      } else {
+        listEl.innerHTML = `<div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm divide-y divide-slate-100 dark:divide-slate-800/70 overflow-hidden">${filtered.map((t) => buildShopTxRowHTML(t, true)).join('')}</div>`;
+        bindShopRowActions(listEl);
       }
 
-      listEl.innerHTML = `<div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm divide-y divide-slate-100 dark:divide-slate-800/70 overflow-hidden">${filtered.map((t) => {
-        const isSale = (t.shopEntryType || (t.type === 'income' ? 'sale' : 'capital')) === 'sale';
-        const cat = getShopCatById(t.shopCategoryId, t.shopCategoryName || t.category);
-        const w = getWalletById(t.wallet);
-        const itemsSummary = isSale && Array.isArray(t.items) && t.items.length
-          ? t.items.map((i) => `${i.name}${Number(i.qty) > 1 ? ` ×${i.qty}` : ''}`).join(', ')
-          : '';
-        const headline = isSale
-          ? `${t.customerName ? esc(t.customerName) : 'Customer Sale'}`
-          : `${esc(t.costSubType || 'Capital / Cost')}`;
-        const subline = [itemsSummary, t.note].filter(Boolean).join(' · ');
-
-        return `<div class="p-4 sm:px-5 hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div class="flex items-start gap-3 min-w-0 flex-1 cursor-pointer" data-edit-stx="${esc(t.id)}">
-            <div class="w-10 h-10 rounded-2xl flex items-center justify-center text-lg shrink-0" style="background:${cat.hex}20">${isSale ? '🛍️' : '📦'}</div>
-            <div class="min-w-0 flex-1">
-              <div class="flex items-center gap-2 flex-wrap">
-                <span class="text-sm font-extrabold text-slate-900 dark:text-white truncate">${headline}</span>
-                ${t.receiptNo ? `<span class="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500">${esc(t.receiptNo)}</span>` : ''}
-              </div>
-              ${subline ? `<p class="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">${esc(subline)}</p>` : ''}
-              <div class="flex items-center gap-1.5 flex-wrap mt-1.5">
-                <span class="px-2 py-0.5 rounded-lg text-[11px] font-bold" style="background:${cat.hex}20;color:${cat.hex}">${esc(cat.name)}</span>
-                <span class="px-2 py-0.5 rounded-lg text-[11px] font-bold" style="background:${w.hex}20;color:${w.hex}">${esc(w.name)}</span>
-                <span class="text-[11px] text-slate-400 font-medium">${esc(t.date || '')}</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="flex items-center justify-between sm:justify-end gap-2 shrink-0 pl-13 sm:pl-0">
-            <div class="text-base font-extrabold tabular-nums ${isSale ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}">
-              ${state.privacyMode ? '••••••' : `${isSale ? '+' : '-'}${fmtMoney(t.amount)}`}
-            </div>
-            <div class="flex items-center gap-1.5">
-              ${isSale ? `<button type="button" data-open-receipt="${esc(t.id)}" class="px-2.5 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 text-xs font-bold transition-colors">🧾 Receipt</button>` : ''}
-              <button type="button" data-edit-stx="${esc(t.id)}" title="Edit" class="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-950/50">✎</button>
-              <button type="button" data-del-stx="${esc(t.id)}" title="Delete" class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/50">✕</button>
-            </div>
-          </div>
-        </div>`;
-      }).join('')}</div>`;
-
-      listEl.querySelectorAll('[data-open-receipt]').forEach((b) => b.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const tx = shopTxs.find((x) => x.id === b.dataset.openReceipt);
-        if (tx) openReceiptModal(tx);
-      }));
-      listEl.querySelectorAll('[data-edit-stx]').forEach((b) => b.addEventListener('click', () => {
-        const tx = shopTxs.find((x) => x.id === b.dataset.editStx);
-        if (tx) openShopTxModal(tx.shopEntryType || (tx.type === 'income' ? 'sale' : 'capital'), tx);
-      }));
-      listEl.querySelectorAll('[data-del-stx]').forEach((b) => b.addEventListener('click', (e) => {
-        e.stopPropagation();
-        openConfirm('Delete Shop Record?', 'This will remove the record and adjust your linked wallet balance automatically.', async () => {
-          await removeTx(b.dataset.delStx);
-          showToast('Shop entry deleted', 'success');
-        });
-      }));
+      if (state.catModal.open) renderCategoryHistoryModal();
+      if (state.currentTab === 'analytics') renderShopAnalytics();
     }
 
     // =========================================================================
-    // 6. SALE & CAPITAL ENTRY MODAL
+    // 5B. CATEGORY HISTORY POPUP
+    // =========================================================================
+    function openCategoryHistoryModal(categoryId) {
+      state.catModal = { open: true, categoryId, typeFilter: 'all' };
+      renderCategoryHistoryModal();
+      $('cat-history-modal').classList.remove('hidden');
+    }
+
+    function renderCategoryHistoryModal() {
+      const { categoryId, typeFilter } = state.catModal;
+      if (!categoryId) return;
+      const cat = getShopCatById(categoryId);
+      const catTxs = getShopTransactions().filter((t) => (t.shopCategoryId || 'general') === categoryId);
+
+      let sales = 0, capital = 0, pendingCod = 0;
+      catTxs.forEach((t) => {
+        const isSale = (t.shopEntryType || (t.type === 'income' ? 'sale' : 'capital')) === 'sale';
+        if (isSale) { sales += getSaleCollected(t); pendingCod += getSalePendingCod(t); }
+        else capital += Number(t.amount) || 0;
+      });
+      const net = sales - capital;
+      const pct = capital > 0 ? Math.min(100, Math.round((sales / capital) * 100)) : (sales > 0 ? 100 : 0);
+
+      $('chm-dot').style.background = cat.hex;
+      $('chm-title').textContent = cat.name;
+      $('chm-sales').textContent = fmtDisp(sales);
+      $('chm-capital').textContent = fmtDisp(capital);
+      $('chm-net-label').textContent = net >= 0 ? 'Net Profit' : 'Left to Break Even';
+      $('chm-recovery').textContent = `Capital recovery: ${state.privacyMode ? '••%' : `${pct}%`}`;
+      $('chm-net').textContent = net >= 0 ? fmtDisp(net, true) : fmtDisp(Math.abs(net));
+      $('chm-net').className = `text-base sm:text-lg font-extrabold tabular-nums text-right break-words ${net >= 0 ? 'text-indigo-600 dark:text-indigo-400' : 'text-amber-600 dark:text-amber-400'}`;
+      $('chm-cod-wrap').classList.toggle('hidden', pendingCod <= 0);
+      $('chm-cod').textContent = fmtDisp(pendingCod);
+
+      document.querySelectorAll('.chm-type-btn').forEach((b) => {
+        b.className = b.dataset.chmType === typeFilter
+          ? 'chm-type-btn px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-900 text-amber-600 dark:text-amber-400 shadow-sm'
+          : 'chm-type-btn px-2.5 py-1.5 rounded-lg text-slate-500';
+      });
+
+      const shown = catTxs.filter((t) => {
+        const et = t.shopEntryType || (t.type === 'income' ? 'sale' : 'capital');
+        if (typeFilter === 'all') return true;
+        if (typeFilter === 'pending_cod') return et === 'sale' && getSaleCodStatus(t) === 'pending';
+        return et === typeFilter;
+      });
+
+      const listEl = $('chm-list');
+      if (!shown.length) listEl.innerHTML = `<div class="p-8 text-center text-xs text-slate-400">No matching records in ${esc(cat.name)} yet.</div>`;
+      else { listEl.innerHTML = shown.map((t) => buildShopTxRowHTML(t, false)).join(''); bindShopRowActions(listEl); }
+    }
+
+    // =========================================================================
+    // 5C. SHOP ANALYTICS (CHART.JS)
+    // =========================================================================
+    function destroyChart(k) { if (state.charts[k]) { state.charts[k].destroy(); state.charts[k] = null; } }
+
+    function renderShopAnalytics() {
+      const sm = state.analyticsMonth;
+      const shopTxs = getShopTransactions();
+      const periodTxs = shopTxs.filter((t) => sm === 'all' || t.date?.startsWith(sm));
+
+      let pSales = 0, pCap = 0, pOrderCount = 0;
+      const catMap = {};
+      const costMap = {};
+      getShopCategories().forEach((c) => (catMap[c.id] = { name: c.name, hex: c.hex, sales: 0, capital: 0 }));
+
+      periodTxs.forEach((t) => {
+        const isSale = (t.shopEntryType || (t.type === 'income' ? 'sale' : 'capital')) === 'sale';
+        const cId = t.shopCategoryId || 'general';
+        if (!catMap[cId]) { const info = getShopCatById(cId, t.shopCategoryName || t.category); catMap[cId] = { name: info.name, hex: info.hex, sales: 0, capital: 0 }; }
+        if (isSale) { const col = getSaleCollected(t); pSales += col; pOrderCount++; catMap[cId].sales += col; }
+        else { const amt = Number(t.amount) || 0; pCap += amt; catMap[cId].capital += amt; const ct = t.costSubType || 'Stock / Capital'; costMap[ct] = (costMap[ct] || 0) + amt; }
+      });
+
+      const pNet = pSales - pCap;
+      $('sa-kpi-sales').textContent = fmtDisp(pSales);
+      $('sa-kpi-capital').textContent = fmtDisp(pCap);
+      $('sa-kpi-net').textContent = fmtDisp(pNet, true);
+      $('sa-kpi-net').className = `text-base sm:text-xl font-extrabold mt-1 tabular-nums break-words ${pNet >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`;
+      $('sa-kpi-avg').textContent = fmtDisp(pOrderCount > 0 ? Math.round(pSales / pOrderCount) : 0);
+
+      const txtCol = state.darkMode ? '#cbd5e1' : '#475569';
+      const grdCol = state.darkMode ? 'rgba(148,163,184,0.12)' : 'rgba(15,23,42,0.07)';
+      const hasChart = typeof Chart !== 'undefined';
+
+      destroyChart('trend');
+      let tLabels = [], tSales = [], tCaps = [];
+      if (sm === 'all') {
+        $('sa-trend-title').textContent = 'Monthly Sales vs Capital (Last 6 Months)';
+        $('sa-trend-sub').textContent = 'Monthly revenue & capital overview';
+        const now = new Date(), m6 = [];
+        for (let i = 5; i >= 0; i--) { const d = new Date(now.getFullYear(), now.getMonth() - i, 1); m6.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`); }
+        tLabels = m6.map(fmtMonth);
+        tSales = m6.map((mk) => shopTxs.filter((t) => t.date?.startsWith(mk) && (t.shopEntryType || (t.type === 'income' ? 'sale' : 'capital')) === 'sale').reduce((s, t) => s + getSaleCollected(t), 0));
+        tCaps = m6.map((mk) => shopTxs.filter((t) => t.date?.startsWith(mk) && (t.shopEntryType || (t.type === 'income' ? 'sale' : 'capital')) !== 'sale').reduce((s, t) => s + (Number(t.amount) || 0), 0));
+      } else {
+        $('sa-trend-title').textContent = `Daily Sales & Capital (${fmtMonth(sm)})`;
+        $('sa-trend-sub').textContent = 'Daily performance for the selected month';
+        const [y, m] = sm.split('-').map(Number);
+        const dim = new Date(y, m, 0).getDate();
+        const dS = Array(dim).fill(0), dC = Array(dim).fill(0);
+        periodTxs.forEach((t) => {
+          const day = parseInt((t.date || '').slice(8, 10), 10);
+          if (day >= 1 && day <= dim) {
+            if ((t.shopEntryType || (t.type === 'income' ? 'sale' : 'capital')) === 'sale') dS[day - 1] += getSaleCollected(t);
+            else dC[day - 1] += Number(t.amount) || 0;
+          }
+        });
+        tLabels = Array.from({ length: dim }, (_, i) => String(i + 1));
+        tSales = dS; tCaps = dC;
+      }
+
+      const hasTrend = tSales.some((v) => v > 0) || tCaps.some((v) => v > 0);
+      $('sa-empty-trend').classList.toggle('hidden', hasTrend);
+      if (hasTrend && hasChart) {
+        state.charts.trend = new Chart($('sa-chart-trend').getContext('2d'), {
+          type: 'bar',
+          data: { labels: tLabels, datasets: [{ label: 'Sales', data: tSales, backgroundColor: '#10b981', borderRadius: 5 }, { label: 'Capital', data: tCaps, backgroundColor: '#f43f5e', borderRadius: 5 }] },
+          options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: txtCol } }, tooltip: { callbacks: { label: (ctx) => ` ${ctx.dataset.label}: ${fmtDisp(ctx.raw)}` } } }, scales: { x: { ticks: { color: txtCol, font: { size: 11 } }, grid: { display: false } }, y: { ticks: { color: txtCol, font: { size: 11 } }, grid: { color: grdCol } } } }
+        });
+      }
+
+      destroyChart('cats');
+      const catArr = Object.values(catMap).filter((c) => c.sales > 0 || c.capital > 0);
+      $('sa-empty-cats').classList.toggle('hidden', catArr.length > 0);
+      if (catArr.length && hasChart) {
+        state.charts.cats = new Chart($('sa-chart-cats').getContext('2d'), {
+          type: 'bar',
+          data: { labels: catArr.map((c) => c.name), datasets: [{ label: 'Sales', data: catArr.map((c) => c.sales), backgroundColor: '#10b981', borderRadius: 6 }, { label: 'Capital', data: catArr.map((c) => c.capital), backgroundColor: '#f43f5e', borderRadius: 6 }] },
+          options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: txtCol } }, tooltip: { callbacks: { label: (ctx) => ` ${ctx.dataset.label}: ${fmtDisp(ctx.raw)}` } } }, scales: { x: { ticks: { color: txtCol }, grid: { display: false } }, y: { ticks: { color: txtCol }, grid: { color: grdCol } } } }
+        });
+      }
+      $('sa-cats-list').innerHTML = catArr.length ? catArr.map((c) => {
+        const net = c.sales - c.capital;
+        return `<div class="flex items-center justify-between gap-2 text-xs font-semibold"><span class="flex items-center gap-2 truncate"><span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:${c.hex}"></span>${esc(c.name)}</span><span class="tabular-nums ${net >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}">${fmtDisp(net, true)}</span></div>`;
+      }).join('') : `<p class="text-xs text-slate-400 text-center">No shop activity in this period.</p>`;
+
+      destroyChart('costs');
+      const costArr = Object.entries(costMap).sort((a, b) => b[1] - a[1]);
+      $('sa-empty-costs').classList.toggle('hidden', costArr.length > 0);
+      if (costArr.length && hasChart) {
+        state.charts.costs = new Chart($('sa-chart-costs').getContext('2d'), {
+          type: 'doughnut',
+          data: { labels: costArr.map((c) => c[0]), datasets: [{ data: costArr.map((c) => c[1]), backgroundColor: costArr.map((_, i) => COST_COLORS[i % COST_COLORS.length]), borderWidth: 0 }] },
+          options: { responsive: true, maintainAspectRatio: false, cutout: '64%', plugins: { legend: { display: false }, tooltip: { callbacks: { label: (ctx) => ` ${ctx.label}: ${fmtDisp(ctx.raw)}` } } } }
+        });
+      }
+      $('sa-costs-list').innerHTML = costArr.length ? costArr.map(([label, val], i) => {
+        const pct = pCap > 0 ? Math.round((val / pCap) * 100) : 0;
+        const col = COST_COLORS[i % COST_COLORS.length];
+        return `<div class="flex items-center justify-between gap-2 text-xs font-semibold"><span class="flex items-center gap-2 truncate"><span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:${col}"></span>${esc(label)}</span><span class="tabular-nums">${fmtDisp(val)} <span class="text-slate-400">(${pct}%)</span></span></div>`;
+      }).join('') : `<p class="text-xs text-slate-400 text-center">No capital/cost entries in this period.</p>`;
+    }
+
+    // =========================================================================
+    // 6. SALE & CAPITAL ENTRY MODAL (PAID / COD SPLIT)
     // =========================================================================
     function generateReceiptNo(dateStr) {
       const compact = (dateStr || getTodayISO()).replace(/-/g, '').slice(2);
@@ -1044,13 +1358,45 @@
       return `DF-${compact}-${String(countToday).padStart(2, '0')}`;
     }
 
-    function computeSaleTotal() {
+    function updatePaidCodHint(grand, paid, cod) {
+      if (state.draft.mode !== 'sale') return;
+      const hint = $('stx-cod-hint'), wLabel = $('stx-wallet-label');
+      if (cod <= 0) {
+        hint.textContent = grand > 0 ? `Full ${fmtMoney(grand)} goes directly into the selected wallet now.` : 'Enter item prices to calculate total.';
+        wLabel.textContent = 'Payment Received Into Wallet';
+      } else if (paid <= 0) {
+        hint.textContent = `Full COD (${fmtMoney(cod)}) — wallet will NOT increase yet. Tap "Mark COD Paid" when delivery pays you.`;
+        wLabel.textContent = 'Default Wallet (Credited when COD Paid)';
+      } else {
+        hint.textContent = `${fmtMoney(paid)} enters wallet now · ${fmtMoney(cod)} tracked as Pending COD until delivery pays.`;
+        wLabel.textContent = 'Paid Amount Received Into Wallet';
+      }
+    }
+
+    function computeSaleTotal(syncSplit = true) {
       const subtotal = state.draft.items.reduce((sum, item) => sum + ((Number(item.qty) || 0) * parseAmt(item.price)), 0);
       const delivery = parseAmt($('stx-delivery').value);
       const discount = parseAmt($('stx-discount').value);
       const grand = Math.max(0, subtotal + delivery - discount);
       $('stx-sale-total-display').textContent = fmtMoney(grand);
-      return { subtotal, delivery, discount, grand };
+
+      if (syncSplit) {
+        if (state.draft.splitMode === 'full_cod') {
+          $('stx-paid-amount').value = '0';
+          $('stx-cod-amount').value = grand > 0 ? fmtNum(grand) : '0';
+        } else if (state.draft.splitMode === 'full_paid') {
+          $('stx-paid-amount').value = grand > 0 ? fmtNum(grand) : '0';
+          $('stx-cod-amount').value = '0';
+        } else {
+          const curPaid = Math.min(grand, parseAmt($('stx-paid-amount').value));
+          $('stx-paid-amount').value = fmtNum(curPaid);
+          $('stx-cod-amount').value = fmtNum(Math.max(0, grand - curPaid));
+        }
+      }
+      const paid = Math.min(grand, parseAmt($('stx-paid-amount').value));
+      const cod = Math.max(0, grand - paid);
+      updatePaidCodHint(grand, paid, cod);
+      return { subtotal, delivery, discount, grand, paid, cod };
     }
 
     function renderSaleItemsRows() {
@@ -1058,7 +1404,7 @@
       const canDel = state.draft.items.length > 1;
       box.innerHTML = state.draft.items.map((item, idx) => `
         <div class="grid grid-cols-12 gap-1.5 items-center">
-          <input type="text" data-it-name="${idx}" placeholder="Item name (e.g. Toy Car)" value="${esc(item.name)}" class="col-span-6 px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+          <input type="text" data-it-name="${idx}" placeholder="Item name" value="${esc(item.name)}" class="col-span-6 px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500" />
           <input type="number" min="1" step="1" data-it-qty="${idx}" value="${item.qty || 1}" title="Qty" class="col-span-2 px-2 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm font-bold text-center tabular-nums" />
           <input type="text" inputmode="decimal" data-it-price="${idx}" placeholder="Price" value="${item.price ? fmtNum(item.price) : ''}" class="${canDel ? 'col-span-3' : 'col-span-4'} px-2.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm font-bold tabular-nums text-right" />
           ${canDel ? `<button type="button" data-it-del="${idx}" class="col-span-1 py-2 text-slate-400 hover:text-rose-500 font-bold text-xs">✕</button>` : ''}
@@ -1077,18 +1423,15 @@
     }
 
     function renderShopTxModalControls() {
-      const { mode, shopCategoryId, costSubType, wallet, person } = state.draft;
+      const { mode, costSubType } = state.draft;
       const isSale = mode === 'sale';
 
-      $('stx-modal-title').textContent = state.draft.editId
-        ? (isSale ? 'Edit Shop Sale' : 'Edit Capital / Cost')
-        : (isSale ? 'Record Shop Sale' : 'Record Capital / Cost');
+      $('stx-modal-title').textContent = state.draft.editId ? (isSale ? 'Edit Shop Sale' : 'Edit Capital / Cost') : (isSale ? 'Record Shop Sale' : 'Record Capital / Cost');
       $('stx-submit-btn').textContent = state.draft.editId ? 'Update Entry' : (isSale ? 'Save Sale' : 'Save Capital / Cost');
       $('stx-submit-btn').className = `flex-1 py-3.5 rounded-2xl text-white font-bold text-sm shadow-lg active:scale-[0.98] transition-all ${isSale ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-rose-600 hover:bg-rose-700'}`;
 
       document.querySelectorAll('.stx-mode-btn').forEach((b) => {
-        const act = b.dataset.stxMode === mode;
-        b.className = act
+        b.className = b.dataset.stxMode === mode
           ? `stx-mode-btn py-2.5 rounded-xl text-sm font-bold text-white shadow-sm ${mode === 'sale' ? 'bg-emerald-600' : 'bg-rose-600'}`
           : 'stx-mode-btn py-2.5 rounded-xl text-sm font-bold text-slate-500 dark:text-slate-400';
       });
@@ -1099,97 +1442,71 @@
       $('stx-wallet-label').textContent = isSale ? 'Payment Received Into Wallet' : 'Paid From Wallet';
       $('stx-cap-currency').textContent = state.workspace.currency || 'Ks';
 
-      // Shop Categories Pills
       const cats = getShopCategories();
       const catChoices = isSale ? cats : [...cats, { id: 'general', name: 'General Shop', hex: '#64748b' }];
-      if (!catChoices.some((c) => c.id === state.draft.shopCategoryId)) state.draft.shopCategoryId = catChoices[0]?.id || 'hard_toys';
+      if (!catChoices.some((c) => c.id === state.draft.shopCategoryId)) state.draft.shopCategoryId = catChoices[0]?.id || 'shop1';
 
       const catBox = $('stx-category-pills');
       catBox.innerHTML = catChoices.map((c) => {
         const act = c.id === state.draft.shopCategoryId;
-        return `<button type="button" data-sc="${esc(c.id)}" class="px-3 py-2 rounded-xl border text-xs font-bold flex items-center gap-2 transition-all ${act ? 'bg-amber-50 dark:bg-amber-950/60 border-amber-500 text-amber-800 dark:text-amber-200 ring-1 ring-amber-500' : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700'}">
-          <span class="w-2.5 h-2.5 rounded-full" style="background:${c.hex}"></span>
-          <span>${esc(c.name)}</span>
-        </button>`;
+        return `<button type="button" data-sc="${esc(c.id)}" class="px-3 py-2 rounded-xl border text-xs font-bold flex items-center gap-2 transition-all ${act ? 'bg-amber-50 dark:bg-amber-950/60 border-amber-500 text-amber-800 dark:text-amber-200 ring-1 ring-amber-500' : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700'}"><span class="w-2.5 h-2.5 rounded-full" style="background:${c.hex}"></span><span>${esc(c.name)}</span></button>`;
       }).join('');
       catBox.querySelectorAll('[data-sc]').forEach((b) => b.addEventListener('click', () => { state.draft.shopCategoryId = b.dataset.sc; renderShopTxModalControls(); }));
 
-      // Cost Sub-types
       if (!isSale) {
         const ctBox = $('stx-cost-types');
-        ctBox.innerHTML = COST_SUBTYPES.map((ct) => `
-          <button type="button" data-ct="${esc(ct)}" class="px-3 py-1.5 rounded-xl border text-xs font-bold ${ct === costSubType ? 'bg-rose-50 dark:bg-rose-950/60 border-rose-500 text-rose-700 dark:text-rose-300' : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'}">${esc(ct)}</button>
-        `).join('');
+        ctBox.innerHTML = COST_SUBTYPES.map((ct) => `<button type="button" data-ct="${esc(ct)}" class="px-3 py-1.5 rounded-xl border text-xs font-bold ${ct === costSubType ? 'bg-rose-50 dark:bg-rose-950/60 border-rose-500 text-rose-700 dark:text-rose-300' : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'}">${esc(ct)}</button>`).join('');
         ctBox.querySelectorAll('[data-ct]').forEach((b) => b.addEventListener('click', () => { state.draft.costSubType = b.dataset.ct; renderShopTxModalControls(); }));
       } else {
         renderSaleItemsRows();
       }
 
-      // Wallets Pills
       const wallets = getWallets();
       if (!wallets.some((w) => w.id === state.draft.wallet)) state.draft.wallet = wallets[0]?.id || 'cash';
       const wBox = $('stx-wallet-pills');
       wBox.innerHTML = wallets.map((w) => {
         const act = w.id === state.draft.wallet;
-        return `<button type="button" data-sw="${esc(w.id)}" class="px-3 py-2.5 rounded-xl border text-xs font-bold flex items-center gap-2 ${act ? 'bg-indigo-50 dark:bg-indigo-950/60 border-indigo-500 text-indigo-700 dark:text-indigo-200 ring-1 ring-indigo-500' : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700'}">
-          <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:${w.hex}"></span>
-          <span class="truncate">${esc(w.name)}</span>
-        </button>`;
+        return `<button type="button" data-sw="${esc(w.id)}" class="px-3 py-2.5 rounded-xl border text-xs font-bold flex items-center gap-2 ${act ? 'bg-indigo-50 dark:bg-indigo-950/60 border-indigo-500 text-indigo-700 dark:text-indigo-200 ring-1 ring-indigo-500' : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700'}"><span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:${w.hex}"></span><span class="truncate">${esc(w.name)}</span></button>`;
       }).join('');
       wBox.querySelectorAll('[data-sw]').forEach((b) => b.addEventListener('click', () => { state.draft.wallet = b.dataset.sw; renderShopTxModalControls(); }));
-
-      // Owner Toggle
-      document.querySelectorAll('.stx-person-btn').forEach((b) => {
-        const k = b.dataset.stxPerson;
-        b.textContent = getPersonName(k);
-        b.className = k === person
-          ? 'stx-person-btn py-2 px-1 rounded-lg text-xs font-bold bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm truncate'
-          : 'stx-person-btn py-2 px-1 rounded-lg text-xs font-bold text-slate-500 truncate';
-      });
     }
 
-    function openShopTxModal(mode = 'sale', tx = null) {
+    function openShopTxModal(mode = 'sale', tx = null, presetCategoryId = null) {
       $('stx-error').classList.add('hidden');
-      const wallets = getWallets();
-      const cats = getShopCategories();
-
+      const wallets = getWallets(), cats = getShopCategories();
       if (tx) {
         const txMode = tx.shopEntryType || (tx.type === 'income' ? 'sale' : 'capital');
+        const orderTotal = getSaleOrderTotal(tx), paidUp = getSalePaidUpfront(tx), codAmt = getSaleCodAmount(tx);
         state.draft = {
-          editId: tx.id,
-          mode: txMode,
-          shopCategoryId: tx.shopCategoryId || cats[0]?.id || 'hard_toys',
-          costSubType: tx.costSubType || 'Stock / Capital',
-          wallet: tx.wallet || wallets[0]?.id || 'cash',
-          person: isValidPerson(tx.loggedBy) ? tx.loggedBy : state.activePerson,
-          items: Array.isArray(tx.items) && tx.items.length ? tx.items.map((i) => ({ ...i })) : [{ name: tx.note || tx.shopCategoryName || 'Item', qty: 1, price: tx.amount }]
+          editId: tx.id, mode: txMode, shopCategoryId: tx.shopCategoryId || cats[0]?.id || 'shop1',
+          costSubType: tx.costSubType || 'Stock / Capital', wallet: tx.wallet || wallets[0]?.id || 'cash',
+          items: Array.isArray(tx.items) && tx.items.length ? tx.items.map((i) => ({ ...i })) : [{ name: tx.note || tx.shopCategoryName || 'Item', qty: 1, price: orderTotal }],
+          splitMode: codAmt <= 0 ? 'full_paid' : (paidUp <= 0 ? 'full_cod' : 'custom'),
+          existingCodStatus: getSaleCodStatus(tx), existingCodWallet: tx.codWallet || '', existingCodPaidDate: tx.codPaidDate || ''
         };
         $('stx-customer').value = tx.customerName || '';
         $('stx-customer-phone').value = tx.customerPhone || '';
         $('stx-delivery').value = tx.deliveryFee ? fmtNum(tx.deliveryFee) : '';
         $('stx-discount').value = tx.discount ? fmtNum(tx.discount) : '';
+        $('stx-paid-amount').value = fmtNum(paidUp);
+        $('stx-cod-amount').value = fmtNum(codAmt);
         $('stx-capital-amount').value = txMode === 'capital' ? fmtNum(tx.amount) : '';
         $('stx-date').value = tx.date || getTodayISO();
         $('stx-note').value = tx.note || '';
         $('stx-delete-btn').classList.remove('hidden');
       } else {
         state.draft = {
-          editId: null,
-          mode,
-          shopCategoryId: state.filters.category !== 'all' ? state.filters.category : (cats[0]?.id || 'hard_toys'),
-          costSubType: 'Stock / Capital',
-          wallet: wallets[0]?.id || 'cash',
-          person: state.activePerson,
-          items: [{ name: '', qty: 1, price: '' }]
+          editId: null, mode,
+          shopCategoryId: presetCategoryId || (state.filters.category !== 'all' ? state.filters.category : (cats[0]?.id || 'shop1')),
+          costSubType: 'Stock / Capital', wallet: wallets[0]?.id || 'cash',
+          items: [{ name: '', qty: 1, price: '' }], splitMode: 'full_paid',
+          existingCodStatus: 'none', existingCodWallet: '', existingCodPaidDate: ''
         };
-        $('stx-customer').value = '';
-        $('stx-customer-phone').value = '';
-        $('stx-delivery').value = '';
-        $('stx-discount').value = '';
-        $('stx-capital-amount').value = '';
-        $('stx-date').value = getTodayISO();
-        $('stx-note').value = '';
-        $('stx-open-receipt').checked = true;
+        $('stx-customer').value = ''; $('stx-customer-phone').value = '';
+        $('stx-delivery').value = ''; $('stx-discount').value = '';
+        $('stx-paid-amount').value = '0'; $('stx-cod-amount').value = '0';
+        $('stx-capital-amount').value = ''; $('stx-date').value = getTodayISO();
+        $('stx-note').value = ''; $('stx-open-receipt').checked = true;
         $('stx-delete-btn').classList.add('hidden');
       }
       renderShopTxModalControls();
@@ -1197,234 +1514,244 @@
     }
 
     // =========================================================================
-    // 7. CUSTOMER RECEIPT CANVAS GENERATOR (PNG + SHARE + COPY TEXT)
+    // 6B. MARK COD PAID MODAL
     // =========================================================================
+    function renderCodWalletPills() {
+      const wallets = getWallets();
+      if (!wallets.some((w) => w.id === state.codPayDraft.wallet)) state.codPayDraft.wallet = wallets[0]?.id || 'cash';
+      const box = $('cod-wallet-pills');
+      box.innerHTML = wallets.map((w) => {
+        const act = w.id === state.codPayDraft.wallet;
+        return `<button type="button" data-codw="${esc(w.id)}" class="px-3 py-2.5 rounded-xl border text-xs font-bold flex items-center gap-2 ${act ? 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-500 text-emerald-700 dark:text-emerald-200 ring-1 ring-emerald-500' : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700'}"><span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:${w.hex}"></span><span class="truncate">${esc(w.name)}</span></button>`;
+      }).join('');
+      box.querySelectorAll('[data-codw]').forEach((b) => b.addEventListener('click', () => { state.codPayDraft.wallet = b.dataset.codw; renderCodWalletPills(); }));
+    }
+
+    function openCodPayModal(tx) {
+      state.codPayDraft = { txId: tx.id, wallet: tx.wallet || getWallets()[0]?.id || 'cash' };
+      $('cod-modal-sub').textContent = `${tx.receiptNo || 'Sale'} · Ordered ${tx.date || ''}`;
+      $('cod-modal-customer').textContent = tx.customerName || 'Customer Sale';
+      $('cod-modal-amount').textContent = fmtMoney(getSaleCodAmount(tx));
+      $('cod-paid-date').value = getTodayISO();
+      renderCodWalletPills();
+      $('cod-pay-modal').classList.remove('hidden');
+    }
+
+    // =========================================================================
+    // 7. CUSTOMER RECEIPT GENERATOR (NEW PREMIUM DESIGN + AUTO-WRAP + PAID/COD)
+    // =========================================================================
+    function splitGraphemes(str) {
+      try {
+        if (typeof Intl !== 'undefined' && Intl.Segmenter) {
+          return Array.from(new Intl.Segmenter(undefined, { granularity: 'grapheme' }).segment(str), (s) => s.segment);
+        }
+      } catch {}
+      return Array.from(str);
+    }
+
+    function wrapCanvasText(ctx, text, maxWidth) {
+      const raw = String(text || '').trim();
+      if (!raw) return [''];
+      const lines = [], words = raw.split(/\s+/);
+      let cur = '';
+      const breakWord = (word) => {
+        let chunk = '';
+        for (const ch of splitGraphemes(word)) {
+          if (ctx.measureText(chunk + ch).width > maxWidth && chunk) { lines.push(chunk); chunk = ch; }
+          else chunk += ch;
+        }
+        return chunk;
+      };
+      for (const word of words) {
+        const cand = cur ? `${cur} ${word}` : word;
+        if (ctx.measureText(cand).width <= maxWidth) cur = cand;
+        else { if (cur) lines.push(cur); cur = ctx.measureText(word).width <= maxWidth ? word : breakWord(word); }
+      }
+      if (cur) lines.push(cur);
+      return lines.length ? lines : [''];
+    }
+
+    function drawRoundedRect(ctx, x, y, w, h, r) {
+      const rad = Math.min(r, w / 2, h / 2);
+      ctx.beginPath();
+      ctx.moveTo(x + rad, y);
+      ctx.arcTo(x + w, y, x + w, y + h, rad);
+      ctx.arcTo(x + w, y + h, x, y + h, rad);
+      ctx.arcTo(x, y + h, x, y, rad);
+      ctx.arcTo(x, y, x + w, y, rad);
+      ctx.closePath();
+    }
+
     function buildReceiptText(tx) {
       const p = state.workspace.shopProfile || {};
-      const shopName = p.name || state.workspace.name || 'Delights Flow Shop';
-      const wName = getWalletById(tx.wallet).name;
-      const items = Array.isArray(tx.items) && tx.items.length ? tx.items : [{ name: tx.shopCategoryName || 'Order Item', qty: 1, price: tx.amount }];
-      const lines = [
-        `🧾 ${shopName}`,
-        p.phone ? `📞 ${p.phone}` : null,
-        `------------------------`,
-        `Receipt: ${tx.receiptNo || 'RECEIPT'}`,
-        `Date: ${tx.date || getTodayISO()}`,
-        tx.customerName ? `Customer: ${tx.customerName}` : null,
-        tx.customerPhone ? `Phone: ${tx.customerPhone}` : null,
-        `------------------------`,
-        ...items.map((i) => `• ${i.name || 'Item'} ×${i.qty || 1} — ${fmtMoney((Number(i.qty) || 1) * (Number(i.price) || 0))}`),
-        `------------------------`,
-        Number(tx.deliveryFee) > 0 ? `Delivery: +${fmtMoney(tx.deliveryFee)}` : null,
-        Number(tx.discount) > 0 ? `Discount: -${fmtMoney(tx.discount)}` : null,
-        `TOTAL: ${fmtMoney(tx.amount)}`,
-        `Paid via: ${wName}`,
-        `------------------------`,
-        p.footer || 'Thank you for your purchase!'
-      ];
-      return lines.filter(Boolean).join('\n');
+      const shopName = p.name || state.workspace.name || 'Delights Flow';
+      const orderTotal = getSaleOrderTotal(tx), paidUp = getSalePaidUpfront(tx), codAmt = getSaleCodAmount(tx), codSt = getSaleCodStatus(tx);
+      const items = Array.isArray(tx.items) && tx.items.length ? tx.items : [{ name: tx.note || 'Order Item', qty: 1, price: orderTotal }];
+      return [
+        `✨ ${shopName}`, `══════════════════════`,
+        `Receipt No : ${tx.receiptNo || 'DF-RECEIPT'}`,
+        `Date       : ${tx.date || getTodayISO()}`,
+        tx.customerName ? `Customer   : ${tx.customerName}` : null,
+        tx.customerPhone ? `Phone      : ${tx.customerPhone}` : null,
+        `──────────────────────`,
+        ...items.map((i) => `• ${i.name || 'Item'} (×${i.qty || 1}) — ${fmtMoney((Number(i.qty) || 1) * (Number(i.price) || 0))}`),
+        `──────────────────────`,
+        Number(tx.deliveryFee) > 0 ? `Delivery   : +${fmtMoney(tx.deliveryFee)}` : null,
+        Number(tx.discount) > 0 ? `Discount   : -${fmtMoney(tx.discount)}` : null,
+        `GRAND TOTAL: ${fmtMoney(orderTotal)}`,
+        `Paid       : ${fmtMoney(codAmt > 0 ? paidUp : orderTotal)}`,
+        codAmt > 0 ? `${codSt === 'paid' ? 'COD (Paid) ' : 'COD Amount '}: ${fmtMoney(codAmt)}` : null,
+        `══════════════════════`,
+        p.footer || 'Thank you for shopping with us!'
+      ].filter(Boolean).join('\n');
     }
 
     async function drawReceiptCanvas(tx) {
-      const canvas = $('receipt-canvas');
-      const ctx = canvas.getContext('2d');
-      const W = 720;
-      const pad = 48;
-      const p = state.workspace.shopProfile || {};
-      const shopName = p.name || state.workspace.name || 'Delights Flow Shop';
-      const wName = getWalletById(tx.wallet).name;
-      const cat = getShopCatById(tx.shopCategoryId, tx.shopCategoryName);
-      const items = Array.isArray(tx.items) && tx.items.length ? tx.items : [{ name: cat.name || 'Order Item', qty: 1, price: tx.amount }];
-      const subtotal = items.reduce((s, i) => s + ((Number(i.qty) || 1) * (Number(i.price) || 0)), 0);
-      const delivery = Number(tx.deliveryFee) || 0;
-      const discount = Number(tx.discount) || 0;
+      const canvas = $('receipt-canvas'), ctx = canvas.getContext('2d');
+      const W = 760, outerPad = 28, cardX = outerPad, cardW = W - outerPad * 2, innerPad = 42;
+      const leftX = cardX + innerPad, rightX = cardX + cardW - innerPad, contentW = rightX - leftX;
 
-      // Load logo image if configured
+      const p = state.workspace.shopProfile || {};
+      const shopName = p.name || state.workspace.name || 'Delights Flow';
+      const orderTotal = getSaleOrderTotal(tx), paidUp = getSalePaidUpfront(tx), codAmt = getSaleCodAmount(tx), codSt = getSaleCodStatus(tx);
+      const items = Array.isArray(tx.items) && tx.items.length ? tx.items : [{ name: tx.note || 'Order Item', qty: 1, price: orderTotal }];
+      const subtotal = items.reduce((s, i) => s + ((Number(i.qty) || 1) * (Number(i.price) || 0)), 0);
+      const delivery = Number(tx.deliveryFee) || 0, discount = Number(tx.discount) || 0;
+
       let logoImg = null;
       if (p.logoDataUrl) {
-        logoImg = await new Promise((resolve) => {
-          const img = new Image();
-          img.onload = () => resolve(img);
-          img.onerror = () => resolve(null);
-          img.src = p.logoDataUrl;
-        });
+        logoImg = await new Promise((res) => { const img = new Image(); img.onload = () => res(img); img.onerror = () => res(null); img.src = p.logoDataUrl; });
       }
 
-      // Compute dynamic height
-      const logoH = logoImg ? 116 : 20;
-      const headerH = logoH + 110 + (p.phone ? 28 : 0);
-      const metaH = 128 + (tx.customerPhone ? 28 : 0);
-      const itemsH = 54 + items.length * 52 + 20;
-      const totalsH = 120 + (delivery > 0 ? 34 : 0) + (discount > 0 ? 34 : 0);
-      const footerH = 110;
-      const H = headerH + metaH + itemsH + totalsH + footerH;
+      const itemColMaxW = 355, qtyColX = leftX + 410;
+      ctx.font = '700 20px Inter, system-ui, sans-serif';
+      const measuredItems = items.map((it) => {
+        const nameLines = wrapCanvasText(ctx, it.name || 'Item', itemColMaxW);
+        const qty = Number(it.qty) || 1, unit = Number(it.price) || 0;
+        return { nameLines, qty, unit, lineAmt: qty * unit, blockH: Math.max(46, nameLines.length * 28 + (qty > 1 ? 22 : 14)) };
+      });
+      ctx.font = '800 32px Inter, system-ui, sans-serif';
+      const shopNameLines = wrapCanvasText(ctx, shopName, contentW - 20);
+      ctx.font = '600 18px Inter, system-ui, sans-serif';
+      const footerLines = wrapCanvasText(ctx, p.footer || 'Thank you for shopping with us!', contentW - 24);
 
-      canvas.width = W;
-      canvas.height = H;
+      const metaRows = [
+        ['Receipt No.', tx.receiptNo || 'DF-RECEIPT', true],
+        ['Date', tx.date || getTodayISO(), true],
+        ['Customer', tx.customerName || 'Valued Customer', true],
+        ...(tx.customerPhone ? [['Phone', tx.customerPhone, false]] : [])
+      ];
 
-      // Crisp white receipt background
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(0, 0, W, H);
+      const headerH = (logoImg ? 132 : 24) + shopNameLines.length * 40 + 28;
+      const metaH = metaRows.length * 32 + 36;
+      const itemsH = 44 + measuredItems.reduce((sum, m) => sum + m.blockH + 10, 0) + 16;
+      const extraRows = (delivery > 0 || discount > 0 ? 1 : 0) + (delivery > 0 ? 1 : 0) + (discount > 0 ? 1 : 0);
+      const summaryH = extraRows * 32 + 94 + (codAmt > 0 ? 86 : 46);
+      const footerH = 44 + footerLines.length * 26 + 34;
 
-      // Top brand accent strip
-      const grad = ctx.createLinearGradient(0, 0, W, 0);
-      grad.addColorStop(0, '#4f46e5');
-      grad.addColorStop(1, '#f59e0b');
-      ctx.fillStyle = grad;
-      ctx.fillRect(0, 0, W, 14);
+      const cardH = 14 + headerH + metaH + itemsH + summaryH + footerH;
+      const H = cardH + outerPad * 2;
+      canvas.width = W; canvas.height = H;
 
-      let y = 46;
+      ctx.fillStyle = '#f1f5f9'; ctx.fillRect(0, 0, W, H);
+      ctx.save();
+      ctx.shadowColor = 'rgba(15, 23, 42, 0.08)'; ctx.shadowBlur = 24; ctx.shadowOffsetY = 8;
+      drawRoundedRect(ctx, cardX, outerPad, cardW, cardH, 28);
+      ctx.fillStyle = '#ffffff'; ctx.fill();
+      ctx.restore();
 
-      // Optional Logo (rounded square centered)
+      ctx.save();
+      drawRoundedRect(ctx, cardX, outerPad, cardW, cardH, 28);
+      ctx.clip();
+
+      const topGrad = ctx.createLinearGradient(cardX, outerPad, cardX + cardW, outerPad);
+      topGrad.addColorStop(0, '#4f46e5'); topGrad.addColorStop(0.55, '#8b5cf6'); topGrad.addColorStop(1, '#f59e0b');
+      ctx.fillStyle = topGrad; ctx.fillRect(cardX, outerPad, cardW, 14);
+
+      let y = outerPad + 42;
       if (logoImg) {
-        const size = 92;
-        const lx = (W - size) / 2;
-        ctx.save();
-        ctx.beginPath();
-        ctx.roundRect(lx, y, size, size, 22);
-        ctx.clip();
-        ctx.drawImage(logoImg, lx, y, size, size);
+        const size = 96, lx = (W - size) / 2;
+        ctx.save(); drawRoundedRect(ctx, lx, y, size, size, 24); ctx.clip();
+        ctx.drawImage(logoImg, lx, y, size, size); ctx.restore();
+        ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 2; drawRoundedRect(ctx, lx, y, size, size, 24); ctx.stroke();
+        y += size + 30;
+      } else y += 8;
+
+      ctx.fillStyle = '#0f172a'; ctx.font = '800 32px Inter, system-ui, sans-serif'; ctx.textAlign = 'center';
+      shopNameLines.forEach((line) => { ctx.fillText(line, W / 2, y); y += 40; });
+      y += 6;
+
+      const drawNotch = (yy) => {
+        ctx.save(); ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 2; ctx.setLineDash([7, 7]);
+        ctx.beginPath(); ctx.moveTo(leftX, yy); ctx.lineTo(rightX, yy); ctx.stroke(); ctx.setLineDash([]);
+        ctx.fillStyle = '#f1f5f9';
+        ctx.beginPath(); ctx.arc(cardX, yy, 13, -Math.PI / 2, Math.PI / 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(cardX + cardW, yy, 13, Math.PI / 2, Math.PI * 1.5); ctx.fill();
         ctx.restore();
-        y += size + 24;
-      } else {
+      };
+      drawNotch(y); y += 34;
+
+      const drawKV = (l, r, bold = true, rCol = '#0f172a') => {
+        ctx.textAlign = 'left'; ctx.fillStyle = '#64748b'; ctx.font = '600 18px Inter, system-ui, sans-serif'; ctx.fillText(l, leftX, y);
+        ctx.textAlign = 'right'; ctx.fillStyle = rCol; ctx.font = `${bold ? '700' : '600'} 18px Inter, system-ui, sans-serif`; ctx.fillText(r, rightX, y);
+        y += 32;
+      };
+      metaRows.forEach(([k, v, b]) => drawKV(k, v, b));
+
+      y += 4;
+      drawRoundedRect(ctx, leftX, y, contentW, 38, 10); ctx.fillStyle = '#f8fafc'; ctx.fill();
+      ctx.fillStyle = '#64748b'; ctx.font = '700 14px Inter, system-ui, sans-serif';
+      ctx.textAlign = 'left'; ctx.fillText('ITEM', leftX + 12, y + 24);
+      ctx.textAlign = 'center'; ctx.fillText('QTY', qtyColX, y + 24);
+      ctx.textAlign = 'right'; ctx.fillText('AMOUNT', rightX - 12, y + 24);
+      y += 54;
+
+      measuredItems.forEach((m, idx) => {
+        const topY = y;
+        ctx.textAlign = 'left'; ctx.fillStyle = '#0f172a'; ctx.font = '700 20px Inter, system-ui, sans-serif';
+        m.nameLines.forEach((line, li) => ctx.fillText(line, leftX + 4, topY + li * 28));
+        if (m.qty > 1) { ctx.fillStyle = '#94a3b8'; ctx.font = '600 15px Inter, system-ui, sans-serif'; ctx.fillText(`${fmtMoney(m.unit)} each`, leftX + 4, topY + m.nameLines.length * 28 - 2); }
+        ctx.textAlign = 'center'; ctx.fillStyle = '#475569'; ctx.font = '700 19px Inter, system-ui, sans-serif'; ctx.fillText(`×${m.qty}`, qtyColX, topY);
+        ctx.textAlign = 'right'; ctx.fillStyle = '#0f172a'; ctx.font = '700 20px Inter, system-ui, sans-serif'; ctx.fillText(fmtMoney(m.lineAmt), rightX - 4, topY);
+        y += m.blockH;
+        if (idx < measuredItems.length - 1) { ctx.strokeStyle = '#f1f5f9'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(leftX, y - 4); ctx.lineTo(rightX, y - 4); ctx.stroke(); }
         y += 10;
-      }
-
-      // Shop Name
-      ctx.fillStyle = '#0f172a';
-      ctx.font = '800 34px Inter, system-ui, sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText(shopName, W / 2, y);
-      y += 32;
-
-      if (p.phone) {
-        ctx.fillStyle = '#64748b';
-        ctx.font = '600 20px Inter, system-ui, sans-serif';
-        ctx.fillText(p.phone, W / 2, y);
-        y += 30;
-      }
-
-      // Badge: SALES RECEIPT
-      ctx.fillStyle = '#fef3c7';
-      ctx.beginPath();
-      ctx.roundRect(W / 2 - 110, y, 220, 34, 17);
-      ctx.fill();
-      ctx.fillStyle = '#b45309';
-      ctx.font = '700 16px Inter, system-ui, sans-serif';
-      ctx.fillText('SALES RECEIPT', W / 2, y + 23);
-      y += 60;
-
-      // Dashed divider helper
-      const drawDivider = (yy) => {
-        ctx.save();
-        ctx.strokeStyle = '#e2e8f0';
-        ctx.lineWidth = 2;
-        ctx.setLineDash([8, 6]);
-        ctx.beginPath();
-        ctx.moveTo(pad, yy);
-        ctx.lineTo(W - pad, yy);
-        ctx.stroke();
-        ctx.restore();
-      };
-
-      drawDivider(y);
-      y += 34;
-
-      // Receipt Meta
-      const drawRow = (left, right, boldRight = true) => {
-        ctx.textAlign = 'left';
-        ctx.fillStyle = '#64748b';
-        ctx.font = '600 19px Inter, system-ui, sans-serif';
-        ctx.fillText(left, pad, y);
-        ctx.textAlign = 'right';
-        ctx.fillStyle = '#0f172a';
-        ctx.font = `${boldRight ? '700' : '600'} 19px Inter, system-ui, sans-serif`;
-        ctx.fillText(right, W - pad, y);
-        y += 30;
-      };
-
-      drawRow('Receipt No.', tx.receiptNo || 'DF-RECEIPT');
-      drawRow('Date', tx.date || getTodayISO());
-      drawRow('Customer', tx.customerName || 'Valued Customer');
-      if (tx.customerPhone) drawRow('Phone', tx.customerPhone, false);
-      drawRow('Category', cat.name);
-      y += 10;
-
-      drawDivider(y);
-      y += 34;
-
-      // Items Table Header
-      ctx.textAlign = 'left';
-      ctx.fillStyle = '#94a3b8';
-      ctx.font = '700 16px Inter, system-ui, sans-serif';
-      ctx.fillText('ITEM', pad, y);
-      ctx.textAlign = 'center';
-      ctx.fillText('QTY', W - 245, y);
-      ctx.textAlign = 'right';
-      ctx.fillText('AMOUNT', W - pad, y);
-      y += 28;
-
-      // Items Rows
-      items.forEach((it) => {
-        const lineAmt = (Number(it.qty) || 1) * (Number(it.price) || 0);
-        const label = String(it.name || 'Item').slice(0, 30);
-        ctx.textAlign = 'left';
-        ctx.fillStyle = '#0f172a';
-        ctx.font = '700 20px Inter, system-ui, sans-serif';
-        ctx.fillText(label, pad, y + 18);
-
-        ctx.textAlign = 'center';
-        ctx.fillStyle = '#475569';
-        ctx.font = '600 20px Inter, system-ui, sans-serif';
-        ctx.fillText(`×${it.qty || 1}`, W - 245, y + 18);
-
-        ctx.textAlign = 'right';
-        ctx.fillStyle = '#0f172a';
-        ctx.font = '700 20px Inter, system-ui, sans-serif';
-        ctx.fillText(fmtMoney(lineAmt), W - pad, y + 18);
-        y += 50;
       });
 
-      y += 10;
-      drawDivider(y);
-      y += 34;
+      y += 6; drawNotch(y); y += 32;
+      if (delivery > 0 || discount > 0) drawKV('Subtotal', fmtMoney(subtotal), false);
+      if (delivery > 0) drawKV('Delivery Fee', `+${fmtMoney(delivery)}`, false);
+      if (discount > 0) drawKV('Discount', `-${fmtMoney(discount)}`, false, '#e11d48');
 
-      // Subtotal / Delivery / Discount
-      if (delivery > 0 || discount > 0) {
-        drawRow('Subtotal', fmtMoney(subtotal), false);
+      y += 4;
+      const tGrad = ctx.createLinearGradient(leftX, y, rightX, y);
+      tGrad.addColorStop(0, '#0f172a'); tGrad.addColorStop(1, '#312e81');
+      drawRoundedRect(ctx, leftX, y, contentW, 68, 18); ctx.fillStyle = tGrad; ctx.fill();
+      ctx.textAlign = 'left'; ctx.fillStyle = '#e0e7ff'; ctx.font = '700 18px Inter, system-ui, sans-serif'; ctx.fillText('GRAND TOTAL', leftX + 22, y + 41);
+      ctx.textAlign = 'right'; ctx.fillStyle = '#ffffff'; ctx.font = '800 28px Inter, system-ui, sans-serif'; ctx.fillText(fmtMoney(orderTotal), rightX - 22, y + 44);
+      y += 88;
+
+      if (codAmt > 0) {
+        const halfW = (contentW - 14) / 2;
+        drawRoundedRect(ctx, leftX, y, halfW, 64, 14); ctx.fillStyle = '#ecfdf5'; ctx.fill();
+        ctx.textAlign = 'left'; ctx.fillStyle = '#047857'; ctx.font = '700 14px Inter, system-ui, sans-serif'; ctx.fillText('PAID', leftX + 16, y + 24);
+        ctx.font = '800 21px Inter, system-ui, sans-serif'; ctx.fillText(fmtMoney(paidUp), leftX + 16, y + 50);
+
+        const codX = leftX + halfW + 14;
+        drawRoundedRect(ctx, codX, y, halfW, 64, 14); ctx.fillStyle = codSt === 'paid' ? '#ecfdf5' : '#fffbeb'; ctx.fill();
+        ctx.fillStyle = codSt === 'paid' ? '#047857' : '#b45309'; ctx.font = '700 14px Inter, system-ui, sans-serif'; ctx.fillText(codSt === 'paid' ? 'COD (PAID)' : 'COD AMOUNT', codX + 16, y + 24);
+        ctx.font = '800 21px Inter, system-ui, sans-serif'; ctx.fillText(fmtMoney(codAmt), codX + 16, y + 50);
+        y += 86;
+      } else {
+        drawRoundedRect(ctx, leftX, y, contentW, 44, 12); ctx.fillStyle = '#ecfdf5'; ctx.fill();
+        ctx.textAlign = 'left'; ctx.fillStyle = '#065f46'; ctx.font = '700 16px Inter, system-ui, sans-serif'; ctx.fillText('PAID', leftX + 18, y + 28);
+        ctx.textAlign = 'right'; ctx.fillStyle = '#047857'; ctx.font = '800 18px Inter, system-ui, sans-serif'; ctx.fillText(fmtMoney(orderTotal), rightX - 18, y + 28);
+        y += 62;
       }
-      if (delivery > 0) drawRow('Delivery Fee', `+${fmtMoney(delivery)}`, false);
-      if (discount > 0) drawRow('Discount', `-${fmtMoney(discount)}`, false);
 
-      // Grand Total Box
-      y += 6;
-      ctx.fillStyle = '#ecfdf5';
-      ctx.beginPath();
-      ctx.roundRect(pad, y, W - pad * 2, 64, 18);
-      ctx.fill();
-
-      ctx.textAlign = 'left';
-      ctx.fillStyle = '#065f46';
-      ctx.font = '800 22px Inter, system-ui, sans-serif';
-      ctx.fillText('TOTAL PAID', pad + 22, y + 40);
-
-      ctx.textAlign = 'right';
-      ctx.fillStyle = '#047857';
-      ctx.font = '800 28px Inter, system-ui, sans-serif';
-      ctx.fillText(fmtMoney(tx.amount), W - pad - 22, y + 42);
-      y += 90;
-
-      // Payment Wallet Pill
-      ctx.textAlign = 'center';
-      ctx.fillStyle = '#475569';
-      ctx.font = '600 18px Inter, system-ui, sans-serif';
-      ctx.fillText(`Paid via ${wName}`, W / 2, y);
-      y += 38;
-
-      // Footer Thank-You Message
-      ctx.fillStyle = '#64748b';
-      ctx.font = '600 18px Inter, system-ui, sans-serif';
-      ctx.fillText(p.footer || 'Thank you for your purchase!', W / 2, y);
+      y += 14; ctx.textAlign = 'center'; ctx.fillStyle = '#64748b'; ctx.font = '600 18px Inter, system-ui, sans-serif';
+      footerLines.forEach((line) => { ctx.fillText(line, W / 2, y); y += 26; });
+      ctx.restore();
     }
 
     async function openReceiptModal(tx) {
@@ -1434,38 +1761,27 @@
     }
 
     // =========================================================================
-    // 8. PRIVATE SHOP PROFILE & CATEGORIES SETTINGS MODAL
+    // 8. SHOP SETTINGS, CONFIRM & CSV EXPORT
     // =========================================================================
     function renderShopLogoPreview() {
-      const wrap = $('shop-logo-preview-wrap');
-      const rem = $('remove-logo-btn');
-      if (state.settingsLogoDraft) {
-        wrap.innerHTML = `<img src="${state.settingsLogoDraft}" alt="Shop logo" class="w-full h-full object-cover" />`;
-        rem.classList.remove('hidden');
-      } else {
-        wrap.innerHTML = `<span class="text-2xl">🛍️</span>`;
-        rem.classList.add('hidden');
-      }
+      const wrap = $('shop-logo-preview-wrap'), rem = $('remove-logo-btn');
+      if (state.settingsLogoDraft) { wrap.innerHTML = `<img src="${state.settingsLogoDraft}" alt="Shop logo" class="w-full h-full object-cover" />`; rem.classList.remove('hidden'); }
+      else { wrap.innerHTML = `<span class="text-2xl">🛍️</span>`; rem.classList.add('hidden'); }
     }
 
     function renderShopCatsEditor(focusId = null) {
-      const box = $('shop-cats-editor');
-      const canDel = state.settingsCatsDraft.length > 1;
+      const box = $('shop-cats-editor'), canDel = state.settingsCatsDraft.length > 1;
       box.innerHTML = state.settingsCatsDraft.map((c, idx) => {
         const hex = COLOR_MAP[c.colorKey] || '#f59e0b';
         return `<div class="p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700 flex items-center gap-2" data-sc-row="${esc(c.id)}">
-          <button type="button" data-sc-cycle="${idx}" title="Cycle color" class="w-8 h-8 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 flex items-center justify-center shrink-0">
-            <span class="w-4 h-4 rounded-full" style="background:${hex}"></span>
-          </button>
-          <input type="text" maxlength="28" required placeholder="Category name (e.g. Clothes, Snacks)" value="${esc(c.name)}" data-sc-name="${idx}" class="flex-1 min-w-0 px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm font-bold" />
+          <button type="button" data-sc-cycle="${idx}" title="Cycle color" class="w-8 h-8 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 flex items-center justify-center shrink-0"><span class="w-4 h-4 rounded-full" style="background:${hex}"></span></button>
+          <input type="text" maxlength="28" required placeholder="Category name (e.g. Hard Toys, Books)" value="${esc(c.name)}" data-sc-name="${idx}" class="flex-1 min-w-0 px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm font-bold" />
           <button type="button" data-sc-del="${idx}" class="p-2 rounded-xl text-slate-400 hover:text-rose-600 ${canDel ? '' : 'opacity-30'}">✕</button>
         </div>`;
       }).join('');
-
       box.querySelectorAll('[data-sc-name]').forEach((el) => el.addEventListener('input', () => (state.settingsCatsDraft[+el.dataset.scName].name = el.value)));
       box.querySelectorAll('[data-sc-cycle]').forEach((b) => b.addEventListener('click', () => {
-        const i = +b.dataset.scCycle;
-        const curIdx = COLORS.findIndex((c) => c.key === state.settingsCatsDraft[i].colorKey);
+        const i = +b.dataset.scCycle, curIdx = COLORS.findIndex((c) => c.key === state.settingsCatsDraft[i].colorKey);
         state.settingsCatsDraft[i].colorKey = COLORS[(curIdx + 1) % COLORS.length].key;
         renderShopCatsEditor();
       }));
@@ -1480,7 +1796,6 @@
     function openShopSettingsModal() {
       const p = state.workspace.shopProfile || {};
       $('sp-name').value = p.name || '';
-      $('sp-phone').value = p.phone || '';
       $('sp-footer').value = p.footer || 'Thank you for your purchase!';
       state.settingsLogoDraft = p.logoDataUrl || '';
       state.settingsCatsDraft = getShopCategories().map((c) => ({ id: c.id, name: c.name, colorKey: c.colorKey || 'amber' }));
@@ -1489,18 +1804,14 @@
       $('shop-settings-modal').classList.remove('hidden');
     }
 
-    // Compress uploaded logo image to max 160x160 so Firestore stays fast & lightweight
     function compressLogoFile(file) {
       const reader = new FileReader();
       reader.onload = () => {
         const img = new Image();
         img.onload = () => {
-          const max = 160;
-          const scale = Math.min(1, max / Math.max(img.width, img.height));
-          const w = Math.max(1, Math.round(img.width * scale));
-          const h = Math.max(1, Math.round(img.height * scale));
-          const c = document.createElement('canvas'); c.width = w; c.height = h;
-          c.getContext('2d').drawImage(img, 0, 0, w, h);
+          const max = 160, scale = Math.min(1, max / Math.max(img.width, img.height));
+          const c = document.createElement('canvas'); c.width = Math.max(1, Math.round(img.width * scale)); c.height = Math.max(1, Math.round(img.height * scale));
+          c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
           state.settingsLogoDraft = c.toDataURL('image/jpeg', 0.82);
           renderShopLogoPreview();
           showToast('Logo ready — click Save Shop Settings', 'success');
@@ -1521,15 +1832,16 @@
       const rows = getFilteredShopTxs();
       if (!rows.length) return showToast('No shop records to export', 'info');
       const q = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
-      const lines = [['Date', 'Type', 'Receipt No', 'Category', 'Customer', 'Items / Cost Type', 'Amount', 'Currency', 'Wallet', 'Owner', 'Note'].join(',')];
+      const lines = [['Date', 'Type', 'Receipt No', 'Category', 'Customer', 'Items / Cost Type', 'Order Total', 'Paid Amount', 'COD Amount', 'COD Status', 'Currency', 'Wallet', 'COD Wallet', 'Owner', 'Note'].join(',')];
       rows.forEach((t) => {
         const isSale = (t.shopEntryType || (t.type === 'income' ? 'sale' : 'capital')) === 'sale';
         const detail = isSale ? (t.items || []).map((i) => `${i.name} x${i.qty}`).join('; ') : (t.costSubType || 'Capital');
         lines.push([
           q(t.date), q(isSale ? 'Sale' : 'Capital'), q(t.receiptNo || ''),
-          q(getShopCatById(t.shopCategoryId, t.shopCategoryName).name), q(t.customerName || ''),
-          q(detail), Number(t.amount) || 0, q(state.workspace.currency), q(getWalletById(t.wallet).name),
-          q(getPersonName(t.loggedBy)), q(t.note || '')
+          q(getShopCatById(t.shopCategoryId, t.shopCategoryName).name), q(t.customerName || ''), q(detail),
+          isSale ? getSaleOrderTotal(t) : (Number(t.amount) || 0), isSale ? getSalePaidUpfront(t) : 0,
+          isSale ? getSaleCodAmount(t) : 0, q(isSale ? getSaleCodStatus(t) : ''), q(state.workspace.currency),
+          q(getWalletById(t.wallet).name), q(isSale && t.codWallet ? getWalletById(t.codWallet).name : ''), q('Shop'), q(t.note || '')
         ].join(','));
       });
       const blob = new Blob(['\uFEFF' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
@@ -1539,7 +1851,7 @@
     }
 
     // =========================================================================
-    // 9. EVENT LISTENERS & BOOTSTRAP
+    // 9. EVENT BINDING & BOOTSTRAP
     // =========================================================================
     function bindEvents() {
       const toggleTheme = () => { state.darkMode = !state.darkMode; applyTheme(); savePrefs(); };
@@ -1550,21 +1862,40 @@
       $('hero-privacy-btn').addEventListener('click', togglePrivacy);
       $('mobile-privacy-btn').addEventListener('click', togglePrivacy);
 
-      document.querySelectorAll('.quick-person-btn').forEach((b) => b.addEventListener('click', () => {
-        state.activePerson = b.dataset.quickPerson; savePrefs(); renderAll();
-      }));
+      $('hero-pending-cod-btn').addEventListener('click', () => {
+        switchShopTab('dashboard');
+        state.filters.type = 'pending_cod';
+        state.filters.month = 'all';
+        renderAll();
+        $('shop-history-list').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      });
 
-      // Open Sale / Capital Modals
-      ['desktop-new-sale-btn', 'hero-add-sale-btn', 'mobile-fab-sale'].forEach((id) => $(id).addEventListener('click', () => openShopTxModal('sale')));
-      ['desktop-new-capital-btn', 'hero-add-capital-btn', 'mobile-nav-capital'].forEach((id) => $(id).addEventListener('click', () => openShopTxModal('capital')));
-      ['desktop-shop-settings-btn', 'mobile-shop-settings-btn', 'hero-setup-shop-btn', 'manage-categories-btn', 'mobile-nav-settings'].forEach((id) => $(id).addEventListener('click', openShopSettingsModal));
-      $('mobile-nav-sales').addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+      document.querySelectorAll('[data-shop-tab]').forEach((b) => b.addEventListener('click', () => switchShopTab(b.dataset.shopTab)));
 
-      // Entry Modal Controls
+      $('sa-month-select').addEventListener('change', (e) => { state.analyticsMonth = e.target.value; renderShopAnalytics(); });
+      const shiftSaMonth = (delta) => {
+        const cur = state.analyticsMonth === 'all' ? getCurrentMonthKey() : state.analyticsMonth;
+        const [y, m] = cur.split('-').map(Number);
+        const d = new Date(y, m - 1 + delta, 1);
+        state.analyticsMonth = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+        renderAll();
+      };
+      $('sa-prev-month').addEventListener('click', () => shiftSaMonth(-1));
+      $('sa-next-month').addEventListener('click', () => shiftSaMonth(1));
+
+      ['desktop-new-sale-btn', 'mobile-fab-sale'].forEach((id) => $(id).addEventListener('click', () => openShopTxModal('sale')));
+      ['desktop-new-capital-btn', 'mobile-nav-capital'].forEach((id) => $(id).addEventListener('click', () => openShopTxModal('capital')));
+      ['desktop-shop-settings-btn', 'mobile-shop-settings-btn', 'manage-categories-btn'].forEach((id) => $(id).addEventListener('click', openShopSettingsModal));
+
+      $('chm-close').addEventListener('click', () => { state.catModal.open = false; $('cat-history-modal').classList.add('hidden'); });
+      $('cat-history-modal').addEventListener('click', (e) => { if (e.target.id === 'cat-history-modal') { state.catModal.open = false; $('cat-history-modal').classList.add('hidden'); } });
+      document.querySelectorAll('.chm-type-btn').forEach((b) => b.addEventListener('click', () => { state.catModal.typeFilter = b.dataset.chmType; renderCategoryHistoryModal(); }));
+      $('chm-add-sale-btn').addEventListener('click', () => openShopTxModal('sale', null, state.catModal.categoryId));
+      $('chm-add-cap-btn').addEventListener('click', () => openShopTxModal('capital', null, state.catModal.categoryId));
+
       $('stx-modal-close').addEventListener('click', () => $('shop-tx-modal').classList.add('hidden'));
       $('shop-tx-modal').addEventListener('click', (e) => { if (e.target.id === 'shop-tx-modal') $('shop-tx-modal').classList.add('hidden'); });
       document.querySelectorAll('.stx-mode-btn').forEach((b) => b.addEventListener('click', () => { state.draft.mode = b.dataset.stxMode; renderShopTxModalControls(); }));
-      document.querySelectorAll('.stx-person-btn').forEach((b) => b.addEventListener('click', () => { state.draft.person = b.dataset.stxPerson; renderShopTxModalControls(); }));
       $('stx-add-item-btn').addEventListener('click', () => { state.draft.items.push({ name: '', qty: 1, price: '' }); renderSaleItemsRows(); });
 
       const fmtMoneyInput = (el, recalc = false) => {
@@ -1577,6 +1908,43 @@
       $('stx-delivery').addEventListener('input', () => fmtMoneyInput($('stx-delivery'), true));
       $('stx-discount').addEventListener('input', () => fmtMoneyInput($('stx-discount'), true));
       $('stx-capital-amount').addEventListener('input', () => fmtMoneyInput($('stx-capital-amount'), false));
+
+      $('stx-quick-full-paid').addEventListener('click', () => { state.draft.splitMode = 'full_paid'; computeSaleTotal(true); });
+      $('stx-quick-full-cod').addEventListener('click', () => { state.draft.splitMode = 'full_cod'; computeSaleTotal(true); });
+      $('stx-paid-amount').addEventListener('input', () => {
+        fmtMoneyInput($('stx-paid-amount'), false);
+        const { grand } = computeSaleTotal(false);
+        const paid = Math.min(grand, parseAmt($('stx-paid-amount').value)), cod = Math.max(0, grand - paid);
+        state.draft.splitMode = cod <= 0 ? 'full_paid' : (paid <= 0 ? 'full_cod' : 'custom');
+        $('stx-cod-amount').value = fmtNum(cod);
+        updatePaidCodHint(grand, paid, cod);
+      });
+      $('stx-cod-amount').addEventListener('input', () => {
+        fmtMoneyInput($('stx-cod-amount'), false);
+        const { grand } = computeSaleTotal(false);
+        const cod = Math.min(grand, parseAmt($('stx-cod-amount').value)), paid = Math.max(0, grand - cod);
+        state.draft.splitMode = cod <= 0 ? 'full_paid' : (paid <= 0 ? 'full_cod' : 'custom');
+        $('stx-paid-amount').value = fmtNum(paid);
+        updatePaidCodHint(grand, paid, cod);
+      });
+
+      $('cod-modal-close').addEventListener('click', () => $('cod-pay-modal').classList.add('hidden'));
+      $('cod-cancel-btn').addEventListener('click', () => $('cod-pay-modal').classList.add('hidden'));
+      $('cod-pay-modal').addEventListener('click', (e) => { if (e.target.id === 'cod-pay-modal') $('cod-pay-modal').classList.add('hidden'); });
+      $('cod-pay-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const tx = state.allTransactions.find((x) => x.id === state.codPayDraft.txId);
+        if (!tx) return;
+        const btn = $('cod-confirm-btn'); btn.disabled = true; btn.textContent = 'Saving...';
+        try {
+          const codWallet = state.codPayDraft.wallet;
+          await persistShopTx({ codStatus: 'paid', codWallet, codPaidDate: $('cod-paid-date').value || getTodayISO(), amount: getSaleOrderTotal(tx) }, tx.id);
+          $('cod-pay-modal').classList.add('hidden');
+          showToast(`COD received into ${getWalletById(codWallet).name}!`, 'success');
+        } catch { showToast('Could not mark COD paid', 'error'); }
+        finally { btn.disabled = false; btn.textContent = '✓ Mark COD Paid'; }
+      });
+
       document.querySelectorAll('.cap-chip').forEach((b) => b.addEventListener('click', () => {
         $('stx-capital-amount').value = fmtNum(parseAmt($('stx-capital-amount').value) + Number(b.dataset.capAdd));
       }));
@@ -1584,51 +1952,42 @@
       $('stx-delete-btn').addEventListener('click', () => {
         const id = state.draft.editId; if (!id) return;
         $('shop-tx-modal').classList.add('hidden');
-        openConfirm('Delete Shop Record?', 'Your linked wallet balance will update automatically.', async () => {
-          await removeTx(id); showToast('Deleted', 'success');
-        });
+        openConfirm('Delete Shop Record?', 'Your linked wallet balance will update automatically.', async () => { await removeTx(id); showToast('Deleted', 'success'); });
       });
 
       $('stx-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         const err = $('stx-error'); err.classList.add('hidden');
-        const { mode, shopCategoryId, costSubType, wallet, person, editId } = state.draft;
-        const isSale = mode === 'sale';
-        const date = $('stx-date').value || getTodayISO();
-        const note = $('stx-note').value.trim();
-        const cat = getShopCatById(shopCategoryId);
+        const { mode, shopCategoryId, costSubType, wallet, editId } = state.draft;
+        const isSale = mode === 'sale', date = $('stx-date').value || getTodayISO(), note = $('stx-note').value.trim(), cat = getShopCatById(shopCategoryId);
 
         let payload;
         if (isSale) {
-          const cleanItems = state.draft.items
-            .map((it) => ({ name: (it.name || '').trim() || cat.name, qty: Math.max(1, Number(it.qty) || 1), price: parseAmt(it.price) }))
-            .filter((it) => it.price > 0);
-          const { subtotal, delivery, discount, grand } = computeSaleTotal();
-          if (!cleanItems.length || grand <= 0) {
-            err.textContent = 'Enter at least one item price so the total is greater than 0.';
-            err.classList.remove('hidden'); return;
-          }
+          const cleanItems = state.draft.items.map((it) => ({ name: (it.name || '').trim() || cat.name, qty: Math.max(1, Number(it.qty) || 1), price: parseAmt(it.price) })).filter((it) => it.price > 0);
+          const { subtotal, delivery, discount, grand, paid, cod } = computeSaleTotal(false);
+          if (!cleanItems.length || grand <= 0) { err.textContent = 'Enter at least one item price so the total is greater than 0.'; err.classList.remove('hidden'); return; }
           const existingTx = editId ? state.allTransactions.find((t) => t.id === editId) : null;
+          const wasCodPaid = Boolean(editId && state.draft.existingCodStatus === 'paid' && cod > 0);
+          const codStatus = cod <= 0 ? 'none' : (wasCodPaid ? 'paid' : 'pending');
           payload = {
             type: 'income', scope: 'shop', shopEntryType: 'sale',
-            amount: grand, subtotal, deliveryFee: delivery, discount,
-            items: cleanItems,
+            amount: paid + (codStatus === 'paid' ? cod : 0),
+            orderTotal: grand, paidAmount: paid, codAmount: cod, codStatus,
+            codWallet: wasCodPaid ? state.draft.existingCodWallet : '',
+            codPaidDate: wasCodPaid ? state.draft.existingCodPaidDate : '',
+            subtotal, deliveryFee: delivery, discount, items: cleanItems,
             receiptNo: existingTx?.receiptNo || generateReceiptNo(date),
-            customerName: $('stx-customer').value.trim(),
-            customerPhone: $('stx-customer-phone').value.trim(),
-            shopCategoryId: cat.id, shopCategoryName: cat.name,
-            category: cat.name, wallet, fromWallet: '', toWallet: '',
-            date, loggedBy: person, note
+            customerName: $('stx-customer').value.trim(), customerPhone: $('stx-customer-phone').value.trim(),
+            shopCategoryId: cat.id, shopCategoryName: cat.name, category: cat.name,
+            wallet, fromWallet: '', toWallet: '', date, loggedBy: 'shop', note
           };
         } else {
           const amount = parseAmt($('stx-capital-amount').value);
           if (amount <= 0) { err.textContent = 'Enter a capital/cost amount greater than 0.'; err.classList.remove('hidden'); return; }
           payload = {
-            type: 'expense', scope: 'shop', shopEntryType: 'capital',
-            amount, costSubType,
-            shopCategoryId: cat.id, shopCategoryName: cat.name,
-            category: `${cat.name} (${costSubType})`, wallet, fromWallet: '', toWallet: '',
-            date, loggedBy: person, note
+            type: 'expense', scope: 'shop', shopEntryType: 'capital', amount, costSubType,
+            shopCategoryId: cat.id, shopCategoryName: cat.name, category: `${cat.name} (${costSubType})`,
+            wallet, fromWallet: '', toWallet: '', date, loggedBy: 'shop', note
           };
         }
 
@@ -1636,50 +1995,32 @@
         try {
           const saved = await persistShopTx(payload, editId);
           $('shop-tx-modal').classList.add('hidden');
-          showToast(isSale ? 'Sale saved & wallet updated!' : 'Capital saved & wallet updated!', 'success');
-          if (isSale && !editId && $('stx-open-receipt').checked) {
-            openReceiptModal(saved);
-          }
-        } catch (saveErr) {
-          console.error(saveErr);
-          err.textContent = 'Could not save entry. Please try again.';
-          err.classList.remove('hidden');
-        } finally {
-          btn.disabled = false;
-          btn.textContent = editId ? 'Update Entry' : (isSale ? 'Save Sale' : 'Save Capital / Cost');
-        }
+          showToast(isSale ? (payload.codStatus === 'pending' ? 'Sale saved (Pending COD tracked)!' : 'Sale saved & wallet updated!') : 'Capital saved & wallet updated!', 'success');
+          if (isSale && !editId && $('stx-open-receipt').checked) openReceiptModal(saved);
+        } catch { err.textContent = 'Could not save entry. Please try again.'; err.classList.remove('hidden'); }
+        finally { btn.disabled = false; btn.textContent = editId ? 'Update Entry' : (isSale ? 'Save Sale' : 'Save Capital / Cost'); }
       });
 
-      // Receipt Modal Buttons
       $('receipt-modal-close').addEventListener('click', () => $('receipt-modal').classList.add('hidden'));
       $('receipt-modal').addEventListener('click', (e) => { if (e.target.id === 'receipt-modal') $('receipt-modal').classList.add('hidden'); });
-      $('receipt-copy-text-btn').addEventListener('click', () => {
-        if (state.activeReceiptTx) copyText(buildReceiptText(state.activeReceiptTx), 'Text receipt copied! Paste in Messenger or Viber.');
-      });
+      $('receipt-copy-text-btn').addEventListener('click', () => { if (state.activeReceiptTx) copyText(buildReceiptText(state.activeReceiptTx), 'Text receipt copied!'); });
       $('receipt-download-btn').addEventListener('click', () => {
-        const canvas = $('receipt-canvas');
-        const name = `${state.activeReceiptTx?.receiptNo || 'DelightsFlow_Receipt'}.png`;
-        const a = Object.assign(document.createElement('a'), { href: canvas.toDataURL('image/png'), download: name });
-        a.click();
-        showToast('Receipt PNG downloaded!', 'success');
+        const a = Object.assign(document.createElement('a'), { href: $('receipt-canvas').toDataURL('image/png'), download: `${state.activeReceiptTx?.receiptNo || 'Receipt'}.png` });
+        a.click(); showToast('Receipt PNG downloaded!', 'success');
       });
-      $('receipt-share-btn').addEventListener('click', async () => {
-        const canvas = $('receipt-canvas');
+      $('receipt-share-btn').addEventListener('click', () => {
         const filename = `${state.activeReceiptTx?.receiptNo || 'Receipt'}.png`;
-        canvas.toBlob(async (blob) => {
+        $('receipt-canvas').toBlob(async (blob) => {
           if (!blob) return;
           const file = new File([blob], filename, { type: 'image/png' });
           if (navigator.canShare && navigator.canShare({ files: [file] })) {
             try { await navigator.share({ files: [file], title: 'Customer Receipt', text: buildReceiptText(state.activeReceiptTx) }); return; } catch {}
           }
-          // Fallback to PNG download on browsers without file share
           const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: filename });
-          a.click(); URL.revokeObjectURL(a.href);
-          showToast('Saved PNG receipt (ready to send)', 'success');
+          a.click(); URL.revokeObjectURL(a.href); showToast('Saved PNG receipt', 'success');
         }, 'image/png');
       });
 
-      // Shop Settings Modal
       $('shop-settings-close').addEventListener('click', () => $('shop-settings-modal').classList.add('hidden'));
       $('shop-settings-modal').addEventListener('click', (e) => { if (e.target.id === 'shop-settings-modal') $('shop-settings-modal').classList.add('hidden'); });
       $('upload-logo-btn').addEventListener('click', () => { $('shop-logo-input').value = ''; $('shop-logo-input').click(); });
@@ -1694,15 +2035,8 @@
         e.preventDefault();
         const btn = $('shop-settings-save-btn'); btn.disabled = true; btn.textContent = 'Saving...';
         try {
-          const cleanCats = state.settingsCatsDraft.map((c, i) => ({
-            id: c.id, name: (c.name || '').trim() || `Category ${i + 1}`, colorKey: COLOR_MAP[c.colorKey] ? c.colorKey : COLORS[i % COLORS.length].key
-          }));
-          const shopProfile = {
-            name: $('sp-name').value.trim(),
-            phone: $('sp-phone').value.trim(),
-            footer: $('sp-footer').value.trim() || 'Thank you for your purchase!',
-            logoDataUrl: state.settingsLogoDraft || ''
-          };
+          const cleanCats = state.settingsCatsDraft.map((c, i) => ({ id: c.id, name: (c.name || '').trim() || `Shop${i + 1}`, colorKey: COLOR_MAP[c.colorKey] ? c.colorKey : COLORS[i % COLORS.length].key }));
+          const shopProfile = { name: $('sp-name').value.trim(), footer: $('sp-footer').value.trim() || 'Thank you for your purchase!', logoDataUrl: state.settingsLogoDraft || '' };
           await updateDoc(doc(db, 'delights_flow_workspaces', state.workspaceId), { shopCategories: cleanCats, shopProfile, updatedAt: Date.now() });
           $('shop-settings-modal').classList.add('hidden');
           showToast('Shop profile & categories saved!', 'success');
@@ -1710,7 +2044,6 @@
         finally { btn.disabled = false; btn.textContent = 'Save Shop Settings'; }
       });
 
-      // Filters & CSV
       $('shop-search').addEventListener('input', (e) => { state.filters.search = e.target.value; renderAll(); });
       $('shop-filter-month').addEventListener('change', (e) => { state.filters.month = e.target.value; renderAll(); });
       $('shop-filter-cat').addEventListener('change', (e) => { state.filters.category = e.target.value; renderAll(); });
@@ -1718,15 +2051,109 @@
       $('shop-reset-filters-btn').addEventListener('click', () => { state.filters = { search: '', month: 'all', category: 'all', type: 'all' }; $('shop-search').value = ''; renderAll(); });
       $('export-shop-csv-btn').addEventListener('click', exportShopCSV);
 
-      // Confirm Modal
       $('confirm-cancel-btn').addEventListener('click', () => $('confirm-modal').classList.add('hidden'));
-      $('confirm-ok-btn').addEventListener('click', async () => {
-        const cb = state.confirmCallback; $('confirm-modal').classList.add('hidden');
-        if (cb) await cb();
+      $('confirm-ok-btn').addEventListener('click', async () => { const cb = state.confirmCallback; $('confirm-modal').classList.add('hidden'); if (cb) await cb(); });
+
+      // Clean cross-page navigation (never stacks browser history)
+      document.querySelectorAll('[data-nav-page]').forEach((link) => {
+        link.addEventListener('click', (e) => {
+          e.preventDefault();
+          navigateReplace(link.dataset.navPage);
+        });
       });
 
       window.addEventListener('online', () => updateSyncUI('synced'));
       window.addEventListener('offline', () => updateSyncUI('offline'));
+    }
+
+    // =========================================================================
+    // 10. PHONE BACK-BUTTON EXIT GUARD & CLEAN PAGE SWITCHING
+    // =========================================================================
+    let backGuardActive = false;
+    let pendingNavUrl = '';
+    let navFallbackTimer = null;
+
+    function navigateReplace(url) {
+      if (!url) return;
+      if (backGuardActive) {
+        pendingNavUrl = url;
+        clearTimeout(navFallbackTimer);
+        navFallbackTimer = setTimeout(() => {
+          if (pendingNavUrl) { const u = pendingNavUrl; pendingNavUrl = ''; window.location.replace(u); }
+        }, 150);
+        try { history.back(); } catch { window.location.replace(url); }
+      } else {
+        window.location.replace(url);
+      }
+    }
+
+    function closeAnyOpenModal() {
+      const ids = ['confirm-modal', 'cod-pay-modal', 'receipt-modal', 'shop-tx-modal', 'shop-settings-modal', 'cat-history-modal'];
+      for (const id of ids) {
+        const el = $(id);
+        if (el && !el.classList.contains('hidden')) {
+          el.classList.add('hidden');
+          if (id === 'cat-history-modal') state.catModal.open = false;
+          return true;
+        }
+      }
+      return false;
+    }
+
+    function setupBackExitGuard() {
+      try {
+        history.replaceState({ dfBase: true }, '', location.href);
+        history.pushState({ dfGuard: true }, '', location.href);
+        backGuardActive = true;
+      } catch {
+        backGuardActive = false;
+      }
+
+      window.addEventListener('popstate', () => {
+        if (pendingNavUrl) {
+          clearTimeout(navFallbackTimer);
+          const target = pendingNavUrl;
+          pendingNavUrl = '';
+          backGuardActive = false;
+          window.location.replace(target);
+          return;
+        }
+
+        const exitModal = $('exit-modal');
+        if (exitModal && !exitModal.classList.contains('hidden')) {
+          exitModal.classList.add('hidden');
+          backGuardActive = false;
+          try { history.back(); } catch {}
+          try { window.close(); } catch {}
+          return;
+        }
+
+        if (closeAnyOpenModal()) {
+          try { history.pushState({ dfGuard: true }, '', location.href); } catch {}
+          return;
+        }
+
+        exitModal?.classList.remove('hidden');
+      });
+
+      $('exit-cancel-btn')?.addEventListener('click', () => {
+        $('exit-modal')?.classList.add('hidden');
+        try { history.pushState({ dfGuard: true }, '', location.href); backGuardActive = true; } catch {}
+      });
+
+      $('exit-modal')?.addEventListener('click', (e) => {
+        if (e.target.id === 'exit-modal') {
+          $('exit-modal').classList.add('hidden');
+          try { history.pushState({ dfGuard: true }, '', location.href); backGuardActive = true; } catch {}
+        }
+      });
+
+      $('exit-confirm-btn')?.addEventListener('click', () => {
+        $('exit-modal')?.classList.add('hidden');
+        backGuardActive = false;
+        try { history.back(); } catch {}
+        setTimeout(() => { try { window.close(); } catch {} }, 80);
+      });
     }
 
     function bootstrap() {
@@ -1735,10 +2162,11 @@
         else if (localStorage.getItem('df_dark') === '0') state.darkMode = false;
         if (localStorage.getItem('df_privacy') === '1') state.privacyMode = true;
       } catch {}
+      setupBackExitGuard();
       applyTheme();
       applyPrivacyUI();
       bindEvents();
-
+      switchShopTab('dashboard');
       onAuthStateChanged(auth, (user) => {
         if (user) bootUserShop(user);
         else showScreen('signin');
