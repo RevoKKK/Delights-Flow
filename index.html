@@ -192,21 +192,17 @@
         </button>
       </div>
 
+      <!-- Desktop Nav Order: Overview -> Shop -> Analytics -> History -> Wallets & Settings -->
       <nav class="flex-1 px-3 space-y-1.5">
         <button data-nav="overview" type="button" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z" /></svg>
           <span>Overview</span>
         </button>
 
-        <button data-nav="history" type="button" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75ZM3.75 12h.007v.008H3.75V12Zm0 5.25h.007v.008H3.75v-.008Z" /></svg>
-          <span>Transactions</span>
-        </button>
-
         <a href="shop.html" data-nav-page="shop.html" class="w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-semibold text-slate-600 dark:text-slate-400 hover:bg-amber-50 dark:hover:bg-amber-950/40 hover:text-amber-700 dark:hover:text-amber-300 transition-all">
           <span class="flex items-center gap-3">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349M3.75 21V9.349m0 0a3.001 3.001 0 0 0 3.75-.615A2.993 2.993 0 0 0 9.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 0 0 2.25 1.016c.896 0 1.7-.393 2.25-1.015a3.001 3.001 0 0 0 3.75.614" /></svg>
-            <span>Online Shop</span>
+            <span>Shop</span>
           </span>
           <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300">Sales</span>
         </a>
@@ -214,6 +210,11 @@
         <button data-nav="analytics" type="button" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6a7.5 7.5 0 1 0 7.5 7.5h-7.5V6Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0 0 13.5 3v7.5Z" /></svg>
           <span>Analytics</span>
+        </button>
+
+        <button data-nav="history" type="button" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75ZM3.75 12h.007v.008H3.75V12Zm0 5.25h.007v.008H3.75v-.008Z" /></svg>
+          <span>History</span>
         </button>
 
         <button id="desktop-settings-btn" type="button" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/80 hover:text-slate-900 dark:hover:text-white transition-all">
@@ -284,7 +285,7 @@
                 <div id="hero-total-balance" class="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight tabular-nums break-words">0 Ks</div>
               </div>
 
-              <!-- 2+1 Grid: Income | Expense on top, full-width Net on bottom -->
+              <!-- 2+1 Grid: Income | Expense on top, full-width Net Amount on bottom -->
               <div class="grid grid-cols-2 gap-2.5 sm:gap-3 w-full lg:w-auto lg:min-w-[380px]">
                 <div class="rounded-2xl bg-white/10 backdrop-blur-sm p-3.5 border border-white/10">
                   <div class="text-emerald-300 text-xs font-semibold mb-1">↗ Income</div>
@@ -295,7 +296,7 @@
                   <div id="hero-month-expense" class="text-sm sm:text-base font-extrabold tabular-nums break-words">0 Ks</div>
                 </div>
                 <div class="col-span-2 rounded-2xl bg-white/10 backdrop-blur-sm px-4 py-3 border border-white/10 flex items-center justify-between gap-3">
-                  <span class="text-sky-300 text-xs sm:text-sm font-semibold shrink-0">═ Net</span>
+                  <span class="text-sky-300 text-xs sm:text-sm font-semibold shrink-0">═ Net Amount</span>
                   <span id="hero-month-net" class="text-base sm:text-lg font-extrabold tabular-nums text-right break-words">0 Ks</span>
                 </div>
               </div>
@@ -307,7 +308,7 @@
             <div class="flex items-center justify-between">
               <div>
                 <h2 id="overview-wallets-title" class="text-base sm:text-lg font-bold text-slate-900 dark:text-white">Your Wallets</h2>
-                <p class="text-xs text-slate-500 dark:text-slate-400">Tap a wallet to filter history, or customize your accounts</p>
+                <p class="text-xs text-slate-500 dark:text-slate-400">Tap a wallet to view its transactions</p>
               </div>
               <button id="overview-edit-wallets-btn" type="button" class="text-xs sm:text-sm font-semibold text-indigo-600 dark:text-indigo-400 px-3 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/50">Manage Wallets</button>
             </div>
@@ -336,12 +337,12 @@
           </div>
         </section>
 
-        <!-- VIEW 2: TRANSACTIONS & CALENDAR -->
+        <!-- VIEW 2: HISTORY & CALENDAR -->
         <section id="view-history" class="hidden space-y-5">
           <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
-              <h2 class="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">Transactions</h2>
-              <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400">Filter by Personal or Shop, view calendar, edit, or export</p>
+              <h2 class="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">History</h2>
+              <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400">Filter by wallet, owner, or scope, view calendar, or export</p>
             </div>
             <div class="flex items-center gap-2 flex-wrap">
               <div class="inline-flex p-1 rounded-xl bg-slate-200/80 dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700">
@@ -373,7 +374,7 @@
               <select id="filter-scope" class="col-span-2 lg:col-span-1 w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm font-medium">
                 <option value="all">Personal + Shop</option>
                 <option value="personal">Personal Only</option>
-                <option value="shop">Online Shop Only</option>
+                <option value="shop">Shop Only</option>
               </select>
             </div>
             <div class="pt-2 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2 text-xs">
@@ -417,13 +418,13 @@
           <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
               <h2 class="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">Analytics &amp; Summary</h2>
-              <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400">Toggle between Personal, Online Shop, or Combined reports</p>
+              <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400">Toggle between Personal, Shop, or Combined reports</p>
             </div>
             <div class="flex items-center gap-2 flex-wrap">
               <select id="analytics-scope-select" class="px-3 py-2 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs sm:text-sm font-bold shadow-sm">
                 <option value="all">Personal + Shop</option>
                 <option value="personal">Personal Only</option>
-                <option value="shop">Online Shop Only</option>
+                <option value="shop">Shop Only</option>
               </select>
               <div class="flex items-center gap-1 bg-white dark:bg-slate-900 p-1 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
                 <button id="analytics-prev-month" type="button" class="px-2.5 py-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 font-bold">‹</button>
@@ -482,7 +483,7 @@
       </div>
     </main>
 
-    <!-- MOBILE BOTTOM NAV -->
+    <!-- MOBILE BOTTOM NAV: Overview | Shop | (+) | Analytics | History -->
     <nav class="md:hidden fixed bottom-0 inset-x-0 z-30 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200/80 dark:border-slate-800 px-2 pb-2 pt-1.5">
       <div class="grid grid-cols-5 items-center max-w-md mx-auto">
         <button data-nav="overview" type="button" class="nav-btn-mobile flex flex-col items-center py-1.5 gap-1 rounded-xl text-[11px] font-semibold">
@@ -490,10 +491,10 @@
           <span>Overview</span>
         </button>
 
-        <button data-nav="history" type="button" class="nav-btn-mobile flex flex-col items-center py-1.5 gap-1 rounded-xl text-[11px] font-semibold">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75ZM3.75 12h.007v.008H3.75V12Zm0 5.25h.007v.008H3.75v-.008Z" /></svg>
-          <span>History</span>
-        </button>
+        <a href="shop.html" data-nav-page="shop.html" class="flex flex-col items-center py-1.5 gap-1 rounded-xl text-[11px] font-semibold text-amber-600 dark:text-amber-400">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349M3.75 21V9.349" /></svg>
+          <span>Shop</span>
+        </a>
 
         <div class="flex justify-center -mt-7">
           <button id="mobile-fab-add" type="button" aria-label="Add new entry" class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-indigo-600 to-sky-500 text-white shadow-xl shadow-indigo-600/35 flex items-center justify-center active:scale-90 transition-transform ring-4 ring-white dark:ring-slate-900">
@@ -501,14 +502,14 @@
           </button>
         </div>
 
-        <a href="shop.html" data-nav-page="shop.html" class="flex flex-col items-center py-1.5 gap-1 rounded-xl text-[11px] font-semibold text-amber-600 dark:text-amber-400">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349M3.75 21V9.349" /></svg>
-          <span>Shop</span>
-        </a>
-
         <button data-nav="analytics" type="button" class="nav-btn-mobile flex flex-col items-center py-1.5 gap-1 rounded-xl text-[11px] font-semibold">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6a7.5 7.5 0 1 0 7.5 7.5h-7.5V6Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0 0 13.5 3v7.5Z" /></svg>
           <span>Analytics</span>
+        </button>
+
+        <button data-nav="history" type="button" class="nav-btn-mobile flex flex-col items-center py-1.5 gap-1 rounded-xl text-[11px] font-semibold">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75ZM3.75 12h.007v.008H3.75V12Zm0 5.25h.007v.008H3.75v-.008Z" /></svg>
+          <span>History</span>
         </button>
       </div>
     </nav>
@@ -770,7 +771,7 @@
     </div>
   </div>
 
-  <!-- ==================== MODAL 5: PHONE BACK EXIT CONFIRMATION ==================== -->
+  <!-- ==================== MODAL 5: PHONE BACK EXIT CONFIRMATION (OVERVIEW ONLY) ==================== -->
   <div id="exit-modal" class="hidden fixed inset-0 z-[55] flex items-center justify-center bg-slate-950/60 backdrop-blur-sm p-4">
     <div class="bg-white dark:bg-slate-900 w-full max-w-xs rounded-3xl p-6 shadow-2xl border border-slate-200 dark:border-slate-800 space-y-4 text-center">
       <div class="w-12 h-12 mx-auto rounded-2xl bg-indigo-50 dark:bg-indigo-950/70 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-xl">👋</div>
@@ -813,7 +814,7 @@
     } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
     // =========================================================================
-    // 1. CONSTANTS (18 WALLET COLORS, MINIMAL STARTER WALLETS, CATEGORIES)
+    // 1. CONSTANTS (18 WALLET COLORS, MINIMAL STARTER WALLETS, DEFAULT SHOP 1)
     // =========================================================================
     const COLORS = [
       { key: 'emerald', label: 'Emerald', hex: '#10b981' }, { key: 'green', label: 'Green', hex: '#16a34a' },
@@ -840,8 +841,8 @@
       { id: 'bank', name: 'Bank', iconType: 'bank', colorKey: 'blue' }
     ];
 
-    const DEFAULT_SHOP_CATS = [
-      { id: 'shop1', name: 'Shop1', colorKey: 'amber' }
+    const DEFAULT_SHOPS = [
+      { id: 'shop1', name: 'Shop 1', colorKey: 'amber', startingCapital: 0, footer: 'Thank you for your purchase!', logoDataUrl: '' }
     ];
 
     const EXPENSE_CATS = [
@@ -898,7 +899,7 @@
         customExpenseCategories: [],
         customIncomeCategories: [],
         quickTemplates: [],
-        shopCategories: DEFAULT_SHOP_CATS.map((c) => ({ ...c })),
+        shopCategories: DEFAULT_SHOPS.map((c) => ({ ...c })),
         shopProfile: { name: '', footer: 'Thank you for your purchase!', logoDataUrl: '' }
       },
       transactions: [],
@@ -906,6 +907,7 @@
       historyMode: 'list',
       calendarMonth: getCurrentMonthKey(),
       calendarSelectedDate: getTodayISO(),
+      walletFilterActive: false,
       filters: { search: '', month: getCurrentMonthKey(), wallet: 'all', type: 'all', person: 'all', scope: 'all' },
       analyticsMonth: getCurrentMonthKey(),
       analyticsScope: 'all',
@@ -1174,11 +1176,10 @@
           customExpenseCategories: Array.isArray(d.customExpenseCategories) ? d.customExpenseCategories : [],
           customIncomeCategories: Array.isArray(d.customIncomeCategories) ? d.customIncomeCategories : [],
           quickTemplates: Array.isArray(d.quickTemplates) ? d.quickTemplates : [],
-          shopCategories: Array.isArray(d.shopCategories) && d.shopCategories.length ? d.shopCategories : DEFAULT_SHOP_CATS,
+          shopCategories: Array.isArray(d.shopCategories) && d.shopCategories.length ? d.shopCategories : DEFAULT_SHOPS.map((c) => ({ ...c })),
           shopProfile: d.shopProfile || { name: '', footer: 'Thank you for your purchase!', logoDataUrl: '' }
         };
 
-        // Keep workspace name fresh in user's switcher list
         const idx = state.userWorkspaces.findIndex((x) => x.id === wsId);
         if (idx >= 0) state.userWorkspaces[idx].name = state.workspace.name;
         else state.userWorkspaces.push({ id: wsId, name: state.workspace.name });
@@ -1320,7 +1321,23 @@
       document.querySelectorAll('.privacy-icon-slot').forEach((s) => (s.innerHTML = icon));
     }
 
-    function switchView(view) {
+    // Switching to History normally resets wallet filter to All Wallets;
+    // tapping a specific wallet card passes { keepWalletFilter: true }.
+    function switchView(view, opts = {}) {
+      if (view === 'history' && !opts.keepWalletFilter) {
+        state.filters.wallet = 'all';
+        if (state.walletFilterActive) {
+          state.filters.month = getCurrentMonthKey();
+          state.walletFilterActive = false;
+        }
+      } else if (view !== 'history') {
+        state.filters.wallet = 'all';
+        if (state.walletFilterActive) {
+          state.filters.month = getCurrentMonthKey();
+          state.walletFilterActive = false;
+        }
+      }
+
       state.currentView = view;
       ['overview', 'history', 'analytics'].forEach((v) => $(`view-${v}`).classList.toggle('hidden', v !== view));
       document.querySelectorAll('.nav-btn').forEach((b) => {
@@ -1360,7 +1377,7 @@
     }
 
     // =========================================================================
-    // 6. RENDER: OVERVIEW, TRANSACTIONS, CALENDAR & ANALYTICS
+    // 6. RENDER: OVERVIEW, HISTORY, CALENDAR & ANALYTICS
     // =========================================================================
     function buildTxRowHTML(tx, showDate = false) {
       const id = esc(tx.id);
@@ -1408,10 +1425,10 @@
         : ownerKey === 'shared' ? 'bg-teal-100 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300'
         : ownerKey === 'person2' ? 'bg-fuchsia-100 dark:bg-fuchsia-950/60 text-fuchsia-700 dark:text-fuchsia-300'
         : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300';
-      const ownerBadgeText = ownerKey === 'shop' ? '🛍️ Shop' : ownerKey === 'shared' ? `👥 ${esc(pName)}` : esc(pName);
+      const ownerBadgeText = ownerKey === 'shop' ? '🛍️ Shop ↗' : ownerKey === 'shared' ? `👥 ${esc(pName)}` : esc(pName);
 
       return `<div class="px-4 sm:px-5 py-3.5 hover:bg-slate-50/90 dark:hover:bg-slate-800/40 flex items-center justify-between gap-3">
-        <div class="flex items-center gap-3 min-w-0 flex-1 cursor-pointer" data-edit-tx="${id}">
+        <div class="flex items-center gap-3 min-w-0 flex-1 cursor-pointer" data-edit-tx="${id}" title="${isShop ? 'Open Receipt / Edit in Shop' : 'Edit entry'}">
           <div class="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-lg shrink-0">${getCatIcon(tx)}</div>
           <div class="min-w-0 flex-1">
             <div class="flex items-center gap-1.5 flex-wrap">
@@ -1438,7 +1455,11 @@
       container.querySelectorAll('[data-edit-tx]').forEach((el) => el.addEventListener('click', () => {
         const tx = state.transactions.find((t) => t.id === el.dataset.editTx);
         if (!tx) return;
-        if (tx.scope === 'shop') { navigateReplace('shop.html'); return; }
+        // Method B: Jump straight to this exact entry's Receipt/Edit popup in shop.html
+        if (tx.scope === 'shop') {
+          navigateReplace(`shop.html?tx=${encodeURIComponent(tx.id)}`);
+          return;
+        }
         openTxModal(tx);
       }));
       container.querySelectorAll('[data-del-tx]').forEach((el) => el.addEventListener('click', (e) => {
@@ -1532,7 +1553,10 @@
         </button>`;
       }).join('');
       wGrid.querySelectorAll('[data-wcard]').forEach((b) => b.addEventListener('click', () => {
-        state.filters.wallet = b.dataset.wcard; state.filters.month = 'all'; switchView('history');
+        state.walletFilterActive = true;
+        state.filters.wallet = b.dataset.wcard;
+        state.filters.month = 'all';
+        switchView('history', { keepWalletFilter: true });
       }));
 
       renderQuickTemplates();
@@ -1697,7 +1721,7 @@
       $('kpi-income').textContent = fmtDisp(inc);
       $('kpi-expense').textContent = fmtDisp(exp);
       $('kpi-net').textContent = fmtDisp(net, true);
-      $('kpi-net').className = `text-lg sm:text-xl font-extrabold mt-1 tabular-nums ${net >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`;
+      $('kpi-net').className = `text-base sm:text-xl font-extrabold mt-1 tabular-nums break-words ${net >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`;
       $('kpi-rate').textContent = state.privacyMode ? '••%' : `${rate}%`;
 
       const txtCol = state.darkMode ? '#cbd5e1' : '#475569';
@@ -2056,6 +2080,7 @@
             if (Array.isArray(parsed.settings.quickTemplates)) patch.quickTemplates = parsed.settings.quickTemplates;
             if (Array.isArray(parsed.settings.customExpenseCategories)) patch.customExpenseCategories = parsed.settings.customExpenseCategories;
             if (Array.isArray(parsed.settings.customIncomeCategories)) patch.customIncomeCategories = parsed.settings.customIncomeCategories;
+            if (Array.isArray(parsed.settings.shopCategories) && parsed.settings.shopCategories.length) patch.shopCategories = parsed.settings.shopCategories;
             await persistWorkspacePatch(patch);
 
             const sig = (t) => `${t.date}|${t.type}|${Number(t.amount) || 0}|${t.wallet || ''}|${t.fromWallet || ''}|${t.toWallet || ''}|${t.category || ''}|${t.note || ''}`;
@@ -2065,7 +2090,7 @@
               if (!t?.type || !(Number(t.amount) > 0)) continue;
               const clean = {
                 type: t.type, scope: t.scope === 'shop' ? 'shop' : 'personal', amount: Number(t.amount),
-                date: t.date || getTodayISO(), note: t.note || '', loggedBy: isValidPerson(t.loggedBy) ? t.loggedBy : 'person1',
+                date: t.date || getTodayISO(), note: t.note || '', loggedBy: t.scope === 'shop' ? 'shop' : (isValidPerson(t.loggedBy) ? t.loggedBy : 'person1'),
                 wallet: t.type === 'transfer' ? '' : (t.wallet || 'cash'), fromWallet: t.type === 'transfer' ? (t.fromWallet || '') : '',
                 toWallet: t.type === 'transfer' ? (t.toWallet || '') : '', category: t.type === 'transfer' ? 'Transfer' : (t.category || 'Other')
               };
@@ -2099,7 +2124,6 @@
       $('auth-tab-signin').addEventListener('click', () => setAuthMode('signin'));
       $('auth-tab-signup').addEventListener('click', () => setAuthMode('signup'));
 
-      // Fallback Google Popup (only used if GIS script is blocked)
       $('google-signin-btn').addEventListener('click', async () => {
         $('auth-error-box').classList.add('hidden');
         try { await signInWithPopup(auth, new GoogleAuthProvider()); }
@@ -2159,7 +2183,7 @@
             wallets: STARTER_WALLETS.map((w) => ({ ...w })), archivedWalletNames: {},
             openingBalances: { cash: 0, bank: 0 }, userNames: { person1: p1Name, person2: 'Person 2' },
             customExpenseCategories: [], customIncomeCategories: [], quickTemplates: [],
-            shopCategories: DEFAULT_SHOP_CATS.map((c) => ({ ...c })),
+            shopCategories: DEFAULT_SHOPS.map((c) => ({ ...c })),
             shopProfile: { name: '', footer: 'Thank you for your purchase!', logoDataUrl: '' },
             createdAt: Date.now(), updatedAt: Date.now()
           });
@@ -2367,11 +2391,11 @@
 
       $('filter-search').addEventListener('input', (e) => { state.filters.search = e.target.value; renderHistory(); });
       $('filter-month').addEventListener('change', (e) => { state.filters.month = e.target.value; if (e.target.value !== 'all') state.calendarMonth = e.target.value; renderHistory(); });
-      $('filter-wallet').addEventListener('change', (e) => { state.filters.wallet = e.target.value; renderHistory(); });
+      $('filter-wallet').addEventListener('change', (e) => { state.filters.wallet = e.target.value; state.walletFilterActive = e.target.value !== 'all'; renderHistory(); });
       $('filter-type').addEventListener('change', (e) => { state.filters.type = e.target.value; renderHistory(); });
       $('filter-person').addEventListener('change', (e) => { state.filters.person = e.target.value; renderHistory(); });
       $('filter-scope').addEventListener('change', (e) => { state.filters.scope = e.target.value; renderHistory(); });
-      $('clear-filters-btn').addEventListener('click', () => { state.filters = { search: '', month: getCurrentMonthKey(), wallet: 'all', type: 'all', person: 'all', scope: 'all' }; $('filter-search').value = ''; renderHistory(); });
+      $('clear-filters-btn').addEventListener('click', () => { state.walletFilterActive = false; state.filters = { search: '', month: getCurrentMonthKey(), wallet: 'all', type: 'all', person: 'all', scope: 'all' }; $('filter-search').value = ''; renderHistory(); });
       $('export-csv-btn').addEventListener('click', exportCSV);
 
       $('analytics-scope-select').addEventListener('change', (e) => { state.analyticsScope = e.target.value; renderAnalytics(); });
@@ -2397,7 +2421,7 @@
     }
 
     // =========================================================================
-    // 9. PHONE BACK-BUTTON EXIT GUARD & CLEAN PAGE SWITCHING
+    // 9. SMART PHONE BACK-BUTTON (OTHER TABS -> OVERVIEW; OVERVIEW -> EXIT PROMPT)
     // =========================================================================
     let backGuardActive = false;
     let pendingNavUrl = '';
@@ -2457,12 +2481,21 @@
           return;
         }
 
+        // 1) Close open modal first
         if (closeAnyOpenModal()) {
           try { history.pushState({ dfGuard: true }, '', location.href); } catch {}
           return;
         }
 
-        // Show Exit Confirmation Dialog
+        // 2) If inside main app on History or Analytics tab -> go back to Overview
+        const appVisible = !$('app-shell').classList.contains('hidden');
+        if (appVisible && state.currentView !== 'overview') {
+          switchView('overview');
+          try { history.pushState({ dfGuard: true }, '', location.href); } catch {}
+          return;
+        }
+
+        // 3) Already on Overview (or Auth/Workspace) -> Show Exit Confirmation
         exitModal?.classList.remove('hidden');
       });
 
