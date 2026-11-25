@@ -1,19 +1,30 @@
 /**
- * Delights Flow — Zero-Network Cache-First Service Worker
- * - Same-origin shell (index.html, shop.html, manifest.json): Instant 0ms cache hit;
- *   quiet background refresh after 2.5s delay + 20s cooldown (never blocks page switches).
- * - Static CDNs (Tailwind CSS, Firebase SDK, Chart.js, Inter Fonts): Strict Cache-First
- *   with ZERO network fetches once cached (matches offline speed while online).
- * - Firebase Auth & Firestore APIs: Untouched (direct live sync).
+ * Delights Flow — Offline-First Auto-Update Service Worker
+ * - Same-origin App Shell (index.html, js/*.js, manifest.json, shop.html):
+ *   Instant 0ms Cache-First response + quiet atomic background diff check.
+ *   If any file changes on GitHub Pages, all shell files refresh together and
+ *   notify open clients (DF_UPDATE_READY) so no manual Chrome cache clear is needed.
+ * - Static CDNs (Tailwind, Firebase SDK, Chart.js, Google Fonts): Strict Cache-First.
+ * - Firebase Auth, Firestore & Google GIS APIs: Untouched (direct live network).
  */
 
 const APP_CACHE = 'delights-flow-app';
 const RUNTIME_CACHE = 'delights-flow-runtime';
 const ACTIVE_CACHES = [APP_CACHE, RUNTIME_CACHE];
-const SHELL_ASSETS = ['./', './index.html', './shop.html', './manifest.json'];
-const SHELL_COOLDOWN_MS = 20000;
-const SHELL_DELAY_MS = 2500;
-const lastShellCheck = new Map();
+
+const SHELL_ASSETS = [
+  './index.html',
+  './manifest.json',
+  './shop.html',
+  './core.js',
+  './money.js',
+  './shop.js'
+];
+
+const SHELL_CHECK_COOLDOWN_MS = 10000;
+const SHELL_CHECK_DELAY_MS = 500;
+let lastShellCheckAt = 0;
+let activeCheckPromise = null;
 
 function isStaticCdn(url) {
   if (url.origin === 'https://www.gstatic.com' && url.pathname.startsWith('/firebasejs/')) return true;
@@ -33,39 +44,79 @@ async function toCacheable(res) {
   return new Response(buf, { status: res.status, statusText: res.statusText, headers: res.headers });
 }
 
+async function responsesDiffer(oldRes, newRes) {
+  if (!oldRes) return true;
+  const [a, b] = await Promise.all([oldRes.clone().arrayBuffer(), newRes.clone().arrayBuffer()]);
+  if (a.byteLength !== b.byteLength) return true;
+  const va = new Uint8Array(a);
+  const vb = new Uint8Array(b);
+  for (let i = 0; i < va.length; i++) {
+    if (va[i] !== vb[i]) return true;
+  }
+  return false;
+}
+
 async function matchShell(req) {
   try {
     const cache = await caches.open(APP_CACHE);
     const hit = await cache.match(req, { ignoreSearch: true });
     if (hit) return hit;
-    if (req.mode === 'navigate') {
-      const path = new URL(req.url).pathname;
-      if (path.endsWith('shop.html')) {
-        return (await cache.match('./shop.html')) || (await cache.match('./index.html'));
-      }
-      return await cache.match('./index.html');
+
+    const url = new URL(req.url);
+    if (url.pathname.endsWith('/') || req.mode === 'navigate') {
+      const indexUrl = new URL('./index.html', self.location.href).href;
+      return await cache.match(indexUrl);
     }
   } catch {}
   return null;
 }
 
-function scheduleShellRefresh(cleanUrl) {
+async function notifyClientsUpdateReady() {
+  try {
+    const list = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    list.forEach((client) => client.postMessage({ type: 'DF_UPDATE_READY' }));
+  } catch {}
+}
+
+// Atomically check all shell assets against GitHub Pages; update cache & notify if any changed
+function scheduleShellCheck() {
   const now = Date.now();
-  if (now - (lastShellCheck.get(cleanUrl) || 0) < SHELL_COOLDOWN_MS) return Promise.resolve();
-  lastShellCheck.set(cleanUrl, now);
-  return new Promise((resolve) => {
+  if (activeCheckPromise) return activeCheckPromise;
+  if (now - lastShellCheckAt < SHELL_CHECK_COOLDOWN_MS) return Promise.resolve();
+  lastShellCheckAt = now;
+
+  activeCheckPromise = new Promise((resolve) => {
     setTimeout(async () => {
       try {
-        const res = await fetch(cleanUrl, { cache: 'no-cache' });
-        const clean = await toCacheable(res);
-        if (clean && res.type === 'basic') {
-          const cache = await caches.open(APP_CACHE);
-          await cache.put(cleanUrl, clean);
+        const cache = await caches.open(APP_CACHE);
+        let anyChanged = false;
+        const freshEntries = [];
+
+        await Promise.all(
+          SHELL_ASSETS.map(async (asset) => {
+            const resolved = new URL(asset, self.location.href).href;
+            try {
+              const res = await fetch(resolved, { cache: 'no-cache' });
+              const clean = await toCacheable(res);
+              if (!clean || res.type !== 'basic') return;
+              const prev = await cache.match(resolved);
+              if (await responsesDiffer(prev, clean)) anyChanged = true;
+              freshEntries.push([resolved, clean]);
+            } catch {}
+          })
+        );
+
+        if (anyChanged && freshEntries.length) {
+          await Promise.all(freshEntries.map(([url, res]) => cache.put(url, res)));
+          await notifyClientsUpdateReady();
         }
       } catch {}
+      activeCheckPromise = null;
       resolve();
-    }, SHELL_DELAY_MS);
+    }, SHELL_CHECK_DELAY_MS);
   });
+
+  return activeCheckPromise;
 }
 
 self.addEventListener('install', (event) => {
@@ -96,7 +147,7 @@ self.addEventListener('fetch', (event) => {
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
 
-  // 1. Same-origin App Shell: 0ms Cache Hit + Synchronous waitUntil Background Refresh
+  // 1. Same-origin App Shell: 0ms Cache Hit + Atomic Background Update Check
   if (url.origin === location.origin) {
     const cleanUrl = `${url.origin}${url.pathname}`;
     let resolveBg;
@@ -107,9 +158,10 @@ self.addEventListener('fetch', (event) => {
       try {
         const cached = await matchShell(req);
         if (cached) {
-          scheduleShellRefresh(cleanUrl).finally(resolveBg);
+          scheduleShellCheck().finally(resolveBg);
           return cached;
         }
+
         const res = await fetch(cleanUrl, { cache: 'no-cache' });
         const clean = await toCacheable(res);
         if (clean && res.type === 'basic') {
@@ -128,7 +180,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // 2. Static CDN libraries & fonts: Strict Cache-First (ZERO network fetch when cached)
+  // 2. Static CDN libraries & fonts: Strict Cache-First (zero extra network calls once cached)
   if (!isStaticCdn(url)) return;
 
   const cacheKey = url.href;
