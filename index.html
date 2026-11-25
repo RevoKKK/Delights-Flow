@@ -14,12 +14,13 @@
   <link id="apple-touch-icon-link" rel="apple-touch-icon" sizes="180x180" href="" />
   <link rel="manifest" href="manifest.json" />
 
-  <!-- Inter Font -->
+  <!-- Inter Font (Non-Blocking) -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
+  <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" /></noscript>
 
-  <!-- Tailwind CSS & Chart.js -->
+  <!-- Tailwind CSS (Chart.js is lazy-loaded only when opening Analytics) -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -27,9 +28,8 @@
       theme: { extend: { fontFamily: { sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'] } } }
     };
   </script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer></script>
-  <!-- Google Identity Services (Direct Google Sign-In — Bypasses firebaseapp.com) -->
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <!-- Google Identity Services (Async only — never delays DOMContentLoaded) -->
+  <script src="https://accounts.google.com/gsi/client" async></script>
 </head>
 <body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 font-sans min-h-screen overflow-x-hidden transition-colors duration-200 selection:bg-indigo-500 selection:text-white">
 
@@ -66,7 +66,14 @@
       document.getElementById('auth-screen').classList.remove('hidden');
     });
     document.getElementById('loading-reset-btn').addEventListener('click', function () {
-      try { localStorage.removeItem('df_active_ws'); localStorage.removeItem('df_last_uid'); } catch (e) {}
+      try {
+        localStorage.removeItem('df_active_ws');
+        localStorage.removeItem('df_last_uid');
+        localStorage.removeItem('df_user_ws');
+        Object.keys(localStorage).forEach(function (k) {
+          if (k.indexOf('df_snap_') === 0) localStorage.removeItem(k);
+        });
+      } catch (e) {}
       var done = function () { location.reload(); };
       if ('caches' in window) {
         caches.keys().then(function (ks) { return Promise.all(ks.map(function (k) { return caches.delete(k); })); }).finally(done);
@@ -852,7 +859,7 @@
       createUserWithEmailAndPassword, sendPasswordResetEmail, updateProfile, signOut, onAuthStateChanged
     } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
     import {
-      initializeFirestore, persistentLocalCache, persistentSingleTabManager, getFirestore,
+      initializeFirestore, persistentLocalCache, persistentSingleTabManager, memoryLocalCache, getFirestore,
       doc, getDoc, getDocFromCache, setDoc, addDoc, updateDoc, deleteDoc, onSnapshot, collection, arrayUnion
     } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
@@ -909,7 +916,17 @@
         experimentalForceLongPolling: true,
         localCache: persistentLocalCache({ tabManager: persistentSingleTabManager({ forceOwnership: true }) })
       });
-    } catch { db = getFirestore(app); }
+    } catch {
+      try {
+        // Safe fallback for Private Browsing / In-App Browsers / IndexedDB locks
+        db = initializeFirestore(app, {
+          experimentalForceLongPolling: true,
+          localCache: memoryLocalCache()
+        });
+      } catch {
+        db = getFirestore(app);
+      }
+    }
     const auth = getAuth(app);
 
     let unsubUser = null;
@@ -917,6 +934,9 @@
     let unsubTx = null;
     let deferredInstallPrompt = null;
     let gisInitialized = false;
+    let chartJsPromise = null;
+    let resolveAuthReady = null;
+    const authReadyPromise = new Promise((r) => { resolveAuthReady = r; });
     const GOOGLE_WEB_CLIENT_ID = window.__google_web_client_id || "967458395131-ahj573n9ea4artc7l3dj25gv4k26l92p.apps.googleusercontent.com";
 
     const getTodayISO = () => {
@@ -1054,6 +1074,103 @@
       $('workspace-screen').classList.toggle('hidden', name !== 'workspace');
       $('app-shell').classList.toggle('hidden', name !== 'app');
       if (name === 'auth') renderGoogleDirectButton();
+    }
+
+    // Lazy-load Chart.js only when user opens Analytics so startup never blocks on jsDelivr CDN
+    function ensureChartJs() {
+      if (typeof Chart !== 'undefined') return Promise.resolve(true);
+      if (chartJsPromise) return chartJsPromise;
+      chartJsPromise = new Promise((resolve) => {
+        const s = document.createElement('script');
+        s.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js';
+        s.async = true;
+        s.onload = () => resolve(typeof Chart !== 'undefined');
+        s.onerror = () => { chartJsPromise = null; resolve(false); };
+        document.head.appendChild(s);
+      });
+      return chartJsPromise;
+    }
+
+    // Compact localStorage snapshot so returning users open Home Screen in <0.2s
+    function saveLocalSnapshot(wsId = state.workspaceId) {
+      if (!wsId) return;
+      try {
+        const payload = {
+          workspace: state.workspace,
+          transactions: state.transactions,
+          userWorkspaces: state.userWorkspaces,
+          savedAt: Date.now()
+        };
+        localStorage.setItem(`df_snap_${wsId}`, JSON.stringify(payload));
+        localStorage.setItem('df_user_ws', JSON.stringify(state.userWorkspaces || []));
+      } catch {
+        // Quota fallback: save workspace + latest 200 entries without logos
+        try {
+          const slimWs = {
+            ...state.workspace,
+            shopCategories: (state.workspace.shopCategories || []).map((c) => ({ ...c, logoDataUrl: '' })),
+            shopProfile: { ...(state.workspace.shopProfile || {}), logoDataUrl: '' }
+          };
+          localStorage.setItem(`df_snap_${wsId}`, JSON.stringify({
+            workspace: slimWs,
+            transactions: state.transactions.slice(0, 200),
+            userWorkspaces: state.userWorkspaces,
+            savedAt: Date.now()
+          }));
+        } catch {}
+      }
+    }
+
+    function loadLocalSnapshot(wsId) {
+      if (!wsId) return false;
+      try {
+        const raw = localStorage.getItem(`df_snap_${wsId}`);
+        if (!raw) return false;
+        const snap = JSON.parse(raw);
+        if (snap?.workspace) {
+          state.workspace = {
+            ...state.workspace,
+            ...snap.workspace,
+            wallets: Array.isArray(snap.workspace.wallets) && snap.workspace.wallets.length
+              ? snap.workspace.wallets
+              : STARTER_WALLETS.map((w) => ({ ...w })),
+            openingBalances: snap.workspace.openingBalances || {},
+            userNames: {
+              person1: snap.workspace.userNames?.person1 || 'Person 1',
+              person2: snap.workspace.userNames?.person2 || 'Person 2'
+            },
+            currency: snap.workspace.currency || 'Ks'
+          };
+        }
+        if (Array.isArray(snap?.transactions)) state.transactions = snap.transactions;
+        if (Array.isArray(snap?.userWorkspaces) && snap.userWorkspaces.length) {
+          state.userWorkspaces = snap.userWorkspaces;
+        }
+        return true;
+      } catch {
+        return false;
+      }
+    }
+
+    function clearLocalSnapshots() {
+      try {
+        localStorage.removeItem('df_active_ws');
+        localStorage.removeItem('df_last_uid');
+        localStorage.removeItem('df_user_ws');
+        Object.keys(localStorage).forEach((k) => {
+          if (k.startsWith('df_snap_')) localStorage.removeItem(k);
+        });
+      } catch {}
+    }
+
+    async function requireAuthReady() {
+      if (state.user && state.workspaceId) return true;
+      await Promise.race([authReadyPromise, new Promise((r) => setTimeout(r, 4000))]);
+      if (!state.user || !state.workspaceId) {
+        showToast('Still connecting to your account. Please try again in a moment.', 'info');
+        throw new Error('Auth not ready');
+      }
+      return true;
     }
 
     // =========================================================================
@@ -1246,7 +1363,7 @@
           if (typeof d.privacyMode === 'boolean' && d.privacyMode !== state.privacyMode) { state.privacyMode = d.privacyMode; applyPrivacyUI(); }
           const targetWs = d.activeWorkspaceId || state.userWorkspaces[0]?.id || '';
           if (targetWs) {
-            if (targetWs !== state.workspaceId) subscribeToWorkspace(targetWs);
+            if (targetWs !== state.workspaceId || !unsubWs) subscribeToWorkspace(targetWs);
             else renderAll();
           } else if (!state.workspaceId) {
             openOnboardingScreen(false);
@@ -1314,12 +1431,13 @@
         if (idx >= 0) state.userWorkspaces[idx].name = state.workspace.name;
         else state.userWorkspaces.push({ id: wsId, name: state.workspace.name });
 
+        saveLocalSnapshot(wsId);
         updateSyncUI('synced');
         renderAll();
       }, (err) => {
         console.error('Workspace snapshot error:', err);
         if (err?.code === 'permission-denied') {
-          try { localStorage.removeItem('df_active_ws'); } catch {}
+          try { localStorage.removeItem('df_active_ws'); localStorage.removeItem(`df_snap_${wsId}`); } catch {}
           if (unsubWs) { unsubWs(); unsubWs = null; }
           if (unsubTx) { unsubTx(); unsubTx = null; }
           state.workspaceId = '';
@@ -1334,6 +1452,7 @@
         qSnap.forEach((docItem) => list.push({ id: docItem.id, ...docItem.data() }));
         list.sort((a, b) => (b.date || '').localeCompare(a.date || '') || (b.createdAt || 0) - (a.createdAt || 0));
         state.transactions = list;
+        saveLocalSnapshot(wsId);
         updateSyncUI('synced');
         renderAll();
       }, (err) => {
@@ -1343,10 +1462,12 @@
     }
 
     async function persistWorkspacePatch(patch) {
+      await requireAuthReady();
       await updateDoc(doc(db, 'delights_flow_workspaces', state.workspaceId), { ...patch, updatedAt: Date.now() });
     }
 
     async function persistTransaction(payload, editId = null) {
+      await requireAuthReady();
       const colRef = collection(db, 'delights_flow_workspaces', state.workspaceId, 'transactions');
       if (editId) {
         await updateDoc(doc(colRef, editId), { ...payload, updatedAt: Date.now() });
@@ -1356,6 +1477,7 @@
     }
 
     async function deleteTransaction(txId) {
+      await requireAuthReady();
       await deleteDoc(doc(db, 'delights_flow_workspaces', state.workspaceId, 'transactions', txId));
     }
 
@@ -1865,6 +1987,11 @@
       const txtCol = state.darkMode ? '#cbd5e1' : '#475569';
       const grdCol = state.darkMode ? 'rgba(148,163,184,0.12)' : 'rgba(15,23,42,0.07)';
       const hasChart = typeof Chart !== 'undefined';
+      if (!hasChart) {
+        ensureChartJs().then((loaded) => {
+          if (loaded && state.currentView === 'analytics') renderAnalytics();
+        });
+      }
 
       // Chart 1: Expense by Category
       destroyChart('expenseCategory');
@@ -2360,9 +2487,8 @@
         if (unsubUser) { unsubUser(); unsubUser = null; }
         if (unsubWs) { unsubWs(); unsubWs = null; }
         if (unsubTx) { unsubTx(); unsubTx = null; }
+        clearLocalSnapshots();
         try {
-          localStorage.removeItem('df_active_ws');
-          localStorage.removeItem('df_last_uid');
           window.google?.accounts?.id?.disableAutoSelect?.();
         } catch {}
         await signOut(auth);
@@ -2681,10 +2807,16 @@
     function bootstrap() {
       window.__dfBooted = true;
       window.__dfSetLoadStatus?.('Checking account...');
+      let cachedUid = '';
+      let cachedWs = '';
       try {
         if (localStorage.getItem('df_dark') === '1') state.darkMode = true;
         else if (localStorage.getItem('df_dark') === '0') state.darkMode = false;
         if (localStorage.getItem('df_privacy') === '1') state.privacyMode = true;
+        const savedPerson = localStorage.getItem('df_active_person') || '';
+        if (isActiveUserKey(savedPerson)) state.activePerson = savedPerson;
+        cachedUid = localStorage.getItem('df_last_uid') || '';
+        cachedWs = localStorage.getItem('df_active_ws') || '';
       } catch {}
       setupPwa();
       setupBackExitGuard();
@@ -2693,23 +2825,40 @@
       bindEvents();
       switchView('overview');
 
+      // Zero-Wait Instant Boot:
+      // 1) Returning user -> hydrate local snapshot & open Home Screen immediately (<0.2s)
+      // 2) Brand-new user -> open Sign-In Screen immediately (<0.1s) without splash hang
+      if (cachedUid && cachedWs) {
+        loadLocalSnapshot(cachedWs);
+        state.workspaceId = cachedWs;
+        showScreen('app');
+        updateSyncUI('connecting');
+        renderAll();
+      } else if (!cachedUid) {
+        showScreen('auth');
+      }
+
       let authResolved = false;
       const authTimer = setTimeout(() => {
-        if (!authResolved) {
-          window.__dfSetLoadStatus?.('Sign-in check is taking longer than expected.', 'Check your internet connection or Firebase API key restrictions, or tap Sign In.', true);
+        if (!authResolved && !$('loading-screen').classList.contains('hidden')) {
+          window.__dfSetLoadStatus?.('Sign-in check is taking longer than expected.', 'Check your internet connection or tap Sign In.', true);
         }
-      }, 6000);
+      }, 5000);
 
       onAuthStateChanged(auth, (user) => {
         authResolved = true;
         clearTimeout(authTimer);
-        if (user) bootSignedInUser(user);
-        else {
+        if (user) {
+          resolveAuthReady?.(user);
+          bootSignedInUser(user);
+        } else {
           if (unsubUser) { unsubUser(); unsubUser = null; }
           if (unsubWs) { unsubWs(); unsubWs = null; }
           if (unsubTx) { unsubTx(); unsubTx = null; }
+          clearLocalSnapshots();
           state.user = null;
           state.workspaceId = '';
+          state.transactions = [];
           showScreen('auth');
         }
       });
