@@ -170,27 +170,32 @@ function scheduleRender() {
 }
 
 function switchMode(mode, subTab = null, opts = {}) {
-  // Pointerdown triggers this instantly. 
   requestAnimationFrame(() => {
     state.mode = mode;
     if (mode === 'money') {
       if(subTab) state.moneyView = subTab;
-      D.sideMActions.classList.remove('hidden'); D.sideSActions.classList.add('hidden');
-      D.navMLinks.classList.remove('hidden'); D.navSLinks.classList.add('hidden');
-      D.mobNMoney.classList.remove('hidden'); D.mobNShop.classList.add('hidden');
-      ['overview', 'history', 'analytics'].forEach(v => D[`vM${v.charAt(0).toUpperCase()+v.slice(1)}`].classList.toggle('hidden', state.moneyView !== v));
-      D.vSHome.classList.add('hidden'); D.vSHistory.classList.add('hidden'); D.vSAnalytics.classList.add('hidden');
-      document.body.classList.remove('shop-mode-active');
+      
+      D.sideMActions.style.display = 'flex'; D.sideSActions.style.display = 'none';
+      D.navMLinks.style.display = 'block'; D.navSLinks.style.display = 'none';
+      D.mobNMoney.style.display = 'flex'; D.mobNShop.style.display = 'none';
+      
+      ['overview', 'history', 'analytics'].forEach(v => {
+        D[`vM${v.charAt(0).toUpperCase()+v.slice(1)}`].style.display = (state.moneyView === v) ? 'block' : 'none';
+      });
+      D.vSHome.style.display = 'none'; D.vSHistory.style.display = 'none'; D.vSAnalytics.style.display = 'none';
+      
     } else {
       if(subTab) state.shopTab = subTab;
-      D.sideMActions.classList.add('hidden'); D.sideSActions.classList.remove('hidden');
-      D.navMLinks.classList.add('hidden'); D.navSLinks.classList.remove('hidden');
-      D.mobNMoney.classList.add('hidden'); D.mobNShop.classList.remove('hidden');
-      ['home', 'history', 'analytics'].forEach(v => D[`vS${v.charAt(0).toUpperCase()+v.slice(1)}`].classList.toggle('hidden', state.shopTab !== v));
-      D.vMOverview.classList.add('hidden'); D.vMHistory.classList.add('hidden'); D.vMAnalytics.classList.add('hidden');
-      document.body.classList.add('shop-mode-active');
+      
+      D.sideMActions.style.display = 'none'; D.sideSActions.style.display = 'flex';
+      D.navMLinks.style.display = 'none'; D.navSLinks.style.display = 'block';
+      D.mobNMoney.style.display = 'none'; D.mobNShop.style.display = 'flex';
+      
+      ['home', 'history', 'analytics'].forEach(v => {
+        D[`vS${v.charAt(0).toUpperCase()+v.slice(1)}`].style.display = (state.shopTab === v) ? 'block' : 'none';
+      });
+      D.vMOverview.style.display = 'none'; D.vMHistory.style.display = 'none'; D.vMAnalytics.style.display = 'none';
     }
-    scheduleRender();
   });
 
   if (!opts.noHistory) setTimeout(() => history.pushState({ mode: state.mode, view: state.mode === 'money' ? state.moneyView : state.shopTab }, ''), 10);
