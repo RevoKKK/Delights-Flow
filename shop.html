@@ -369,19 +369,12 @@
   </script>
 
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import {
-      initializeFirestore, persistentLocalCache, persistentSingleTabManager, memoryLocalCache, getFirestore,
-      doc, getDoc, getDocFromCache, setDoc, addDoc, updateDoc, deleteDoc, onSnapshot, collection
-    } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
     // --- 1. COMPACT CONSTANTS & ICON REGISTRY ---
     const SVG = (d, cls = 'w-5 h-5', sw = 2) => `<svg class="${cls}" fill="none" stroke="currentColor" stroke-width="${sw}" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="${d}"/></svg>`;
     const UI_ICONS = {
-      wallet: SVG('M21 12a2.25 2.25 0 0 0-2.25-2.25H15a3 3 0 1 1-6 0H5.25A2.25 2.25 0 0 0 3 12m18 0v6a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 18v-6'),
       shop: SVG('M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349M3.75 21V9.349'),
       shopLg: SVG('M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349M3.75 21V9.349', 'w-7 h-7', 2.2),
+      wallet: SVG('M21 12a2.25 2.25 0 0 0-2.25-2.25H15a3 3 0 1 1-6 0H5.25A2.25 2.25 0 0 0 3 12m18 0v6a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 18v-6m18 0V9M3 12V9m18 0a2.25 2.25 0 0 0-2.25-2.25H5.25A2.25 2.25 0 0 0 3 9m18 0V6a2.25 2.25 0 0 0-2.25-2.25H5.25A2.25 2.25 0 0 0 3 6v3'),
       chart: SVG('M10.5 6a7.5 7.5 0 1 0 7.5 7.5h-7.5V6ZM13.5 10.5H21A7.5 7.5 0 0 0 13.5 3v7.5Z'),
       list: SVG('M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75ZM3.75 12h.007v.008H3.75V12Zm0 5.25h.007v.008H3.75v-.008Z'),
       sliders: SVG('M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75'),
@@ -392,22 +385,37 @@
       eyeOff: SVG('M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 4.242L9.88 9.88', 'w-4 h-4 sm:w-5 sm:h-5')
     };
     const COLORS = [
-      ['amber','#f59e0b'],['emerald','#10b981'],['blue','#2563eb'],['indigo','#6366f1'],['violet','#8b5cf6'],['pink','#ec4899'],
-      ['rose','#f43f5e'],['orange','#f97316'],['sky','#0ea5e9'],['teal','#14b8a6'],['cyan','#06b6d4'],['green','#16a34a'],
-      ['lime','#84cc16'],['purple','#9333ea'],['fuchsia','#d946ef'],['red','#ef4444'],['yellow','#eab308'],['slate','#64748b']
-    ].map(([key, hex]) => ({ key, hex }));
+      ['amber','Amber','#f59e0b'],['emerald','Emerald','#10b981'],['blue','Blue','#2563eb'],['indigo','Indigo','#6366f1'],
+      ['rose','Rose','#f43f5e'],['sky','Sky','#0ea5e9'],['violet','Violet','#8b5cf6'],['teal','Teal','#14b8a6'],
+      ['orange','Orange','#f97316'],['pink','Pink','#ec4899'],['green','Green','#16a34a'],['cyan','Cyan','#06b6d4'],
+      ['purple','Purple','#9333ea'],['fuchsia','Fuchsia','#d946ef'],['red','Red','#ef4444'],['lime','Lime','#84cc16'],
+      ['yellow','Gold','#eab308'],['slate','Slate','#64748b']
+    ].map(([key, label, hex]) => ({ key, label, hex }));
     const COLOR_MAP = Object.fromEntries(COLORS.map((c) => [c.key, c.hex]));
     const COST_SUBTYPES = ['Stock / Capital', 'Packaging', 'Delivery', 'Ads / Boost', 'Other'];
-    const COST_COLORS = ['#f43f5e', '#f59e0b', '#0ea5e9', '#8b5cf6', '#64748b'];
+    const COST_COLORS = ['#f43f5e', '#f59e0b', '#6366f1', '#0ea5e9', '#10b981', '#8b5cf6', '#64748b'];
     const DEFAULT_SHOPS = [{ id: 'shop1', name: 'Shop 1', colorKey: 'amber', startingCapital: 0, footer: 'Thank you for your purchase!', logoDataUrl: '' }];
     const STARTER_WALLETS = [{ id: 'cash', name: 'Cash', iconType: 'cash', colorKey: 'emerald' }, { id: 'bank', name: 'Bank', iconType: 'bank', colorKey: 'blue' }];
 
-    // --- 2. FIREBASE & STATE ---
-    const app = initializeApp(window.__firebase_config);
-    let db;
-    try { db = initializeFirestore(app, { experimentalForceLongPolling: true, localCache: persistentLocalCache({ tabManager: persistentSingleTabManager({ forceOwnership: true }) }) }); }
-    catch { try { db = initializeFirestore(app, { experimentalForceLongPolling: true, localCache: memoryLocalCache() }); } catch { db = getFirestore(app); } }
-    const auth = getAuth(app);
+    // --- 2. LAZY FIREBASE LOADER & STATE (0ms First Paint, Offline-Grade Speed) ---
+    let app = null, db = null, auth = null, fb = null, fbPromise = null;
+    function ensureFirebase() {
+      if (fb && auth && db) return Promise.resolve(fb);
+      if (fbPromise) return fbPromise;
+      fbPromise = Promise.all([
+        import("https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js"),
+        import("https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js"),
+        import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js")
+      ]).then(([appMod, authMod, fsMod]) => {
+        fb = { ...authMod, ...fsMod };
+        app = appMod.initializeApp(window.__firebase_config);
+        try { db = fsMod.initializeFirestore(app, { experimentalForceLongPolling: true, localCache: fsMod.persistentLocalCache({ tabManager: fsMod.persistentSingleTabManager({ forceOwnership: true }) }) }); }
+        catch { try { db = fsMod.initializeFirestore(app, { experimentalForceLongPolling: true, localCache: fsMod.memoryLocalCache() }); } catch { db = fsMod.getFirestore(app); } }
+        auth = authMod.getAuth(app);
+        return fb;
+      }).catch((err) => { fbPromise = null; throw err; });
+      return fbPromise;
+    }
 
     let unsubUser = null, unsubWs = null, unsubTx = null, chartPromise = null, resolveAuthReady = null;
     const authReadyPromise = new Promise((r) => (resolveAuthReady = r));
@@ -493,7 +501,8 @@
     };
     const clearSnaps = () => { try { Object.keys(localStorage).forEach((k) => { if (k.startsWith('df_snap_') || ['df_active_ws','df_last_uid','df_user_ws'].includes(k)) localStorage.removeItem(k); }); } catch {} };
     const requireAuth = async () => {
-      if (state.user && state.workspaceId) return true;
+      if (state.user && state.workspaceId && db && fb) return true;
+      await ensureFirebase();
       await Promise.race([authReadyPromise, new Promise((r) => setTimeout(r, 4000))]);
       if (!state.user || !state.workspaceId) { toast('Still connecting — try again in a moment.', 'info'); throw new Error('Auth not ready'); }
       return true;
@@ -513,8 +522,8 @@
     const applyPrivacy = () => document.querySelectorAll('.privacy-icon-slot').forEach((s) => (s.innerHTML = state.privacyMode ? UI_ICONS.eyeOff : UI_ICONS.eye));
     const savePrefs = async () => {
       try { localStorage.setItem('df_dark', state.darkMode ? '1' : '0'); localStorage.setItem('df_privacy', state.privacyMode ? '1' : '0'); } catch {}
-      if (!state.user) return;
-      try { await setDoc(doc(db, 'delights_flow_users', state.user.uid), { darkMode: state.darkMode, privacyMode: state.privacyMode, updatedAt: Date.now() }, { merge: true }); } catch {}
+      if (!state.user || !db || !fb) return;
+      try { await fb.setDoc(fb.doc(db, 'delights_flow_users', state.user.uid), { darkMode: state.darkMode, privacyMode: state.privacyMode, updatedAt: Date.now() }, { merge: true }); } catch {}
     };
 
     // --- 4. FIREBASE SYNC & CRUD ---
@@ -523,14 +532,14 @@
       let cachedWs = '';
       try { const uid = localStorage.getItem('df_last_uid') || '', ws = localStorage.getItem('df_active_ws') || ''; if (ws && (!uid || uid === user.uid)) { cachedWs = ws; localStorage.setItem('df_last_uid', user.uid); } } catch {}
       if (cachedWs) subscribeWs(cachedWs);
-      else getDocFromCache(doc(db, 'delights_flow_users', user.uid)).then((s) => { if (state.workspaceId || !s.exists()) return; const wsId = s.data().activeWorkspaceId || s.data().workspaces?.[0]?.id || ''; if (wsId) subscribeWs(wsId); }).catch(() => {});
+      else fb.getDocFromCache(fb.doc(db, 'delights_flow_users', user.uid)).then((s) => { if (state.workspaceId || !s.exists()) return; const wsId = s.data().activeWorkspaceId || s.data().workspaces?.[0]?.id || ''; if (wsId) subscribeWs(wsId); }).catch(() => {});
 
       unsubUser?.();
       let resolved = Boolean(cachedWs);
       const timer = setTimeout(() => {
         if (resolved || state.workspaceId) return;
         window.__dfSetLoadStatus?.('Still connecting...', 'Checking your shop workspace...', true);
-        getDoc(doc(db, 'delights_flow_users', user.uid)).then((s) => {
+        fb.getDoc(fb.doc(db, 'delights_flow_users', user.uid)).then((s) => {
           if (resolved || state.workspaceId) return;
           resolved = true;
           const wsId = s.exists() ? (s.data().activeWorkspaceId || s.data().workspaces?.[0]?.id || '') : '';
@@ -538,7 +547,7 @@
         }).catch((e) => { if (!resolved && !state.workspaceId) window.__dfSetLoadStatus?.('Could not load shop.', e?.message || 'Tap Retry.', true); });
       }, 5000);
 
-      unsubUser = onSnapshot(doc(db, 'delights_flow_users', user.uid), (s) => {
+      unsubUser = fb.onSnapshot(fb.doc(db, 'delights_flow_users', user.uid), (s) => {
         if (s.exists()) {
           clearTimeout(timer); resolved = true; const d = s.data();
           if (typeof d.darkMode === 'boolean' && d.darkMode !== state.darkMode) { state.darkMode = d.darkMode; applyTheme(); }
@@ -551,13 +560,13 @@
     }
 
     function subscribeWs(wsId) {
-      if (!wsId || !state.user) return;
+      if (!wsId || !state.user || !db || !fb) return;
       unsubWs?.(); unsubTx?.();
       state.workspaceId = wsId;
       try { localStorage.setItem('df_active_ws', wsId); localStorage.setItem('df_last_uid', state.user.uid); } catch {}
       showScreen('shop'); updateSyncUI('connecting'); renderAll();
 
-      unsubWs = onSnapshot(doc(db, 'delights_flow_workspaces', wsId), (s) => {
+      unsubWs = fb.onSnapshot(fb.doc(db, 'delights_flow_workspaces', wsId), (s) => {
         if (!s.exists()) { if (!s.metadata.fromCache) { try { localStorage.removeItem('df_active_ws'); localStorage.removeItem(`df_snap_${wsId}`); } catch {} state.workspaceId = ''; showScreen('signin'); } return; }
         const d = s.data();
         state.workspace = {
@@ -572,7 +581,7 @@
         updateSyncUI('offline');
       });
 
-      unsubTx = onSnapshot(collection(db, 'delights_flow_workspaces', wsId, 'transactions'), (qs) => {
+      unsubTx = fb.onSnapshot(fb.collection(db, 'delights_flow_workspaces', wsId, 'transactions'), (qs) => {
         const list = []; qs.forEach((d) => list.push({ id: d.id, ...d.data() }));
         list.sort((a, b) => (b.date || '').localeCompare(a.date || '') || (b.createdAt || 0) - (a.createdAt || 0));
         state.allTransactions = list; saveSnap(wsId); updateSyncUI('synced'); renderAll(); handleDeepLink();
@@ -591,12 +600,12 @@
     const shopTxs = () => state.allTransactions.filter((t) => t.scope === 'shop');
     const persistTx = async (payload, editId = null) => {
       await requireAuth();
-      const col = collection(db, 'delights_flow_workspaces', state.workspaceId, 'transactions');
-      if (editId) { await updateDoc(doc(col, editId), { ...payload, updatedAt: Date.now() }); return { id: editId, ...payload }; }
-      const ref = await addDoc(col, { ...payload, createdByUid: state.user.uid, createdAt: Date.now() });
+      const col = fb.collection(db, 'delights_flow_workspaces', state.workspaceId, 'transactions');
+      if (editId) { await fb.updateDoc(fb.doc(col, editId), { ...payload, updatedAt: Date.now() }); return { id: editId, ...payload }; }
+      const ref = await fb.addDoc(col, { ...payload, createdByUid: state.user.uid, createdAt: Date.now() });
       return { id: ref.id, ...payload };
     };
-    const delTx = async (id) => { await requireAuth(); await deleteDoc(doc(db, 'delights_flow_workspaces', state.workspaceId, 'transactions', id)); };
+    const delTx = async (id) => { await requireAuth(); await fb.deleteDoc(fb.doc(db, 'delights_flow_workspaces', state.workspaceId, 'transactions', id)); };
 
     // --- 5. TABS & RENDERING ---
     function switchTab(tab, opts = {}) {
@@ -1110,7 +1119,7 @@
         const btn = $('cod-pay-confirm'); btn.disabled = true; btn.textContent = 'Saving...';
         try {
           await requireAuth(); const pUp = paidUpfront(tx), cA = codAmtOf(tx);
-          await updateDoc(doc(db, 'delights_flow_workspaces', state.workspaceId, 'transactions', tx.id), { codStatus: 'paid', codWallet: state.codPayDraft.wallet, codPaidDate: $('cod-pay-date').value || todayISO(), amount: pUp + cA, updatedAt: Date.now() });
+          await fb.updateDoc(fb.doc(db, 'delights_flow_workspaces', state.workspaceId, 'transactions', tx.id), { codStatus: 'paid', codWallet: state.codPayDraft.wallet, codPaidDate: $('cod-pay-date').value || todayISO(), amount: pUp + cA, updatedAt: Date.now() });
           closeCod(); toast(`COD ${fmtMoney(cA)} added to ${getWallet(state.codPayDraft.wallet).name}!`, 'success');
         } catch { toast('Could not mark COD paid', 'error'); }
         finally { btn.disabled = false; btn.textContent = '✓ Confirm Paid'; }
@@ -1151,7 +1160,7 @@
           await requireAuth();
           const clean = state.settingsShopsDraft.map((s, i) => ({ id: s.id, name: (s.name || '').trim() || `Shop ${i + 1}`, colorKey: COLOR_MAP[s.colorKey] ? s.colorKey : COLORS[i % COLORS.length].key, startingCapital: Number(s.startingCapital) || 0, footer: (s.footer || '').trim() || 'Thank you for your purchase!', logoDataUrl: s.logoDataUrl || '' }));
           const f = clean[0];
-          await updateDoc(doc(db, 'delights_flow_workspaces', state.workspaceId), { shopCategories: clean, shopProfile: { name: f?.name || '', footer: f?.footer || 'Thank you for your purchase!', logoDataUrl: f?.logoDataUrl || '' }, updatedAt: Date.now() });
+          await fb.updateDoc(fb.doc(db, 'delights_flow_workspaces', state.workspaceId), { shopCategories: clean, shopProfile: { name: f?.name || '', footer: f?.footer || 'Thank you for your purchase!', logoDataUrl: f?.logoDataUrl || '' }, updatedAt: Date.now() });
           $('shop-settings-modal').classList.add('hidden'); toast('Shops saved!', 'success');
         } catch { toast('Could not save shops', 'error'); }
         finally { btn.disabled = false; btn.textContent = 'Save Shops'; }
@@ -1175,8 +1184,24 @@
       $('confirm-ok-btn').onclick = async () => { const cb = state.confirmCallback; $('confirm-modal').classList.add('hidden'); if (cb) await cb(); };
 
       document.querySelectorAll('[data-nav-page]').forEach((a) => a.addEventListener('click', (e) => { e.preventDefault(); navigateReplace(a.dataset.navPage, a); }));
-      window.addEventListener('online', () => updateSyncUI('synced'));
+      window.addEventListener('online', () => updateSyncUI(db && state.user ? 'synced' : 'connecting'));
       window.addEventListener('offline', () => updateSyncUI('offline'));
+    }
+
+    function startFirebaseBackground() {
+      let authDone = false;
+      const t = setTimeout(() => { if (!authDone && !$('loading-screen').classList.contains('hidden')) window.__dfSetLoadStatus?.('Sign-in check is slow.', 'Try Retry or return to Money.', true); }, 5000);
+      ensureFirebase().then(() => {
+        fb.onAuthStateChanged(auth, (user) => {
+          authDone = true; clearTimeout(t);
+          if (user) { resolveAuthReady?.(user); bootShop(user); }
+          else { detachListeners(); clearSnaps(); state.user = null; state.workspaceId = ''; state.allTransactions = []; showScreen('signin'); }
+        });
+      }).catch((err) => {
+        authDone = true; clearTimeout(t);
+        if (!$('loading-screen').classList.contains('hidden')) window.__dfSetLoadStatus?.('Could not connect to Firebase.', err?.message || 'Tap Retry.', true);
+        updateSyncUI('offline');
+      });
     }
 
     function bootstrap() {
@@ -1194,13 +1219,8 @@
       if (uid && ws) { loadSnap(ws); state.workspaceId = ws; showScreen('shop'); updateSyncUI('connecting'); renderAll(); handleDeepLink(); }
       else if (!uid) showScreen('signin');
 
-      let authDone = false;
-      const t = setTimeout(() => { if (!authDone && !$('loading-screen').classList.contains('hidden')) window.__dfSetLoadStatus?.('Sign-in check is slow.', 'Try Retry or return to Money.', true); }, 5000);
-      onAuthStateChanged(auth, (user) => {
-        authDone = true; clearTimeout(t);
-        if (user) { resolveAuthReady?.(user); bootShop(user); }
-        else { detachListeners(); clearSnaps(); state.user = null; state.workspaceId = ''; state.allTransactions = []; showScreen('signin'); }
-      });
+      // Defer Firebase SDK import until right after Frame 1 UI paint (true 0ms switch speed)
+      requestAnimationFrame(() => setTimeout(startFirebaseBackground, 0));
     }
     document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', bootstrap) : bootstrap();
   </script>
