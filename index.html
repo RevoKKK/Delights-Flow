@@ -16,7 +16,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
   <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" /></noscript>
 
-  <!-- Instant pre-paint dark mode -->
   <script>
     try {
       const dm = localStorage.getItem('df_dark');
@@ -73,7 +72,6 @@
         <h1 class="text-2xl font-extrabold tracking-tight">Delights Flow</h1>
         <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400">Private multi-user money &amp; online shop tracker</p>
       </div>
-
       <div class="space-y-2">
         <div id="google-gis-loading" class="w-full py-2.5 px-4 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-500 text-xs font-semibold text-center animate-pulse">Loading Google Sign-In...</div>
         <div id="google-gis-btn" class="w-full flex justify-center min-h-[44px]"></div>
@@ -82,14 +80,11 @@
           <span>Continue with Google</span>
         </button>
       </div>
-
       <div class="flex items-center gap-3"><div class="h-px flex-1 bg-slate-200 dark:bg-slate-800"></div><span class="text-[11px] font-bold uppercase text-slate-400">Or Email</span><div class="h-px flex-1 bg-slate-200 dark:bg-slate-800"></div></div>
-
       <div class="grid grid-cols-2 gap-1 p-1 rounded-2xl bg-slate-100 dark:bg-slate-800">
         <button id="auth-tab-signin" type="button" class="py-2 rounded-xl text-xs font-bold bg-white dark:bg-slate-900 text-indigo-600 shadow-sm">Sign In</button>
         <button id="auth-tab-signup" type="button" class="py-2 rounded-xl text-xs font-bold text-slate-500">Create Account</button>
       </div>
-
       <form id="auth-email-form" class="space-y-3.5">
         <div id="auth-name-wrap" class="hidden space-y-1"><label for="auth-name" class="text-xs font-semibold text-slate-500">Your Name</label><input id="auth-name" type="text" maxlength="32" placeholder="e.g. Su Su" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm" /></div>
         <div class="space-y-1"><label for="auth-email" class="text-xs font-semibold text-slate-500">Email</label><input id="auth-email" type="email" required autocomplete="email" placeholder="you@gmail.com" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm" /></div>
@@ -123,7 +118,7 @@
           <div class="space-y-1"><label for="ws-create-currency" class="text-xs font-semibold text-slate-500">Currency</label><input id="ws-create-currency" type="text" required maxlength="8" value="Ks" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-semibold" /></div>
           <div class="space-y-1"><label for="ws-create-pin" class="text-xs font-semibold text-slate-500">Partner Join PIN</label><input id="ws-create-pin" type="text" required minlength="4" maxlength="12" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-mono font-bold" /></div>
         </div>
-        <p class="text-[11px] text-slate-500 bg-slate-50 dark:bg-slate-800/60 p-3 rounded-xl">Starts clean with <strong>Cash</strong> and <strong>Bank</strong>. Add custom wallets anytime in Settings.</p>
+        <p class="text-[11px] text-slate-500 bg-slate-50 dark:bg-slate-800/60 p-3 rounded-xl">Starts clean with <strong>Cash</strong> and <strong>Bank</strong>. Add custom wallets anytime in Manage Wallets.</p>
         <div id="ws-create-error" class="hidden p-3 rounded-xl bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 text-xs font-semibold"></div>
         <button id="ws-create-btn" type="submit" class="w-full py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm shadow-lg">Create Private Ledger</button>
       </form>
@@ -157,7 +152,7 @@
         <button data-nav="shop" type="button" class="nav-btn w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-semibold"><span class="flex items-center gap-3"><span data-ico="shop"></span><span>Shop</span></span><span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300">Sales</span></button>
         <button data-nav="analytics" type="button" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold"><span data-ico="chart"></span><span>Analytics</span></button>
         <button data-nav="history" type="button" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold"><span data-ico="list"></span><span>History</span></button>
-        <button id="desktop-settings-btn" type="button" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/80"><span data-ico="sliders"></span><span>Wallets &amp; Settings</span></button>
+        <button id="desktop-settings-btn" type="button" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/80"><span data-ico="sliders"></span><span>Settings</span></button>
       </nav>
       <div class="p-4 border-t border-slate-100 dark:border-slate-800/80 space-y-3">
         <div class="bg-slate-100 dark:bg-slate-800/80 p-1 rounded-xl grid grid-cols-2 gap-1 text-[11px] font-semibold">
@@ -171,7 +166,7 @@
       </div>
     </aside>
 
-    <!-- MOBILE HEADER -->
+    <!-- MOBILE HEADER (NO HIDE/SHOW BUTTON HERE) -->
     <header class="md:hidden sticky top-0 z-30 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800 px-4 py-3">
       <div class="flex items-center justify-between gap-2">
         <div class="flex items-center gap-2.5 min-w-0">
@@ -182,8 +177,7 @@
           </div>
         </div>
         <div class="flex items-center gap-1 shrink-0">
-          <button id="mobile-person-pill" type="button" class="px-2.5 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 text-xs font-bold border border-indigo-200/70 dark:border-indigo-800/70">P1</button>
-          <button id="mobile-privacy-btn" type="button" title="Privacy Mode" class="p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"><span class="privacy-icon-slot"></span></button>
+          <button id="mobile-person-pill" type="button" class="px-2.5 py-1.5 rounded-xl text-xs font-bold border">P1</button>
           <button id="mobile-theme-btn" type="button" title="Dark Mode" class="p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"><span class="theme-icon-slot"></span></button>
           <button id="mobile-settings-btn" type="button" title="Settings" class="p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800" data-ico="sliders"></button>
         </div>
@@ -204,7 +198,7 @@
                 <div class="flex items-center gap-2 flex-wrap">
                   <span id="hero-wallet-count-label" class="text-xs sm:text-sm font-medium uppercase tracking-wider text-indigo-200/90">Total Net Balance</span>
                   <span id="overview-month-pill" class="px-2.5 py-0.5 rounded-full bg-white/10 text-[11px] font-semibold text-indigo-100">Month</span>
-                  <button id="hero-privacy-btn" type="button" title="Privacy Mode" class="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-indigo-100"><span class="privacy-icon-slot"></span></button>
+                  <button id="hero-privacy-btn" type="button" title="Hide / Show Balances" class="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-indigo-100"><span class="privacy-icon-slot"></span></button>
                 </div>
                 <div id="hero-total-balance" class="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight tabular-nums break-words">0 Ks</div>
               </div>
@@ -241,7 +235,7 @@
           </div>
         </section>
 
-        <!-- VIEW 2: SHOP HOME -->
+        <!-- VIEW 2: SHOP HOME (NO HIDE BUTTON & NO RECORD/CAPITAL BUTTONS UNDER TODAY'S SALES) -->
         <section id="view-shop" class="hidden space-y-6">
           <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-amber-950/90 to-slate-900 text-white p-5 sm:p-7 shadow-xl border border-white/10">
             <div class="pointer-events-none absolute -top-20 -right-20 w-64 h-64 rounded-full bg-amber-500/20 blur-3xl"></div>
@@ -251,13 +245,8 @@
                 <div class="flex items-center gap-2 flex-wrap">
                   <span class="text-xs sm:text-sm font-medium uppercase tracking-wider text-amber-200/90">Today's Sales</span>
                   <span id="hero-today-date" class="px-2.5 py-0.5 rounded-full bg-white/10 text-[11px] font-semibold text-amber-100">Today</span>
-                  <button id="shop-hero-privacy-btn" type="button" title="Privacy Mode" class="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-amber-100"><span class="privacy-icon-slot"></span></button>
                 </div>
                 <div id="hero-daily-sales" class="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight tabular-nums break-words">0 Ks</div>
-                <div class="flex flex-wrap gap-2 pt-2">
-                  <button id="shop-new-sale-btn" type="button" class="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-extrabold shadow-md">+ Record Sale</button>
-                  <button id="shop-new-capital-btn" type="button" class="px-3.5 py-2 rounded-xl bg-white/15 hover:bg-white/25 text-white text-xs font-bold">+ Capital / Cost</button>
-                </div>
               </div>
               <div class="grid grid-cols-2 gap-2.5 sm:gap-3 w-full lg:w-auto lg:min-w-[380px]">
                 <div class="rounded-2xl bg-white/10 backdrop-blur-sm p-3.5 border border-white/10"><div class="text-emerald-300 text-xs font-semibold mb-1">↗ Total Revenue</div><div id="hero-total-revenue" class="text-sm sm:text-base font-extrabold tabular-nums break-words">0 Ks</div></div>
@@ -285,17 +274,17 @@
           </div>
         </section>
 
-        <!-- VIEW 3: UNIFIED HISTORY (ALL & CALENDAR | SHOP & COD) -->
+        <!-- VIEW 3: UNIFIED HISTORY (WALLET | SHOP) -->
         <section id="view-history" class="hidden space-y-5">
           <div class="p-1 rounded-2xl bg-slate-200/80 dark:bg-slate-800/90 flex gap-1 max-w-sm">
-            <button id="history-sub-money" type="button" class="flex-1 py-2 px-3 rounded-xl text-xs font-bold">All &amp; Calendar</button>
-            <button id="history-sub-shop" type="button" class="flex-1 py-2 px-3 rounded-xl text-xs font-bold">🛍️ Shop &amp; COD</button>
+            <button id="history-sub-money" type="button" class="flex-1 py-2 px-3 rounded-xl text-xs font-bold">Wallet</button>
+            <button id="history-sub-shop" type="button" class="flex-1 py-2 px-3 rounded-xl text-xs font-bold">🛍️ Shop</button>
           </div>
 
-          <!-- Money & Calendar History Panel -->
+          <!-- Wallet History Panel -->
           <div id="history-panel-money" class="space-y-5">
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <div><h2 class="text-xl sm:text-2xl font-extrabold tracking-tight">History</h2><p class="text-xs sm:text-sm text-slate-500">Filter by wallet, owner, or scope, view calendar, or export</p></div>
+              <div><h2 class="text-xl sm:text-2xl font-extrabold tracking-tight">Wallet History</h2><p class="text-xs sm:text-sm text-slate-500">Filter by wallet, owner, or scope, view calendar, or export</p></div>
               <div class="flex items-center gap-2 flex-wrap">
                 <div class="inline-flex p-1 rounded-xl bg-slate-200/80 dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700">
                   <button id="history-mode-list" type="button" class="px-3 py-1.5 rounded-lg text-xs font-bold">List</button>
@@ -342,11 +331,17 @@
             <div id="history-grouped-list" class="space-y-4"></div>
           </div>
 
-          <!-- Shop & COD History Panel -->
+          <!-- Shop History Panel (WITH LIST | CALENDAR VIEW) -->
           <div id="history-panel-shop" class="hidden space-y-5">
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <div><h2 class="text-xl sm:text-2xl font-extrabold tracking-tight">Shop &amp; COD History</h2><p class="text-xs sm:text-sm text-slate-500">Filter by shop, month, or COD · Tap Receipt for PNG or text slip</p></div>
-              <button id="export-shop-csv-btn" type="button" class="self-start sm:self-auto px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-bold shadow-sm">↓ Export Shop CSV</button>
+              <div><h2 class="text-xl sm:text-2xl font-extrabold tracking-tight">Shop History</h2><p class="text-xs sm:text-sm text-slate-500">Filter by shop, month, or COD · View calendar or receipts</p></div>
+              <div class="flex items-center gap-2 flex-wrap">
+                <div class="inline-flex p-1 rounded-xl bg-slate-200/80 dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700">
+                  <button id="shop-history-mode-list" type="button" class="px-3 py-1.5 rounded-lg text-xs font-bold">List</button>
+                  <button id="shop-history-mode-calendar" type="button" class="px-3 py-1.5 rounded-lg text-xs font-bold">Calendar</button>
+                </div>
+                <button id="export-shop-csv-btn" type="button" class="px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-bold shadow-sm">↓ Export CSV</button>
+              </div>
             </div>
             <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-4 shadow-sm space-y-3">
               <div class="grid grid-cols-1 sm:grid-cols-12 gap-2.5">
@@ -360,6 +355,26 @@
                 <button id="shop-reset-filters-btn" type="button" class="hidden text-amber-600 dark:text-amber-400 hover:underline">Reset filters</button>
               </div>
             </div>
+
+            <div id="shop-history-calendar-wrap" class="hidden space-y-4">
+              <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-4 sm:p-5 shadow-sm space-y-4">
+                <div class="flex items-center justify-between gap-2">
+                  <button id="shop-cal-prev-month" type="button" class="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 font-bold">‹</button>
+                  <div class="flex items-center gap-2"><h3 id="shop-cal-month-title" class="text-sm sm:text-base font-extrabold">Month</h3><button id="shop-cal-today-btn" type="button" class="px-2.5 py-1 rounded-lg bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 text-[11px] font-bold">Today</button></div>
+                  <button id="shop-cal-next-month" type="button" class="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 font-bold">›</button>
+                </div>
+                <div class="grid grid-cols-7 gap-1 text-center text-[11px] font-bold uppercase text-slate-400"><div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div></div>
+                <div id="shop-calendar-days-grid" class="grid grid-cols-7 gap-1 sm:gap-1.5"></div>
+              </div>
+              <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
+                <div class="px-4 sm:px-5 py-3.5 bg-slate-50/90 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2">
+                  <div class="min-w-0"><h4 id="shop-cal-selected-date-title" class="text-sm font-extrabold truncate">Today</h4><p id="shop-cal-selected-date-summary" class="text-[11px] font-semibold text-slate-500">0 records</p></div>
+                  <button id="shop-cal-add-for-date-btn" type="button" class="px-3 py-1.5 rounded-xl bg-emerald-600 text-white text-xs font-bold shrink-0">+ Add Sale</button>
+                </div>
+                <div id="shop-cal-selected-day-list" class="divide-y divide-slate-100 dark:divide-slate-800/70"></div>
+              </div>
+            </div>
+
             <div id="shop-history-list" class="space-y-3"></div>
           </div>
         </section>
@@ -414,14 +429,17 @@
             </div>
           </div>
 
-          <!-- Shop Analytics Panel -->
+          <!-- Shop Analytics Panel (WITH PER-SHOP SELECTOR) -->
           <div id="analytics-panel-shop" class="hidden space-y-5">
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <div><h2 class="text-xl sm:text-2xl font-extrabold tracking-tight">Shop Analytics</h2><p class="text-xs sm:text-sm text-slate-500">Daily sales trend, per-shop comparison, and capital breakdown</p></div>
-              <div class="flex items-center gap-1 bg-white dark:bg-slate-900 p-1 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm self-start sm:self-auto">
-                <button id="sa-prev-month" type="button" class="px-3 py-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 font-bold">‹</button>
-                <select id="sa-month-select" class="bg-transparent text-xs sm:text-sm font-bold px-1 py-1 focus:outline-none"></select>
-                <button id="sa-next-month" type="button" class="px-3 py-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 font-bold">›</button>
+              <div><h2 class="text-xl sm:text-2xl font-extrabold tracking-tight">Shop Analytics</h2><p class="text-xs sm:text-sm text-slate-500">Filter by individual shop or view all shops together</p></div>
+              <div class="flex items-center gap-2 flex-wrap">
+                <select id="sa-shop-select" class="px-3 py-2 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs sm:text-sm font-bold shadow-sm"></select>
+                <div class="flex items-center gap-1 bg-white dark:bg-slate-900 p-1 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                  <button id="sa-prev-month" type="button" class="px-2.5 py-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 font-bold">‹</button>
+                  <select id="sa-month-select" class="bg-transparent text-xs sm:text-sm font-bold px-1 py-1 focus:outline-none"></select>
+                  <button id="sa-next-month" type="button" class="px-2.5 py-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 font-bold">›</button>
+                </div>
               </div>
             </div>
             <div class="grid grid-cols-2 gap-3">
@@ -600,20 +618,16 @@
     </div>
   </div>
 
-  <!-- MODAL 5: MANAGE SHOPS -->
+  <!-- MODAL 5: MANAGE SHOPS (CLEAN — NO TOP ADD CAPITAL BANNER) -->
   <div id="shop-settings-modal" class="hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-950/60 backdrop-blur-sm p-0 sm:p-4">
     <div class="bg-white dark:bg-slate-900 w-full sm:max-w-xl rounded-t-3xl sm:rounded-3xl shadow-2xl border border-slate-200/80 dark:border-slate-800 max-h-[92vh] flex flex-col overflow-hidden">
       <div class="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
-        <div><h3 class="text-lg font-extrabold">Manage Shops</h3><p class="text-xs text-slate-500">Customize each shop's name, logo, footer &amp; capital</p></div>
+        <div><h3 class="text-lg font-extrabold">Manage Shops</h3><p class="text-xs text-slate-500">Customize each shop's name, color, logo, footer &amp; capital</p></div>
         <button id="shop-settings-close" type="button" class="p-2 rounded-xl text-slate-400">✕</button>
       </div>
       <form id="shop-settings-form" class="p-5 space-y-5 overflow-y-auto flex-1">
-        <div class="p-3.5 rounded-2xl bg-rose-50/80 dark:bg-rose-950/40 border border-rose-200/70 dark:border-rose-800/60 flex items-center justify-between gap-3">
-          <div class="min-w-0"><p class="text-xs font-extrabold text-rose-700 dark:text-rose-300">Add Capital / Shop Cost From Wallet</p><p class="text-[11px] text-rose-600/80 dark:text-rose-400/80">Log stock purchases, packaging, delivery or ads &amp; deduct from a wallet</p></div>
-          <button id="manage-record-capital-btn" type="button" class="px-3 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shrink-0 shadow-sm">+ Capital / Cost</button>
-        </div>
         <div class="space-y-3">
-          <div class="flex items-start justify-between gap-2"><div><h4 class="text-sm font-bold">Shops</h4><p class="text-xs text-slate-500">Each shop has its own logo, receipt branding &amp; starting capital</p></div><button id="add-shop-btn" type="button" class="px-3 py-1.5 rounded-xl bg-amber-600 text-white text-xs font-bold shrink-0">+ Add Shop</button></div>
+          <div class="flex items-start justify-between gap-2"><div><h4 class="text-sm font-bold">Shops</h4><p class="text-xs text-slate-500">Pick colors, upload logos, add costs &amp; set starting capital</p></div><button id="add-shop-btn" type="button" class="px-3 py-1.5 rounded-xl bg-amber-600 text-white text-xs font-bold shrink-0">+ Add Shop</button></div>
           <input id="shop-logo-file-input" type="file" accept="image/*" class="hidden" />
           <div id="shops-editor" class="space-y-3"></div>
         </div>
@@ -622,28 +636,50 @@
     </div>
   </div>
 
-  <!-- MODAL 6: WALLETS, WORKSPACE & ACCOUNT SETTINGS -->
+  <!-- MODAL 6A: DEDICATED MANAGE WALLETS -->
+  <div id="wallets-modal" class="hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-950/60 backdrop-blur-sm p-0 sm:p-4">
+    <div class="bg-white dark:bg-slate-900 w-full sm:max-w-xl rounded-t-3xl sm:rounded-3xl shadow-2xl border border-slate-200/80 dark:border-slate-800 max-h-[92vh] flex flex-col overflow-hidden">
+      <div class="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
+        <div><h3 class="text-lg font-extrabold">Manage Wallets</h3><p class="text-xs text-slate-500">Add accounts, pick colors &amp; set opening balances</p></div>
+        <button id="wallets-modal-close" type="button" class="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white">✕</button>
+      </div>
+      <form id="wallets-form" class="p-5 space-y-5 overflow-y-auto flex-1">
+        <div class="space-y-3">
+          <div class="flex items-start justify-between gap-2"><div><h4 class="text-sm font-bold">Wallets &amp; Banks</h4><p class="text-xs text-slate-500">Customize icons, 18 colors &amp; opening balances</p></div><button id="add-wallet-btn" type="button" class="px-3 py-1.5 rounded-xl bg-indigo-600 text-white text-xs font-bold shrink-0">+ Add Wallet</button></div>
+          <div id="settings-wallets-list" class="space-y-2.5"></div>
+        </div>
+        <button id="wallets-save-btn" type="submit" class="w-full py-3.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm shadow-lg">Save Wallets</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL 6B: DEDICATED SETTINGS (NO WALLETS + PERSON 1 & 2 TAG COLORS) -->
   <div id="settings-modal" class="hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-950/60 backdrop-blur-sm p-0 sm:p-4">
     <div class="bg-white dark:bg-slate-900 w-full sm:max-w-xl rounded-t-3xl sm:rounded-3xl shadow-2xl border border-slate-200/80 dark:border-slate-800 max-h-[92vh] flex flex-col overflow-hidden">
       <div class="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
-        <div><h3 class="text-lg font-extrabold">Wallets &amp; Settings</h3><p id="settings-account-email" class="text-xs text-slate-500">Signed in</p></div>
+        <div><h3 class="text-lg font-extrabold">Settings</h3><p id="settings-account-email" class="text-xs text-slate-500">Signed in</p></div>
         <button id="settings-modal-close" type="button" class="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white">✕</button>
       </div>
       <form id="settings-form" class="p-5 space-y-6 overflow-y-auto flex-1">
         <div class="space-y-3">
-          <div class="flex items-start justify-between gap-2"><div><h4 class="text-sm font-bold">Customizable Wallets &amp; Banks</h4><p class="text-xs text-slate-500">Add accounts, pick from 18 colors, and set opening balances</p></div><button id="add-wallet-btn" type="button" class="px-3 py-1.5 rounded-xl bg-indigo-600 text-white text-xs font-bold shrink-0">+ Add Wallet</button></div>
-          <div id="settings-wallets-list" class="space-y-2.5"></div>
-        </div>
-        <div class="space-y-3 pt-4 border-t border-slate-100 dark:border-slate-800">
           <h4 class="text-sm font-bold">Ledger Profile &amp; Currency</h4>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div class="space-y-1"><label for="setting-ws-name" class="text-xs font-semibold text-slate-500">Ledger Name</label><input id="setting-ws-name" type="text" maxlength="32" required class="w-full px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-semibold" /></div>
             <div class="space-y-1"><label for="setting-currency" class="text-xs font-semibold text-slate-500">Currency Suffix</label><input id="setting-currency" type="text" maxlength="8" required class="w-full px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-semibold" /></div>
           </div>
           <div class="grid grid-cols-2 gap-3">
-            <div class="space-y-1"><label for="setting-person1" class="text-xs font-semibold text-slate-500">Person 1 Name</label><input id="setting-person1" type="text" maxlength="24" required class="w-full px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-semibold" /></div>
-            <div class="space-y-1"><label for="setting-person2" class="text-xs font-semibold text-slate-500">Person 2 Name</label><input id="setting-person2" type="text" maxlength="24" required class="w-full px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-semibold" /></div>
+            <div class="space-y-1.5">
+              <label for="setting-person1" class="text-xs font-semibold text-slate-500">Person 1 Name &amp; Tag Color</label>
+              <input id="setting-person1" type="text" maxlength="24" required class="w-full px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-semibold" />
+              <button id="setting-p1-color-btn" type="button" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold flex items-center gap-2"></button>
+            </div>
+            <div class="space-y-1.5">
+              <label for="setting-person2" class="text-xs font-semibold text-slate-500">Person 2 Name &amp; Tag Color</label>
+              <input id="setting-person2" type="text" maxlength="24" required class="w-full px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-semibold" />
+              <button id="setting-p2-color-btn" type="button" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold flex items-center gap-2"></button>
+            </div>
           </div>
+          <div id="setting-person-color-picker" class="hidden p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 space-y-2.5"></div>
         </div>
         <div class="space-y-3 pt-4 border-t border-slate-100 dark:border-slate-800">
           <div class="flex items-center justify-between">
@@ -736,7 +772,6 @@
       openTxModal, bindMoneyEvents
     } from './money.js';
 
-    // --- LAZY-LOAD SHOP MODULE (0ms initial paint, instant on tap) ---
     let shopMod = null, shopPromise = null, pendingDeepLinkTxId = '';
 
     async function ensureShopLoaded() {
@@ -755,7 +790,6 @@
       return shopPromise;
     }
 
-    // --- SUB-TAB SWITCHING UI (Money | Shop inside History & Analytics) ---
     function syncSubTabs() {
       const hShop = state.historySub === 'shop';
       $('history-sub-money').className = !hShop
@@ -778,7 +812,6 @@
       $('analytics-panel-shop').classList.toggle('hidden', !aShop);
     }
 
-    // --- DEEP-LINK HANDLER (e.g. from legacy shop.html?tx=... redirect) ---
     async function checkPendingDeepLink() {
       if (!pendingDeepLinkTxId) return;
       const tx = state.transactions.find((t) => t.id === pendingDeepLinkTxId);
@@ -793,14 +826,11 @@
       }
     }
 
-    // --- UNIFIED VIEW RENDERER ---
     function onRender() {
       syncSubTabs();
-      if (state.currentView === 'overview') {
-        renderOverview();
-      } else if (state.currentView === 'shop') {
-        shopMod?.renderShopHome();
-      } else if (state.currentView === 'history') {
+      if (state.currentView === 'overview') renderOverview();
+      else if (state.currentView === 'shop') shopMod?.renderShopHome();
+      else if (state.currentView === 'history') {
         if (state.historySub === 'shop') shopMod?.renderShopHistory();
         else renderMoneyHistory();
       } else if (state.currentView === 'analytics') {
@@ -810,7 +840,6 @@
       checkPendingDeepLink();
     }
 
-    // --- SHELL NAVIGATION & SUB-TAB BINDINGS ---
     function bindShellEvents() {
       $('history-sub-money').onclick = () => { state.historySub = 'money'; scheduleRender(); };
       $('history-sub-shop').onclick = async () => { state.historySub = 'shop'; await ensureShopLoaded(); scheduleRender(); };
@@ -822,7 +851,6 @@
         m.openShopTxModal('sale');
       };
 
-      // Context-aware Mobile FAB: opens Shop Sale on Shop views, Money Entry on Money views
       $('mobile-fab-add').onclick = async () => {
         const isShopContext =
           state.currentView === 'shop' ||
@@ -837,19 +865,15 @@
       };
     }
 
-    // --- APP BOOTSTRAP ---
     function bootstrap() {
       window.__dfBooted = true;
       document.querySelectorAll('[data-ico]').forEach((el) => { el.innerHTML = UI_ICONS[el.dataset.ico] || ''; });
 
-      // Parse optional deep-link params (used by shop.html redirect)
       let initialView = 'overview';
       try {
         const params = new URLSearchParams(location.search);
         pendingDeepLinkTxId = params.get('tx') || '';
-        if (location.hash.startsWith('#shop') || params.get('view') === 'shop' || pendingDeepLinkTxId) {
-          initialView = 'shop';
-        }
+        if (location.hash.startsWith('#shop') || params.get('view') === 'shop' || pendingDeepLinkTxId) initialView = 'shop';
       } catch {}
 
       let uid = '', ws = '';
@@ -886,10 +910,8 @@
         showScreen('auth');
       }
 
-      // Defer Firebase SDK import until right after Frame 1 UI paint
       requestAnimationFrame(() => setTimeout(startFirebaseBackground, 0));
 
-      // Quietly warm up Shop module during idle time so first Shop tap is instant
       const warmShop = () => { if (!shopMod && !shopPromise) ensureShopLoaded().catch(() => {}); };
       if ('requestIdleCallback' in window) requestIdleCallback(warmShop, { timeout: 2500 });
       else setTimeout(warmShop, 1800);

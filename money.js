@@ -1,13 +1,13 @@
-// Delights Flow — Money Module (Overview, History/Calendar, Analytics, Modals, Backup/Restore)
+// Delights Flow — Money Module (Overview, History/Calendar, Analytics, Split Wallets/Settings Modals, Person Colors, Backup/Restore)
 
 import {
-  COLORS, COLOR_MAP, W_ICONS, PALETTE, state,
-  $, esc, todayISO, curMonth, isValidPerson, getOwner, personName,
+  COLORS, COLOR_MAP, DEFAULT_PERSON_COLORS, W_ICONS, PALETTE, state,
+  $, esc, todayISO, curMonth, isValidPerson, getOwner, personName, getPersonColor,
   fmtNum, fmtMoney, fmtDisp, fmtCompact, parseAmt, parseSigned, fmtAmtInput,
   fmtMonth, fmtDateHead, getWallets, getWallet, getCats, catIcon,
   getShopSplit, computeBalances, getAvailableMonths, matchesScope,
   toast, copyText, downloadBlob, openConfirm, killChart, ensureChartJs,
-  switchView, scheduleRender, openOnboarding, saveUserProfile, subscribeWs,
+  switchView, openOnboarding, saveUserProfile, subscribeWs,
   patchWs, saveTx, delTx
 } from './core.js';
 
@@ -74,7 +74,7 @@ function rowHTML(t, showDate = false) {
       const cw = getWallet(sp.codWallet);
       wHtml += `<span class="px-2 py-0.5 rounded-lg text-[11px] font-bold" style="background:${cw.hex}20;color:${cw.hex}">COD → ${esc(cw.name)}</span>`;
     }
-    if (sp.codPending) wHtml += `<span class="px-2 py-0.5 rounded-lg text-[11px] font-bold bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300">⏳ COD: ${fmtDisp(sp.cod)}</span>`;
+    if (sp.codPending) wHtml += `<span class="px-2 py-0.5 rounded-lg text-[11px] font-bold bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300">⏳ COD: ${fmtMoney(sp.cod)}</span>`;
   } else {
     const w = getWallet(t.wallet);
     wHtml = `<span class="px-2 py-0.5 rounded-lg text-[11px] font-bold" style="background:${w.hex}20;color:${w.hex}">${esc(w.name)}</span>`;
@@ -82,12 +82,8 @@ function rowHTML(t, showDate = false) {
 
   const pendOnly = Boolean(sp?.codPending && sp.paid <= 0);
   const amtCls = pendOnly ? 'text-amber-600 dark:text-amber-400' : isInc ? 'text-emerald-600 dark:text-emerald-400' : isTr ? 'text-sky-600' : 'text-rose-600 dark:text-rose-400';
-  const amtTxt = state.privacyMode ? '••••••' : pendOnly ? `COD ${fmtMoney(sp.cod)}` : `${isInc ? '+' : isTr ? '' : '-'}${fmtMoney(t.amount)}`;
-  const ok = getOwner(t), pn = personName(ok);
-  const pCls = ok === 'shop' ? 'bg-amber-100 dark:bg-amber-950/70 text-amber-700 dark:text-amber-300'
-    : ok === 'shared' ? 'bg-teal-100 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300'
-    : ok === 'person2' ? 'bg-fuchsia-100 dark:bg-fuchsia-950/60 text-fuchsia-700 dark:text-fuchsia-300'
-    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300';
+  const amtTxt = pendOnly ? `COD ${fmtMoney(sp.cod)}` : `${isInc ? '+' : isTr ? '' : '-'}${fmtMoney(t.amount)}`;
+  const ok = getOwner(t), pn = personName(ok), pc = getPersonColor(ok);
   const pTxt = ok === 'shop' ? '🛍️ Shop ↗' : ok === 'shared' ? `👥 ${esc(pn)}` : esc(pn);
 
   return `<div class="px-4 sm:px-5 py-3.5 hover:bg-slate-50/90 dark:hover:bg-slate-800/40 flex items-center justify-between gap-3">
@@ -95,7 +91,7 @@ function rowHTML(t, showDate = false) {
       <div class="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-lg shrink-0">${catIcon(t)}</div>
       <div class="min-w-0 flex-1">
         <div class="flex items-center gap-1.5 flex-wrap"><span class="text-sm font-bold truncate">${isTr ? 'Transfer' : esc(t.category || (isInc ? 'Income' : 'Expense'))}</span>${sub ? `<span class="text-xs text-slate-500 truncate max-w-[180px] sm:max-w-xs">· ${esc(sub)}</span>` : ''}</div>
-        <div class="flex items-center gap-1.5 flex-wrap mt-1">${wHtml}<span class="px-2 py-0.5 rounded-lg text-[11px] font-semibold ${pCls}">${pTxt}</span>${showDate ? `<span class="text-[11px] text-slate-400 font-medium">${esc(t.date || '')}</span>` : ''}</div>
+        <div class="flex items-center gap-1.5 flex-wrap mt-1">${wHtml}<span class="px-2 py-0.5 rounded-lg text-[11px] font-bold" style="background:${pc.hex}20;color:${pc.hex}">${pTxt}</span>${showDate ? `<span class="text-[11px] text-slate-400 font-medium">${esc(t.date || '')}</span>` : ''}</div>
       </div>
     </div>
     <div class="flex items-center gap-2 shrink-0"><div class="text-sm sm:text-base font-extrabold tabular-nums cursor-pointer ${amtCls}" data-edit-tx="${id}">${amtTxt}</div><button type="button" data-del-tx="${id}" class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/50">✕</button></div>
@@ -118,7 +114,7 @@ function bindRows(el) {
   }));
 }
 
-// --- VIEW 1: OVERVIEW ---
+// --- VIEW 1: OVERVIEW (HIDE/SHOW APPLIES ONLY TO HERO SECTION + WALLET LIVE BALANCES) ---
 export function renderOverview() {
   const ws = getWallets(), bal = computeBalances(), total = Object.values(bal).reduce((a, b) => a + b, 0), cm = curMonth();
   let mIn = 0, mOut = 0;
@@ -156,10 +152,11 @@ export function renderOverview() {
     tg.innerHTML = tpls.map((tpl) => {
       const wt = tpl.type === 'transfer' ? `${getWallet(tpl.fromWallet).name} → ${getWallet(tpl.toWallet).name}` : getWallet(tpl.wallet).name;
       const cls = tpl.type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : tpl.type === 'transfer' ? 'text-sky-600' : 'text-rose-600 dark:text-rose-400';
+      const pc = getPersonColor(tpl.loggedBy);
       return `<button type="button" data-rtpl="${esc(tpl.id)}" class="text-left p-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 hover:border-indigo-400 shadow-sm active:scale-[0.97] flex flex-col justify-between gap-2">
-        <div class="flex items-center justify-between gap-1.5 w-full"><span class="text-base leading-none">${catIcon(tpl.type, tpl.category)}</span><span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 truncate max-w-[85px]">${esc(personName(tpl.loggedBy))}</span></div>
+        <div class="flex items-center justify-between gap-1.5 w-full"><span class="text-base leading-none">${catIcon(tpl.type, tpl.category)}</span><span class="text-[10px] font-bold px-2 py-0.5 rounded-full truncate max-w-[85px]" style="background:${pc.hex}20;color:${pc.hex}">${esc(personName(tpl.loggedBy))}</span></div>
         <div class="min-w-0"><p class="text-xs sm:text-sm font-bold truncate">${esc(tpl.title)}</p><p class="text-[11px] text-slate-400 truncate">${esc(wt)}</p></div>
-        <div class="text-xs sm:text-sm font-extrabold tabular-nums ${cls} truncate">${state.privacyMode ? '••••••' : `${tpl.type === 'income' ? '+' : tpl.type === 'transfer' ? '' : '-'}${fmtMoney(tpl.amount)}`}</div>
+        <div class="text-xs sm:text-sm font-extrabold tabular-nums ${cls} truncate">${tpl.type === 'income' ? '+' : tpl.type === 'transfer' ? '' : '-'}${fmtMoney(tpl.amount)}</div>
       </button>`;
     }).join('');
     tg.querySelectorAll('[data-rtpl]').forEach((b) => b.addEventListener('click', async () => {
@@ -230,7 +227,7 @@ function renderCalendar() {
 
   const si = byDay[state.calendarSelectedDate] || { in: 0, out: 0, items: [] };
   $('cal-selected-date-title').textContent = fmtDateHead(state.calendarSelectedDate);
-  $('cal-selected-date-summary').textContent = si.items.length ? `${si.items.length} entries · In ${fmtDisp(si.in)} · Out ${fmtDisp(si.out)}` : 'No entries recorded';
+  $('cal-selected-date-summary').textContent = si.items.length ? `${si.items.length} entries · In ${fmtMoney(si.in)} · Out ${fmtMoney(si.out)}` : 'No entries recorded';
   const dl = $('cal-selected-day-list');
   dl.innerHTML = si.items.length ? si.items.map((t) => rowHTML(t, false)).join('') : `<div class="p-6 text-center text-xs text-slate-400">No entries on this date.</div>`;
   if (si.items.length) bindRows(dl);
@@ -250,7 +247,7 @@ export function renderMoneyHistory() {
   const rows = getFiltered(), mk = state.filters.month;
   let sIn = 0, sOut = 0;
   rows.forEach((t) => { sIn += incomeInPeriod(t, mk); sOut += expenseInPeriod(t, mk); });
-  $('history-summary-stats').innerHTML = `<span class="text-slate-600 dark:text-slate-300">${rows.length} entries</span><span class="text-emerald-600 dark:text-emerald-400">${state.privacyMode ? '••••••' : `+${fmtMoney(sIn)}`}</span><span class="text-rose-600 dark:text-rose-400">${state.privacyMode ? '••••••' : `-${fmtMoney(sOut)}`}</span>`;
+  $('history-summary-stats').innerHTML = `<span class="text-slate-600 dark:text-slate-300">${rows.length} entries</span><span class="text-emerald-600 dark:text-emerald-400">+${fmtMoney(sIn)}</span><span class="text-rose-600 dark:text-rose-400">-${fmtMoney(sOut)}</span>`;
   const f = state.filters;
   $('clear-filters-btn').classList.toggle('hidden', !(f.search || f.wallet !== 'all' || f.type !== 'all' || f.person !== 'all' || f.scope !== 'all' || f.month !== curMonth()));
   if (isCal) return renderCalendar();
@@ -263,7 +260,7 @@ export function renderMoneyHistory() {
     let dIn = 0, dOut = 0;
     items.forEach((t) => { if (t.type === 'income') dIn += Number(t.amount) || 0; else if (t.type === 'expense') dOut += Number(t.amount) || 0; });
     const net = dIn - dOut;
-    return `<div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden"><div class="px-4 sm:px-5 py-2.5 bg-slate-50/90 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 flex justify-between text-xs font-bold"><span>${esc(fmtDateHead(dk))}</span><span class="tabular-nums ${net > 0 ? 'text-emerald-600' : net < 0 ? 'text-rose-600' : 'text-slate-400'}">${dIn === 0 && dOut === 0 ? 'Transfer' : fmtDisp(net, true)}</span></div><div class="divide-y divide-slate-100 dark:divide-slate-800/70">${items.map((t) => rowHTML(t, false)).join('')}</div></div>`;
+    return `<div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden"><div class="px-4 sm:px-5 py-2.5 bg-slate-50/90 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 flex justify-between text-xs font-bold"><span>${esc(fmtDateHead(dk))}</span><span class="tabular-nums ${net > 0 ? 'text-emerald-600' : net < 0 ? 'text-rose-600' : 'text-slate-400'}">${dIn === 0 && dOut === 0 ? 'Transfer' : fmtMoney(net, true)}</span></div><div class="divide-y divide-slate-100 dark:divide-slate-800/70">${items.map((t) => rowHTML(t, false)).join('')}</div></div>`;
   }).join('');
   bindRows(box);
 }
@@ -285,11 +282,11 @@ export function renderMoneyAnalytics() {
   });
 
   const net = inc - exp;
-  $('kpi-income').textContent = fmtDisp(inc);
-  $('kpi-expense').textContent = fmtDisp(exp);
-  $('kpi-net').textContent = fmtDisp(net, true);
+  $('kpi-income').textContent = fmtMoney(inc);
+  $('kpi-expense').textContent = fmtMoney(exp);
+  $('kpi-net').textContent = fmtMoney(net, true);
   $('kpi-net').className = `text-base sm:text-xl font-extrabold mt-1 tabular-nums break-words ${net >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`;
-  $('kpi-rate').textContent = state.privacyMode ? '••%' : `${inc > 0 ? Math.round((net / inc) * 100) : 0}%`;
+  $('kpi-rate').textContent = `${inc > 0 ? Math.round((net / inc) * 100) : 0}%`;
 
   const tc = state.darkMode ? '#cbd5e1' : '#475569', gc = state.darkMode ? 'rgba(148,163,184,0.12)' : 'rgba(15,23,42,0.07)', hasC = typeof Chart !== 'undefined';
   if (!hasC) ensureChartJs().then((ok) => { if (ok && state.currentView === 'analytics' && state.analyticsSub === 'money') renderMoneyAnalytics(); });
@@ -297,10 +294,10 @@ export function renderMoneyAnalytics() {
   killChart('expenseCategory');
   const cats = Object.entries(catMap).sort((a, b) => b[1] - a[1]);
   $('empty-expense-chart').classList.toggle('hidden', cats.length > 0);
-  if (cats.length && hasC) state.charts.expenseCategory = new Chart($('chart-expense-category').getContext('2d'), { type: 'doughnut', data: { labels: cats.map((c) => c[0]), datasets: [{ data: cats.map((c) => c[1]), backgroundColor: cats.map((_, i) => PALETTE[i % PALETTE.length]), borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '66%', plugins: { legend: { display: false }, tooltip: { callbacks: { label: (ctx) => ` ${ctx.label}: ${fmtDisp(ctx.raw)}` } } } } });
+  if (cats.length && hasC) state.charts.expenseCategory = new Chart($('chart-expense-category').getContext('2d'), { type: 'doughnut', data: { labels: cats.map((c) => c[0]), datasets: [{ data: cats.map((c) => c[1]), backgroundColor: cats.map((_, i) => PALETTE[i % PALETTE.length]), borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '66%', plugins: { legend: { display: false }, tooltip: { callbacks: { label: (ctx) => ` ${ctx.label}: ${fmtMoney(ctx.raw)}` } } } } });
   $('category-breakdown-list').innerHTML = cats.length ? cats.map(([n, v], i) => {
     const pct = exp > 0 ? ((v / exp) * 100).toFixed(1) : '0.0', col = PALETTE[i % PALETTE.length];
-    return `<div class="space-y-1"><div class="flex justify-between text-xs font-semibold"><span class="flex items-center gap-2 truncate"><span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:${col}"></span>${esc(n)}</span><span class="tabular-nums">${fmtDisp(v)} <span class="text-slate-400">(${pct}%)</span></span></div><div class="w-full h-1.5 rounded-full bg-slate-100 dark:bg-slate-800"><div class="h-full rounded-full" style="width:${pct}%;background:${col}"></div></div></div>`;
+    return `<div class="space-y-1"><div class="flex justify-between text-xs font-semibold"><span class="flex items-center gap-2 truncate"><span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:${col}"></span>${esc(n)}</span><span class="tabular-nums">${fmtMoney(v)} <span class="text-slate-400">(${pct}%)</span></span></div><div class="w-full h-1.5 rounded-full bg-slate-100 dark:bg-slate-800"><div class="h-full rounded-full" style="width:${pct}%;background:${col}"></div></div></div>`;
   }).join('') : `<p class="text-xs text-slate-400 text-center">No expense data.</p>`;
 
   killChart('incomeExpense');
@@ -322,17 +319,18 @@ export function renderMoneyAnalytics() {
   const ws = getWallets(), bal = computeBalances(), wc = $('chart-wallet-distribution');
   $('analytics-wallets-chart-title').textContent = `Live Balance Across ${ws.length} ${ws.length === 1 ? 'Wallet' : 'Wallets'}`;
   if (wc?.parentElement) wc.parentElement.style.height = `${Math.max(220, ws.length * 42)}px`;
-  if (hasC && wc) state.charts.walletDistribution = new Chart(wc.getContext('2d'), { type: 'bar', data: { labels: ws.map((w) => w.name), datasets: [{ label: 'Live Balance', data: ws.map((w) => bal[w.id] || 0), backgroundColor: ws.map((w) => w.hex), borderRadius: 8, maxBarThickness: 28 }] }, options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: (ctx) => ` ${fmtDisp(ctx.raw)}` } } }, scales: { x: { ticks: { color: tc }, grid: { color: gc } }, y: { ticks: { color: tc, font: { weight: 'bold' } }, grid: { display: false } } } } });
+  if (hasC && wc) state.charts.walletDistribution = new Chart(wc.getContext('2d'), { type: 'bar', data: { labels: ws.map((w) => w.name), datasets: [{ label: 'Live Balance', data: ws.map((w) => bal[w.id] || 0), backgroundColor: ws.map((w) => w.hex), borderRadius: 8, maxBarThickness: 28 }] }, options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: (ctx) => ` ${fmtMoney(ctx.raw)}` } } }, scales: { x: { ticks: { color: tc }, grid: { color: gc } }, y: { ticks: { color: tc, font: { weight: 'bold' } }, grid: { display: false } } } } });
 
   killChart('personBreakdown');
   const p1 = personName('person1'), p2 = personName('person2');
+  const p1Hex = getPersonColor('person1').hex, p2Hex = getPersonColor('person2').hex;
   const groups = sc === 'shop' ? [{ l: 'Shop', n: '🛍️ Shop', st: pStats.shop, d: '#f59e0b' }]
-    : sc === 'personal' ? [{ l: p1, n: p1, st: pStats.person1, d: '#6366f1' }, { l: p2, n: p2, st: pStats.person2, d: '#d946ef' }, { l: 'Shared', n: '👥 Shared', st: pStats.shared, d: '#14b8a6' }]
-    : [{ l: p1, n: p1, st: pStats.person1, d: '#6366f1' }, { l: p2, n: p2, st: pStats.person2, d: '#d946ef' }, { l: 'Shared', n: '👥 Shared', st: pStats.shared, d: '#14b8a6' }, { l: 'Shop', n: '🛍️ Shop', st: pStats.shop, d: '#f59e0b' }];
+    : sc === 'personal' ? [{ l: p1, n: p1, st: pStats.person1, d: p1Hex }, { l: p2, n: p2, st: pStats.person2, d: p2Hex }, { l: 'Shared', n: '👥 Shared', st: pStats.shared, d: '#14b8a6' }]
+    : [{ l: p1, n: p1, st: pStats.person1, d: p1Hex }, { l: p2, n: p2, st: pStats.person2, d: p2Hex }, { l: 'Shared', n: '👥 Shared', st: pStats.shared, d: '#14b8a6' }, { l: 'Shop', n: '🛍️ Shop', st: pStats.shop, d: '#f59e0b' }];
   if (hasC) state.charts.personBreakdown = new Chart($('chart-person-breakdown').getContext('2d'), { type: 'bar', data: { labels: groups.map((g) => g.l), datasets: [{ label: 'Income', data: groups.map((g) => g.st.in), backgroundColor: '#10b981', borderRadius: 8 }, { label: 'Expense', data: groups.map((g) => g.st.out), backgroundColor: '#6366f1', borderRadius: 8 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: tc } } }, scales: { x: { ticks: { color: tc }, grid: { display: false } }, y: { ticks: { color: tc }, grid: { color: gc } } } } });
   const totOut = groups.reduce((s, g) => s + g.st.out, 0), ce = $('person-comparison-cards');
   ce.className = `grid gap-2.5 pt-2 border-t border-slate-100 dark:border-slate-800 ${groups.length === 1 ? 'grid-cols-1' : groups.length === 4 ? 'grid-cols-2' : 'grid-cols-1 sm:grid-cols-3'}`;
-  ce.innerHTML = groups.map((p) => `<div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/70 space-y-1 text-xs"><div class="flex justify-between font-bold"><span class="flex items-center gap-1.5 truncate"><span class="w-2 h-2 rounded-full shrink-0" style="background:${p.d}"></span>${esc(p.n)}</span><span class="text-slate-400">${totOut > 0 ? Math.round((p.st.out / totOut) * 100) : 0}%</span></div><div class="font-semibold text-rose-600 dark:text-rose-400 tabular-nums">Out: ${fmtDisp(p.st.out)}</div><div class="font-semibold text-emerald-600 dark:text-emerald-400 tabular-nums">In: ${fmtDisp(p.st.in)}</div></div>`).join('');
+  ce.innerHTML = groups.map((p) => `<div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/70 space-y-1 text-xs"><div class="flex justify-between font-bold"><span class="flex items-center gap-1.5 truncate"><span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:${p.d}"></span>${esc(p.n)}</span><span class="text-slate-400">${totOut > 0 ? Math.round((p.st.out / totOut) * 100) : 0}%</span></div><div class="font-semibold text-rose-600 dark:text-rose-400 tabular-nums">Out: ${fmtMoney(p.st.out)}</div><div class="font-semibold text-emerald-600 dark:text-emerald-400 tabular-nums">In: ${fmtMoney(p.st.in)}</div></div>`).join('');
 }
 
 // --- MODAL 1: TRANSACTION ENTRY / EDIT ---
@@ -367,8 +365,10 @@ function renderTxControls() {
     cg.querySelectorAll('[data-pc]').forEach((b) => b.addEventListener('click', () => { d.category = b.dataset.pc; renderTxControls(); }));
   }
   document.querySelectorAll('.tx-person-toggle').forEach((b) => {
-    const k = b.dataset.txPerson; b.textContent = personName(k);
-    b.className = k === d.person ? 'tx-person-toggle py-2 px-1.5 rounded-lg text-xs font-bold bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm truncate' : 'tx-person-toggle py-2 px-1.5 rounded-lg text-xs font-bold text-slate-500 truncate';
+    const k = b.dataset.txPerson, c = getPersonColor(k), active = k === d.person;
+    b.innerHTML = `<span class="inline-flex items-center justify-center gap-1 max-w-full"><span class="w-2 h-2 rounded-full shrink-0" style="background:${c.hex}"></span><span class="truncate">${esc(personName(k))}</span></span>`;
+    b.className = active ? 'tx-person-toggle py-2 px-1.5 rounded-lg text-xs font-bold bg-white dark:bg-slate-900 shadow-sm truncate' : 'tx-person-toggle py-2 px-1.5 rounded-lg text-xs font-bold text-slate-500 truncate';
+    b.style.color = active ? c.hex : '';
   });
 }
 
@@ -392,9 +392,9 @@ export function openTxModal(tx = null, presetDate = null) {
   $('tx-modal').classList.remove('hidden');
 }
 
-// --- MODAL 2: WALLETS & SETTINGS ---
-function renderSettingsWallets(focusId = null) {
-  const box = $('settings-wallets-list'), cur = $('setting-currency').value.trim() || state.workspace.currency || 'Ks', canDel = state.settingsDraftWallets.length > 1;
+// --- MODAL 2A: DEDICATED MANAGE WALLETS ---
+function renderManageWalletsList(focusId = null) {
+  const box = $('settings-wallets-list'), cur = state.workspace.currency || 'Ks', canDel = state.settingsDraftWallets.length > 1;
   box.innerHTML = state.settingsDraftWallets.map((w, i) => {
     const col = COLOR_MAP[w.colorKey] || COLORS[0], open = state.openColorPickerWalletId === w.id;
     return `<div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700/80 space-y-2" data-wrow="${esc(w.id)}">
@@ -409,29 +409,63 @@ function renderSettingsWallets(focusId = null) {
   }).join('');
   box.querySelectorAll('[data-dn]').forEach((el) => el.addEventListener('input', () => (state.settingsDraftWallets[+el.dataset.dn].name = el.value)));
   box.querySelectorAll('[data-di]').forEach((el) => el.addEventListener('change', () => (state.settingsDraftWallets[+el.dataset.di].iconType = el.value)));
-  box.querySelectorAll('[data-tp]').forEach((b) => b.addEventListener('click', () => { state.openColorPickerWalletId = state.openColorPickerWalletId === b.dataset.tp ? null : b.dataset.tp; renderSettingsWallets(); }));
-  box.querySelectorAll('[data-pc]').forEach((b) => b.addEventListener('click', () => { const [i, k] = b.dataset.pc.split(':'); state.settingsDraftWallets[+i].colorKey = k; state.openColorPickerWalletId = null; renderSettingsWallets(); }));
+  box.querySelectorAll('[data-tp]').forEach((b) => b.addEventListener('click', () => { state.openColorPickerWalletId = state.openColorPickerWalletId === b.dataset.tp ? null : b.dataset.tp; renderManageWalletsList(); }));
+  box.querySelectorAll('[data-pc]').forEach((b) => b.addEventListener('click', () => { const [i, k] = b.dataset.pc.split(':'); state.settingsDraftWallets[+i].colorKey = k; state.openColorPickerWalletId = null; renderManageWalletsList(); }));
   box.querySelectorAll('[data-dob]').forEach((el) => { el.addEventListener('input', () => (state.settingsDraftWallets[+el.dataset.dob].openingBalance = parseSigned(el.value))); el.addEventListener('blur', () => { const v = parseSigned(el.value); state.settingsDraftWallets[+el.dataset.dob].openingBalance = v; el.value = fmtNum(v); }); });
-  box.querySelectorAll('[data-dr]').forEach((b) => b.addEventListener('click', () => { if (state.settingsDraftWallets.length <= 1) return toast('Keep at least 1 wallet', 'info'); state.settingsDraftWallets.splice(+b.dataset.dr, 1); renderSettingsWallets(); }));
+  box.querySelectorAll('[data-dr]').forEach((b) => b.addEventListener('click', () => { if (state.settingsDraftWallets.length <= 1) return toast('Keep at least 1 wallet', 'info'); state.settingsDraftWallets.splice(+b.dataset.dr, 1); renderManageWalletsList(); }));
   if (focusId) box.querySelector(`[data-wrow="${focusId}"] input[data-dn]`)?.focus();
 }
 
-export function openSettingsModal() {
+export function openWalletsModal() {
   state.openColorPickerWalletId = null;
+  state.settingsDraftWallets = getWallets().map((w) => ({ id: w.id, name: w.name, iconType: w.iconType, colorKey: w.colorKey, openingBalance: Number(state.workspace.openingBalances?.[w.id]) || 0 }));
+  renderManageWalletsList();
+  $('wallets-modal').classList.remove('hidden');
+}
+
+// --- MODAL 2B: DEDICATED SETTINGS (WITH PERSON 1 & PERSON 2 TAG COLOR PICKER) ---
+function renderPersonColorControls() {
+  const c1 = COLOR_MAP[state.settingsPersonColorsDraft.person1] || COLOR_MAP.indigo;
+  const c2 = COLOR_MAP[state.settingsPersonColorsDraft.person2] || COLOR_MAP.fuchsia;
+  const b1 = $('setting-p1-color-btn'), b2 = $('setting-p2-color-btn'), tray = $('setting-person-color-picker');
+  if (b1) b1.innerHTML = `<span class="w-3.5 h-3.5 rounded-full shrink-0" style="background:${c1.hex}"></span><span class="truncate">${c1.label}</span>`;
+  if (b2) b2.innerHTML = `<span class="w-3.5 h-3.5 rounded-full shrink-0" style="background:${c2.hex}"></span><span class="truncate">${c2.label}</span>`;
+
+  const active = state.openPersonColorPicker;
+  if (!tray) return;
+  if (!active) { tray.classList.add('hidden'); tray.innerHTML = ''; return; }
+  const curKey = state.settingsPersonColorsDraft[active] || DEFAULT_PERSON_COLORS[active];
+  const label = active === 'person1' ? ($('setting-person1')?.value.trim() || 'Person 1') : ($('setting-person2')?.value.trim() || 'Person 2');
+  tray.classList.remove('hidden');
+  tray.innerHTML = `<div class="flex items-center justify-between text-[11px] font-bold text-slate-500"><span>Tag color for ${esc(label)}</span><button type="button" id="close-person-color-tray" class="text-slate-400 hover:text-slate-600">Done</button></div>
+    <div class="flex flex-wrap gap-2">${COLORS.map((c) => `<button type="button" data-pcol="${c.key}" title="${c.label}" class="w-7 h-7 rounded-full flex items-center justify-center ${c.key === curKey ? 'ring-2 ring-offset-2 ring-indigo-600 scale-110' : ''}" style="background:${c.hex}">${c.key === curKey ? '<span class="text-white text-xs font-bold">✓</span>' : ''}</button>`).join('')}</div>`;
+  tray.querySelector('#close-person-color-tray')?.addEventListener('click', () => { state.openPersonColorPicker = null; renderPersonColorControls(); });
+  tray.querySelectorAll('[data-pcol]').forEach((b) => b.addEventListener('click', () => {
+    state.settingsPersonColorsDraft[active] = b.dataset.pcol;
+    state.openPersonColorPicker = null;
+    renderPersonColorControls();
+  }));
+}
+
+export function openSettingsModal() {
+  state.openPersonColorPicker = null;
   $('setting-ws-name').value = state.workspace.name || 'My Ledger';
   $('setting-currency').value = state.workspace.currency || 'Ks';
   $('setting-person1').value = state.workspace.userNames?.person1 || 'Person 1';
   $('setting-person2').value = state.workspace.userNames?.person2 || 'Person 2';
+  state.settingsPersonColorsDraft = {
+    person1: getPersonColor('person1').key,
+    person2: getPersonColor('person2').key
+  };
+  renderPersonColorControls();
   $('setting-ws-id-display').textContent = state.workspaceId;
   $('setting-join-pin').value = state.workspace.joinPin || '';
   $('setting-ws-switcher').innerHTML = state.userWorkspaces.map((w) => `<option value="${esc(w.id)}">${esc(w.name)} (${esc(w.id)})</option>`).join('');
   $('setting-ws-switcher').value = state.workspaceId;
-  state.settingsDraftWallets = getWallets().map((w) => ({ id: w.id, name: w.name, iconType: w.iconType, colorKey: w.colorKey, openingBalance: Number(state.workspace.openingBalances?.[w.id]) || 0 }));
-  renderSettingsWallets();
   $('settings-modal').classList.remove('hidden');
 }
 
-// --- MODAL 3: QUICK TEMPLATES (WITH EDIT + DELETE FIX) ---
+// --- MODAL 3: QUICK TEMPLATES ---
 function populateTplSelects() {
   const ws = getWallets(), type = $('tpl-type').value, opts = ws.map((w) => `<option value="${esc(w.id)}">${esc(w.name)}</option>`).join('');
   const pw = $('tpl-wallet').value, pto = $('tpl-to-wallet').value;
@@ -515,7 +549,7 @@ function importBackup(file) {
       if (!p?.settings || !Array.isArray(p.transactions)) return toast('Invalid backup JSON', 'error');
       openConfirm('Restore Backup?', `Import settings & up to ${p.transactions.length} entries (including Shop & COD data) into "${state.workspace.name}"?`, async () => {
         const patch = {};
-        ['wallets', 'archivedWalletNames', 'openingBalances', 'userNames', 'currency', 'quickTemplates', 'customExpenseCategories', 'customIncomeCategories', 'shopCategories', 'shopProfile'].forEach((k) => {
+        ['wallets', 'archivedWalletNames', 'openingBalances', 'userNames', 'userColors', 'currency', 'quickTemplates', 'customExpenseCategories', 'customIncomeCategories', 'shopCategories', 'shopProfile'].forEach((k) => {
           if (p.settings[k] !== undefined) patch[k] = p.settings[k];
         });
         await patchWs(patch);
@@ -560,7 +594,8 @@ export function bindMoneyEvents({ onOpenShopTx } = {}) {
   shopTxHandler = onOpenShopTx || null;
 
   $('overview-view-all-btn').onclick = () => switchView('history', { historySub: 'money' });
-  ['overview-edit-wallets-btn', 'desktop-settings-btn', 'mobile-settings-btn', 'sidebar-open-sync'].forEach((id) => { if ($(id)) $(id).onclick = openSettingsModal; });
+  if ($('overview-edit-wallets-btn')) $('overview-edit-wallets-btn').onclick = openWalletsModal;
+  ['desktop-settings-btn', 'mobile-settings-btn', 'sidebar-open-sync'].forEach((id) => { if ($(id)) $(id).onclick = openSettingsModal; });
 
   // Transaction Modal
   $('desktop-add-btn').onclick = () => openTxModal(null);
@@ -608,15 +643,33 @@ export function bindMoneyEvents({ onOpenShopTx } = {}) {
     finally { btn.disabled = false; btn.textContent = editId ? 'Update Entry' : 'Save Entry'; }
   };
 
-  // Settings Modal
-  $('settings-modal-close').onclick = () => $('settings-modal').classList.add('hidden');
-  $('settings-modal').onclick = (e) => { if (e.target.id === 'settings-modal') $('settings-modal').classList.add('hidden'); };
-  $('setting-currency').oninput = () => renderSettingsWallets();
+  // Dedicated Manage Wallets Modal
+  $('wallets-modal-close').onclick = () => $('wallets-modal').classList.add('hidden');
+  $('wallets-modal').onclick = (e) => { if (e.target.id === 'wallets-modal') $('wallets-modal').classList.add('hidden'); };
   $('add-wallet-btn').onclick = () => {
     const id = `acct_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 4)}`;
     state.settingsDraftWallets.push({ id, name: '', iconType: 'bank', colorKey: COLORS[state.settingsDraftWallets.length % COLORS.length].key, openingBalance: 0 });
-    renderSettingsWallets(id);
+    renderManageWalletsList(id);
   };
+  $('wallets-form').onsubmit = async (e) => {
+    e.preventDefault(); const btn = $('wallets-save-btn'); btn.disabled = true; btn.textContent = 'Saving...';
+    try {
+      const prevW = getWallets();
+      const newW = state.settingsDraftWallets.map((w, i) => ({ id: w.id, name: String(w.name || '').trim() || `Account ${i + 1}`, iconType: W_ICONS[w.iconType] ? w.iconType : 'bank', colorKey: COLOR_MAP[w.colorKey] ? w.colorKey : COLORS[i % COLORS.length].key }));
+      const ob = {}; state.settingsDraftWallets.forEach((w) => (ob[w.id] = Number(w.openingBalance) || 0));
+      const arch = { ...(state.workspace.archivedWalletNames || {}) }, activeIds = new Set(newW.map((w) => w.id));
+      prevW.forEach((pw) => { if (!activeIds.has(pw.id)) arch[pw.id] = pw.name; });
+      await patchWs({ wallets: newW, archivedWalletNames: arch, openingBalances: ob });
+      $('wallets-modal').classList.add('hidden'); toast('Wallets saved!', 'success');
+    } catch { toast('Could not save wallets', 'error'); }
+    finally { btn.disabled = false; btn.textContent = 'Save Wallets'; }
+  };
+
+  // Dedicated Settings Modal (Profile, Person Tag Colors, Invite, Backup, Sign Out)
+  $('settings-modal-close').onclick = () => $('settings-modal').classList.add('hidden');
+  $('settings-modal').onclick = (e) => { if (e.target.id === 'settings-modal') $('settings-modal').classList.add('hidden'); };
+  $('setting-p1-color-btn')?.addEventListener('click', () => { state.openPersonColorPicker = state.openPersonColorPicker === 'person1' ? null : 'person1'; renderPersonColorControls(); });
+  $('setting-p2-color-btn')?.addEventListener('click', () => { state.openPersonColorPicker = state.openPersonColorPicker === 'person2' ? null : 'person2'; renderPersonColorControls(); });
   $('copy-ws-id-btn').onclick = () => copyText(state.workspaceId, 'Workspace ID copied!');
   $('copy-ws-pin-btn').onclick = () => copyText($('setting-join-pin').value.trim(), 'Join PIN copied!');
   $('setting-ws-switcher').onchange = async (e) => { const id = e.target.value; if (!id || id === state.workspaceId) return; $('settings-modal').classList.add('hidden'); state.workspaceId = id; await saveUserProfile(); subscribeWs(id); };
@@ -631,15 +684,15 @@ export function bindMoneyEvents({ onOpenShopTx } = {}) {
   $('settings-form').onsubmit = async (e) => {
     e.preventDefault(); const btn = $('settings-save-btn'); btn.disabled = true; btn.textContent = 'Saving...';
     try {
-      const prevW = getWallets();
-      const newW = state.settingsDraftWallets.map((w, i) => ({ id: w.id, name: String(w.name || '').trim() || `Account ${i + 1}`, iconType: W_ICONS[w.iconType] ? w.iconType : 'bank', colorKey: COLOR_MAP[w.colorKey] ? w.colorKey : COLORS[i % COLORS.length].key }));
-      const ob = {}; state.settingsDraftWallets.forEach((w) => (ob[w.id] = Number(w.openingBalance) || 0));
-      const arch = { ...(state.workspace.archivedWalletNames || {}) }, activeIds = new Set(newW.map((w) => w.id));
-      prevW.forEach((pw) => { if (!activeIds.has(pw.id)) arch[pw.id] = pw.name; });
       await patchWs({
-        name: $('setting-ws-name').value.trim() || 'My Ledger', currency: $('setting-currency').value.trim() || 'Ks',
-        joinPin: $('setting-join-pin').value.trim(), wallets: newW, archivedWalletNames: arch, openingBalances: ob,
-        userNames: { person1: $('setting-person1').value.trim() || 'Person 1', person2: $('setting-person2').value.trim() || 'Person 2' }
+        name: $('setting-ws-name').value.trim() || 'My Ledger',
+        currency: $('setting-currency').value.trim() || 'Ks',
+        joinPin: $('setting-join-pin').value.trim(),
+        userNames: { person1: $('setting-person1').value.trim() || 'Person 1', person2: $('setting-person2').value.trim() || 'Person 2' },
+        userColors: {
+          person1: COLOR_MAP[state.settingsPersonColorsDraft.person1] ? state.settingsPersonColorsDraft.person1 : DEFAULT_PERSON_COLORS.person1,
+          person2: COLOR_MAP[state.settingsPersonColorsDraft.person2] ? state.settingsPersonColorsDraft.person2 : DEFAULT_PERSON_COLORS.person2
+        }
       });
       await saveUserProfile(); $('settings-modal').classList.add('hidden'); toast('Settings saved!', 'success');
     } catch { toast('Could not save settings', 'error'); }

@@ -1,9 +1,9 @@
-// Delights Flow — Shop Module (Multi-Shop Home, COD Tracking, Shop History & Analytics, Style A Receipt PNG/Text)
+// Delights Flow — Shop Module (Multi-Shop Home, COD Tracking, Shop History & Calendar, Per-Shop Analytics, Style A Receipt PNG/Text)
 
 import {
   COLORS, COLOR_MAP, COST_SUBTYPES, COST_COLORS, state,
   $, esc, todayISO, curMonth,
-  fmtNum, fmtMoney, fmtDisp, parseAmt, fmtAmtInput, fmtMonth,
+  fmtNum, fmtMoney, fmtCompact, parseAmt, fmtAmtInput, fmtMonth, fmtDateHead,
   getWallets, getWallet, getShops, getShop,
   isSaleTx, orderTot, paidUpfront, codAmtOf, codStatusOf, collectedOf, pendingCodOf, genReceiptNo,
   getAvailableMonths, toast, copyText, downloadBlob, openConfirm, killChart, ensureChartJs,
@@ -33,8 +33,9 @@ function collectedInPeriod(t, mk) {
   return sum;
 }
 
-function getFilteredShop() {
-  const { search, month, category, type } = state.shopFilters;
+function getFilteredShop(overrideMonth = null) {
+  const { search, category, type } = state.shopFilters;
+  const month = overrideMonth !== null ? overrideMonth : state.shopFilters.month;
   const q = search.trim().toLowerCase();
   return shopTxs().filter((t) => {
     const sale = isSaleTx(t);
@@ -54,13 +55,16 @@ function getFilteredShop() {
 
 function populateShopSelectors() {
   const shops = getShops(), ms = getAvailableMonths();
-  const fm = $('shop-filter-month'), fc = $('shop-filter-cat'), ft = $('shop-filter-type'), sm = $('sa-month-select');
+  const fm = $('shop-filter-month'), fc = $('shop-filter-cat'), ft = $('shop-filter-type');
+  const sm = $('sa-month-select'), ss = $('sa-shop-select');
+
   if (fm) {
     fm.innerHTML = `<option value="all">All Time</option>${ms.map((m) => `<option value="${m}">${fmtMonth(m)}</option>`).join('')}`;
     fm.value = ms.includes(state.shopFilters.month) || state.shopFilters.month === 'all' ? state.shopFilters.month : curMonth();
   }
+  const shopOpts = `<option value="all">All Shops</option>${shops.map((s) => `<option value="${esc(s.id)}">${esc(s.name)}</option>`).join('')}<option value="general">General Shop</option>`;
   if (fc) {
-    fc.innerHTML = `<option value="all">All Shops</option>${shops.map((s) => `<option value="${esc(s.id)}">${esc(s.name)}</option>`).join('')}<option value="general">General Shop</option>`;
+    fc.innerHTML = shopOpts;
     if (state.shopFilters.category !== 'all' && state.shopFilters.category !== 'general' && !shops.some((s) => s.id === state.shopFilters.category)) state.shopFilters.category = 'all';
     fc.value = state.shopFilters.category;
   }
@@ -68,6 +72,11 @@ function populateShopSelectors() {
   if (sm) {
     sm.innerHTML = `${ms.map((m) => `<option value="${m}">${fmtMonth(m)}</option>`).join('')}<option value="all">All Time</option>`;
     sm.value = ms.includes(state.shopAnalyticsMonth) || state.shopAnalyticsMonth === 'all' ? state.shopAnalyticsMonth : curMonth();
+  }
+  if (ss) {
+    ss.innerHTML = shopOpts;
+    if (state.shopAnalyticsShopId !== 'all' && state.shopAnalyticsShopId !== 'general' && !shops.some((s) => s.id === state.shopAnalyticsShopId)) state.shopAnalyticsShopId = 'all';
+    ss.value = state.shopAnalyticsShopId;
   }
 }
 
@@ -83,15 +92,15 @@ function rowHTML(t) {
     if (cSt === 'pending' && pUp <= 0) showW = false;
     if (cAmt > 0) {
       if (cSt === 'pending') {
-        codHtml = `${pUp > 0 ? `<span class="px-2 py-0.5 rounded-lg text-[11px] font-bold bg-emerald-100 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300">Paid: ${fmtDisp(pUp)}</span>` : ''}<span class="px-2 py-0.5 rounded-lg text-[11px] font-bold bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300">⏳ COD: ${fmtDisp(cAmt)}</span>`;
+        codHtml = `${pUp > 0 ? `<span class="px-2 py-0.5 rounded-lg text-[11px] font-bold bg-emerald-100 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300">Paid: ${fmtMoney(pUp)}</span>` : ''}<span class="px-2 py-0.5 rounded-lg text-[11px] font-bold bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300">⏳ COD: ${fmtMoney(cAmt)}</span>`;
         codBtn = `<button type="button" data-cod="${esc(t.id)}" class="px-2.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold shadow-sm">✓ Mark COD Paid</button>`;
       } else {
         codHtml = `<span class="px-2 py-0.5 rounded-lg text-[11px] font-bold bg-emerald-100 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300">✓ COD Paid (${esc(getWallet(t.codWallet || t.wallet).name)})</span>`;
       }
     }
-    amtHtml = `<span class="text-sm sm:text-base font-extrabold tabular-nums ${cSt === 'pending' && pUp <= 0 ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400'}">+${fmtDisp(tot)}</span>`;
+    amtHtml = `<span class="text-sm sm:text-base font-extrabold tabular-nums ${cSt === 'pending' && pUp <= 0 ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400'}">+${fmtMoney(tot)}</span>`;
   } else {
-    amtHtml = `<span class="text-sm sm:text-base font-extrabold tabular-nums text-rose-600 dark:text-rose-400">-${fmtDisp(t.amount)}</span>`;
+    amtHtml = `<span class="text-sm sm:text-base font-extrabold tabular-nums text-rose-600 dark:text-rose-400">-${fmtMoney(t.amount)}</span>`;
   }
 
   return `<div class="p-4 sm:px-5 hover:bg-slate-50/80 dark:hover:bg-slate-800/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -156,13 +165,13 @@ export function renderShopHome() {
 
   const net = totRev - totCap;
   $('hero-today-date').textContent = td;
-  $('hero-daily-sales').textContent = fmtDisp(tdSales);
-  $('hero-total-revenue').textContent = fmtDisp(totRev);
-  $('hero-total-capital').textContent = fmtDisp(totCap);
+  $('hero-daily-sales').textContent = fmtMoney(tdSales);
+  $('hero-total-revenue').textContent = fmtMoney(totRev);
+  $('hero-total-capital').textContent = fmtMoney(totCap);
   $('hero-net-label').textContent = net >= 0 ? '═ Net Profit' : '═ To Break Even';
-  $('hero-net-profit').textContent = net >= 0 ? fmtDisp(net, true) : fmtDisp(Math.abs(net));
+  $('hero-net-profit').textContent = net >= 0 ? fmtMoney(net, true) : fmtMoney(Math.abs(net));
   $('hero-net-profit').className = `text-base sm:text-lg font-extrabold tabular-nums text-right break-words ${net >= 0 ? 'text-emerald-300' : 'text-amber-300'}`;
-  $('hero-pending-cod').textContent = fmtDisp(totCod);
+  $('hero-pending-cod').textContent = fmtMoney(totCod);
 
   const sg = $('shops-grid');
   const cards = Object.values(stats).filter((s) => shops.some((x) => x.id === s.id) || s.sales > 0 || s.capital > 0 || s.cod > 0);
@@ -173,12 +182,12 @@ export function renderShopHome() {
     return `<button type="button" data-sh="${esc(s.id)}" class="text-left bg-white dark:bg-slate-900 rounded-3xl p-4 sm:p-5 border border-slate-200/80 dark:border-slate-800 hover:border-amber-400 shadow-sm active:scale-[0.98] transition-all space-y-3">
       <div class="flex items-center justify-between gap-2"><span class="inline-flex items-center gap-2.5 font-extrabold text-sm truncate">${av}<span class="truncate">${esc(s.name)}</span></span><span class="text-[11px] font-bold px-2.5 py-0.5 rounded-full shrink-0" style="background:${s.hex}20;color:${s.hex}">History →</span></div>
       <div class="grid grid-cols-2 gap-2 text-xs">
-        <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60"><p class="text-[10px] font-semibold uppercase text-slate-400">Sales</p><p class="font-extrabold text-emerald-600 dark:text-emerald-400 tabular-nums break-words mt-0.5">${fmtDisp(s.sales)}</p></div>
-        <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60"><p class="text-[10px] font-semibold uppercase text-slate-400">Capital</p><p class="font-extrabold text-rose-600 dark:text-rose-400 tabular-nums break-words mt-0.5">${fmtDisp(s.capital)}</p></div>
-        <div class="col-span-2 px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 flex justify-between gap-2"><span class="text-[10px] font-bold uppercase text-slate-400">${sn >= 0 ? 'Net Profit' : 'Left to Break Even'}</span><span class="font-extrabold tabular-nums ${sn >= 0 ? 'text-indigo-600 dark:text-indigo-400' : 'text-amber-600 dark:text-amber-400'}">${sn >= 0 ? fmtDisp(sn, true) : fmtDisp(Math.abs(sn))}</span></div>
-        ${s.cod > 0 ? `<div class="col-span-2 px-3 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 flex justify-between text-amber-700 dark:text-amber-300"><span class="text-[10px] font-bold uppercase">⏳ Pending COD</span><span class="font-extrabold tabular-nums">${fmtDisp(s.cod)}</span></div>` : ''}
+        <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60"><p class="text-[10px] font-semibold uppercase text-slate-400">Sales</p><p class="font-extrabold text-emerald-600 dark:text-emerald-400 tabular-nums break-words mt-0.5">${fmtMoney(s.sales)}</p></div>
+        <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60"><p class="text-[10px] font-semibold uppercase text-slate-400">Capital</p><p class="font-extrabold text-rose-600 dark:text-rose-400 tabular-nums break-words mt-0.5">${fmtMoney(s.capital)}</p></div>
+        <div class="col-span-2 px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 flex justify-between gap-2"><span class="text-[10px] font-bold uppercase text-slate-400">${sn >= 0 ? 'Net Profit' : 'Left to Break Even'}</span><span class="font-extrabold tabular-nums ${sn >= 0 ? 'text-indigo-600 dark:text-indigo-400' : 'text-amber-600 dark:text-amber-400'}">${sn >= 0 ? fmtMoney(sn, true) : fmtMoney(Math.abs(sn))}</span></div>
+        ${s.cod > 0 ? `<div class="col-span-2 px-3 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 flex justify-between text-amber-700 dark:text-amber-300"><span class="text-[10px] font-bold uppercase">⏳ Pending COD</span><span class="font-extrabold tabular-nums">${fmtMoney(s.cod)}</span></div>` : ''}
       </div>
-      <div class="space-y-1"><div class="flex justify-between text-[10px] font-semibold text-slate-400"><span>Capital Recovery</span><span>${state.privacyMode ? '••%' : `${pct}%`}</span></div><div class="w-full h-1.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden"><div class="h-full rounded-full" style="width:${pct}%;background:${s.hex}"></div></div></div>
+      <div class="space-y-1"><div class="flex justify-between text-[10px] font-semibold text-slate-400"><span>Capital Recovery</span><span>${pct}%</span></div><div class="w-full h-1.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden"><div class="h-full rounded-full" style="width:${pct}%;background:${s.hex}"></div></div></div>
     </button>`;
   }).join('');
   sg.querySelectorAll('[data-sh]').forEach((b) => b.addEventListener('click', () => {
@@ -190,22 +199,77 @@ export function renderShopHome() {
   }));
 
   const rec = txs.slice(0, 8), rEl = $('shop-recent-list');
-  rEl.innerHTML = rec.length ? rec.map(rowHTML).join('') : `<div class="p-8 text-center text-xs text-slate-400">No shop activity yet. Tap <strong>+ Record Sale</strong> to begin.</div>`;
+  rEl.innerHTML = rec.length ? rec.map(rowHTML).join('') : `<div class="p-8 text-center text-xs text-slate-400">No shop activity yet. Tap <strong>+</strong> to record a sale.</div>`;
   if (rec.length) bindShopRows(rEl);
 }
 
-// --- VIEW: SHOP HISTORY & COD ---
+// --- VIEW: SHOP HISTORY & CALENDAR ---
+function renderShopCalendar() {
+  const mk = state.shopCalendarMonth || curMonth(), [y, m] = mk.split('-').map(Number);
+  $('shop-cal-month-title').textContent = fmtMonth(mk);
+  const txs = getFilteredShop(mk);
+
+  const byDay = {};
+  txs.forEach((t) => {
+    if (!t.date?.startsWith(mk)) return;
+    const d = byDay[t.date] ||= { in: 0, out: 0, cod: 0, items: [] };
+    d.items.push(t);
+    if (isSaleTx(t)) { d.in += collectedOf(t); d.cod += pendingCodOf(t); }
+    else d.out += Number(t.amount) || 0;
+  });
+
+  const firstDow = new Date(y, m - 1, 1).getDay(), dim = new Date(y, m, 0).getDate(), td = todayISO();
+  if (!state.shopCalendarSelectedDate?.startsWith(mk)) state.shopCalendarSelectedDate = td.startsWith(mk) ? td : `${mk}-01`;
+
+  let cells = '<div class="min-h-[58px] rounded-2xl bg-slate-50/40 dark:bg-slate-900/30"></div>'.repeat(firstDow);
+  for (let d = 1; d <= dim; d++) {
+    const iso = `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`, info = byDay[iso], sel = iso === state.shopCalendarSelectedDate;
+    const cls = sel ? 'bg-amber-50 dark:bg-amber-950/60 border-amber-500 ring-1 ring-amber-500'
+      : iso === td ? 'bg-slate-50 dark:bg-slate-800 border-amber-300 dark:border-amber-700'
+      : 'bg-slate-50/70 dark:bg-slate-800/40 border-slate-200/60 dark:border-slate-800';
+    cells += `<button type="button" data-scd="${iso}" class="min-h-[58px] p-1.5 rounded-2xl border text-left flex flex-col justify-between ${cls}">
+      <div class="flex items-center justify-between w-full"><span class="text-[11px] font-extrabold ${sel ? 'text-amber-700 dark:text-amber-300' : ''}">${d}</span>${info?.cod > 0 ? '<span class="w-1.5 h-1.5 rounded-full bg-amber-500" title="Pending COD"></span>' : ''}</div>
+      <div class="w-full overflow-hidden space-y-0.5">${info?.in ? `<div class="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 truncate">+${fmtCompact(info.in)}</div>` : ''}${info?.out ? `<div class="text-[9px] font-bold text-rose-600 dark:text-rose-400 truncate">-${fmtCompact(info.out)}</div>` : ''}${!info?.in && info?.cod > 0 ? `<div class="text-[9px] font-bold text-amber-600 dark:text-amber-400 truncate">⏳${fmtCompact(info.cod)}</div>` : ''}</div>
+    </button>`;
+  }
+
+  const cg = $('shop-calendar-days-grid');
+  if (cg) {
+    cg.innerHTML = cells;
+    cg.querySelectorAll('[data-scd]').forEach((b) => b.addEventListener('click', () => { state.shopCalendarSelectedDate = b.dataset.scd; renderShopCalendar(); }));
+  }
+
+  const si = byDay[state.shopCalendarSelectedDate] || { in: 0, out: 0, cod: 0, items: [] };
+  $('shop-cal-selected-date-title').textContent = fmtDateHead(state.shopCalendarSelectedDate);
+  $('shop-cal-selected-date-summary').textContent = si.items.length
+    ? `${si.items.length} records · Sales ${fmtMoney(si.in)}${si.cod > 0 ? ` · COD ${fmtMoney(si.cod)}` : ''}${si.out > 0 ? ` · Cap ${fmtMoney(si.out)}` : ''}`
+    : 'No shop entries recorded';
+  const dl = $('shop-cal-selected-day-list');
+  if (dl) {
+    dl.innerHTML = si.items.length ? si.items.map(rowHTML).join('') : `<div class="p-6 text-center text-xs text-slate-400">No shop records on this date.</div>`;
+    if (si.items.length) bindShopRows(dl);
+  }
+}
+
 export function renderShopHistory() {
   populateShopSelectors();
+  const isCal = state.shopHistoryMode === 'calendar';
+  $('shop-history-mode-list').className = !isCal ? 'px-3 py-1.5 rounded-lg text-xs font-bold bg-white dark:bg-slate-900 text-amber-600 dark:text-amber-400 shadow-sm' : 'px-3 py-1.5 rounded-lg text-xs font-bold text-slate-500';
+  $('shop-history-mode-calendar').className = isCal ? 'px-3 py-1.5 rounded-lg text-xs font-bold bg-white dark:bg-slate-900 text-amber-600 dark:text-amber-400 shadow-sm' : 'px-3 py-1.5 rounded-lg text-xs font-bold text-slate-500';
+  $('shop-history-calendar-wrap').classList.toggle('hidden', !isCal);
+  $('shop-history-list').classList.toggle('hidden', isCal);
+
   const flt = getFilteredShop(), mk = state.shopFilters.month;
   let fR = 0, fC = 0, fD = 0;
   flt.forEach((t) => {
     if (isSaleTx(t)) { fR += collectedInPeriod(t, mk); fD += pendingCodOf(t); }
     else fC += Number(t.amount) || 0;
   });
-  $('shop-filter-summary').innerHTML = `<span class="text-slate-500">${flt.length} records</span><span class="text-emerald-600 dark:text-emerald-400">Received: ${fmtDisp(fR)}</span>${fD > 0 ? `<span class="text-amber-600 dark:text-amber-400">COD: ${fmtDisp(fD)}</span>` : ''}<span class="text-rose-600 dark:text-rose-400">Capital: ${fmtDisp(fC)}</span>`;
+  $('shop-filter-summary').innerHTML = `<span class="text-slate-500">${flt.length} records</span><span class="text-emerald-600 dark:text-emerald-400">Received: ${fmtMoney(fR)}</span>${fD > 0 ? `<span class="text-amber-600 dark:text-amber-400">COD: ${fmtMoney(fD)}</span>` : ''}<span class="text-rose-600 dark:text-rose-400">Capital: ${fmtMoney(fC)}</span>`;
   const f = state.shopFilters;
   $('shop-reset-filters-btn').classList.toggle('hidden', !(f.search || f.month !== curMonth() || f.category !== 'all' || f.type !== 'all'));
+
+  if (isCal) return renderShopCalendar();
 
   const hl = $('shop-history-list');
   hl.innerHTML = flt.length
@@ -214,15 +278,19 @@ export function renderShopHistory() {
   if (flt.length) bindShopRows(hl);
 }
 
-// --- VIEW: SHOP ANALYTICS (WITH AVG ORDER VALUE FIX) ---
+// --- VIEW: SHOP ANALYTICS (PER-SHOP FILTER + AVG ORDER VALUE FIX) ---
 export function renderShopAnalytics() {
   populateShopSelectors();
   if (state.currentView !== 'analytics' || state.analyticsSub !== 'shop') return;
-  const sm = state.shopAnalyticsMonth, txs = shopTxs();
+  const sm = state.shopAnalyticsMonth, selShop = state.shopAnalyticsShopId || 'all';
+  const txs = shopTxs().filter((t) => selShop === 'all' || (t.shopCategoryId || 'general') === selShop);
+  const scopeLabel = selShop === 'all' ? 'All Shops' : getShop(selShop).name;
+
   let pS = 0, pC = 0, paidOrderCount = 0;
   const catMap = {}, costMap = {};
 
   getShops().forEach((s) => {
+    if (selShop !== 'all' && s.id !== selShop) return;
     const sc = sm === 'all' ? (Number(s.startingCapital) || 0) : 0;
     pC += sc;
     if (sc > 0) costMap['Starting Capital'] = (costMap['Starting Capital'] || 0) + sc;
@@ -249,11 +317,11 @@ export function renderShopAnalytics() {
   });
 
   const net = pS - pC;
-  $('sa-kpi-sales').textContent = fmtDisp(pS);
-  $('sa-kpi-capital').textContent = fmtDisp(pC);
-  $('sa-kpi-net').textContent = fmtDisp(net, true);
+  $('sa-kpi-sales').textContent = fmtMoney(pS);
+  $('sa-kpi-capital').textContent = fmtMoney(pC);
+  $('sa-kpi-net').textContent = fmtMoney(net, true);
   $('sa-kpi-net').className = `text-base sm:text-xl font-extrabold mt-1 tabular-nums break-words ${net >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`;
-  $('sa-kpi-avg').textContent = fmtDisp(paidOrderCount > 0 ? pS / paidOrderCount : 0);
+  $('sa-kpi-avg').textContent = fmtMoney(paidOrderCount > 0 ? pS / paidOrderCount : 0);
 
   const tc = state.darkMode ? '#cbd5e1' : '#475569', gc = state.darkMode ? 'rgba(148,163,184,0.12)' : 'rgba(15,23,42,0.07)', hasC = typeof Chart !== 'undefined';
   if (!hasC) ensureChartJs().then((ok) => { if (ok && state.currentView === 'analytics' && state.analyticsSub === 'shop') renderShopAnalytics(); });
@@ -262,7 +330,7 @@ export function renderShopAnalytics() {
   let tL = [], tS = [], tC = [];
   if (sm === 'all') {
     $('sa-trend-title').textContent = 'Monthly Sales & Capital Trend';
-    $('sa-trend-sub').textContent = 'Last 6 months performance';
+    $('sa-trend-sub').textContent = `Last 6 months · ${scopeLabel}`;
     const now = new Date();
     for (let i = 5; i >= 0; i--) {
       const d = new Date(now.getFullYear(), now.getMonth() - i, 1), mk = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
@@ -272,7 +340,7 @@ export function renderShopAnalytics() {
     }
   } else {
     $('sa-trend-title').textContent = `Daily Sales & Capital (${fmtMonth(sm)})`;
-    $('sa-trend-sub').textContent = 'Daily revenue vs capital invested';
+    $('sa-trend-sub').textContent = `Daily revenue vs capital · ${scopeLabel}`;
     const [y, m] = sm.split('-').map(Number), days = new Date(y, m, 0).getDate();
     for (let day = 1; day <= days; day++) {
       const iso = `${y}-${String(m).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
@@ -289,19 +357,19 @@ export function renderShopAnalytics() {
   }
   const hasT = tS.some((v) => v > 0) || tC.some((v) => v > 0);
   $('sa-empty-trend').classList.toggle('hidden', hasT);
-  if (hasT && hasC) state.charts.shopTrend = new Chart($('sa-chart-trend').getContext('2d'), { type: 'bar', data: { labels: tL, datasets: [{ label: 'Sales', data: tS, backgroundColor: '#10b981', borderRadius: 5 }, { label: 'Capital', data: tC, backgroundColor: '#f43f5e', borderRadius: 5 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: tc } }, tooltip: { callbacks: { label: (ctx) => ` ${ctx.dataset.label}: ${fmtDisp(ctx.raw)}` } } }, scales: { x: { ticks: { color: tc, font: { size: 10 } }, grid: { display: false } }, y: { ticks: { color: tc, font: { size: 10 } }, grid: { color: gc } } } } });
+  if (hasT && hasC) state.charts.shopTrend = new Chart($('sa-chart-trend').getContext('2d'), { type: 'bar', data: { labels: tL, datasets: [{ label: 'Sales', data: tS, backgroundColor: '#10b981', borderRadius: 5 }, { label: 'Capital', data: tC, backgroundColor: '#f43f5e', borderRadius: 5 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: tc } }, tooltip: { callbacks: { label: (ctx) => ` ${ctx.dataset.label}: ${fmtMoney(ctx.raw)}` } } }, scales: { x: { ticks: { color: tc, font: { size: 10 } }, grid: { display: false } }, y: { ticks: { color: tc, font: { size: 10 } }, grid: { color: gc } } } } });
 
   killChart('shopCats');
   const cRows = Object.values(catMap).filter((c) => c.sales > 0 || c.capital > 0);
   $('sa-empty-cats').classList.toggle('hidden', cRows.length > 0);
   if (cRows.length && hasC) state.charts.shopCats = new Chart($('sa-chart-cats').getContext('2d'), { type: 'bar', data: { labels: cRows.map((c) => c.name), datasets: [{ label: 'Sales', data: cRows.map((c) => c.sales), backgroundColor: '#10b981', borderRadius: 6 }, { label: 'Capital', data: cRows.map((c) => c.capital), backgroundColor: '#f43f5e', borderRadius: 6 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: tc } } }, scales: { x: { ticks: { color: tc, font: { weight: 'bold' } }, grid: { display: false } }, y: { ticks: { color: tc }, grid: { color: gc } } } } });
-  $('sa-cats-list').innerHTML = cRows.length ? cRows.map((c) => { const n = c.sales - c.capital; return `<div class="flex justify-between gap-2 text-xs"><span class="flex items-center gap-2 font-bold truncate"><span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:${c.hex}"></span>${esc(c.name)}</span><span class="tabular-nums font-extrabold ${n >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}">${fmtDisp(n, true)}</span></div>`; }).join('') : `<p class="text-xs text-slate-400 text-center">No shop data.</p>`;
+  $('sa-cats-list').innerHTML = cRows.length ? cRows.map((c) => { const n = c.sales - c.capital; return `<div class="flex justify-between gap-2 text-xs"><span class="flex items-center gap-2 font-bold truncate"><span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:${c.hex}"></span>${esc(c.name)}</span><span class="tabular-nums font-extrabold ${n >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}">${fmtMoney(n, true)}</span></div>`; }).join('') : `<p class="text-xs text-slate-400 text-center">No shop data.</p>`;
 
   killChart('shopCosts');
   const costs = Object.entries(costMap).sort((a, b) => b[1] - a[1]);
   $('sa-empty-costs').classList.toggle('hidden', costs.length > 0);
-  if (costs.length && hasC) state.charts.shopCosts = new Chart($('sa-chart-costs').getContext('2d'), { type: 'doughnut', data: { labels: costs.map((c) => c[0]), datasets: [{ data: costs.map((c) => c[1]), backgroundColor: costs.map((_, i) => COST_COLORS[i % COST_COLORS.length]), borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '65%', plugins: { legend: { display: false }, tooltip: { callbacks: { label: (ctx) => ` ${ctx.label}: ${fmtDisp(ctx.raw)}` } } } } });
-  $('sa-costs-list').innerHTML = costs.length ? costs.map(([n, v], i) => `<div class="flex justify-between text-xs font-semibold"><span class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full" style="background:${COST_COLORS[i % COST_COLORS.length]}"></span>${esc(n)}</span><span class="tabular-nums">${fmtDisp(v)} <span class="text-slate-400">(${pC > 0 ? Math.round((v / pC) * 100) : 0}%)</span></span></div>`).join('') : `<p class="text-xs text-slate-400 text-center">No capital/cost entries.</p>`;
+  if (costs.length && hasC) state.charts.shopCosts = new Chart($('sa-chart-costs').getContext('2d'), { type: 'doughnut', data: { labels: costs.map((c) => c[0]), datasets: [{ data: costs.map((c) => c[1]), backgroundColor: costs.map((_, i) => COST_COLORS[i % COST_COLORS.length]), borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '65%', plugins: { legend: { display: false }, tooltip: { callbacks: { label: (ctx) => ` ${ctx.label}: ${fmtMoney(ctx.raw)}` } } } } });
+  $('sa-costs-list').innerHTML = costs.length ? costs.map(([n, v], i) => `<div class="flex justify-between text-xs font-semibold"><span class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full" style="background:${COST_COLORS[i % COST_COLORS.length]}"></span>${esc(n)}</span><span class="tabular-nums">${fmtMoney(v)} <span class="text-slate-400">(${pC > 0 ? Math.round((v / pC) * 100) : 0}%)</span></span></div>`).join('') : `<p class="text-xs text-slate-400 text-center">No capital/cost entries.</p>`;
 }
 
 // --- MODAL 1: RECORD SALE / CAPITAL ---
@@ -366,7 +434,7 @@ function renderShopTxControls() {
   wb.querySelectorAll('[data-sw]').forEach((b) => (b.onclick = () => { d.wallet = b.dataset.sw; renderShopTxControls(); }));
 }
 
-export function openShopTxModal(mode = 'sale', tx = null, presetShop = null) {
+export function openShopTxModal(mode = 'sale', tx = null, presetShop = null, presetDate = null) {
   $('stx-error').classList.add('hidden');
   const ws = getWallets(), shops = getShops();
   if (tx) {
@@ -396,7 +464,7 @@ export function openShopTxModal(mode = 'sale', tx = null, presetShop = null) {
     };
     ['stx-customer', 'stx-customer-phone', 'stx-delivery', 'stx-discount', 'stx-capital-amount', 'stx-note'].forEach((id) => ($(id).value = ''));
     $('stx-paid-amount').value = '0'; $('stx-cod-amount').value = '0';
-    $('stx-date').value = todayISO(); $('stx-open-receipt').checked = true;
+    $('stx-date').value = presetDate || todayISO(); $('stx-open-receipt').checked = true;
     $('stx-delete-btn').classList.add('hidden');
   }
   renderShopTxControls();
@@ -419,27 +487,25 @@ function openCodModal(tx) {
   $('cod-pay-modal').classList.remove('hidden');
 }
 
-// --- MODAL 3: MANAGE SHOPS ---
+// --- MODAL 3: MANAGE SHOPS (18-COLOR SWATCH PICKER + CLEAR LOGO & ADD COST BUTTONS) ---
 function renderShopsEditor(focusId = null) {
   const box = $('shops-editor'), canDel = state.settingsShopsDraft.length > 1, cur = state.workspace.currency || 'Ks';
   box.innerHTML = state.settingsShopsDraft.map((s, i) => {
-    const hex = COLOR_MAP[s.colorKey]?.hex || '#f59e0b';
+    const col = COLOR_MAP[s.colorKey] || COLORS[0], open = state.openColorPickerShopId === s.id;
     return `<div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700 space-y-3" data-shrow="${esc(s.id)}">
       <div class="flex items-center gap-2.5">
-        <button type="button" data-shl="${i}" title="Upload logo" class="w-12 h-12 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 flex items-center justify-center overflow-hidden shrink-0">${s.logoDataUrl ? `<img src="${s.logoDataUrl}" alt="" class="w-full h-full object-cover"/>` : '<span class="text-xl">🛍️</span>'}</button>
-        <div class="flex-1 min-w-0 space-y-1.5">
-          <div class="flex items-center gap-1.5">
-            <button type="button" data-shc="${i}" title="Change color" class="w-7 h-7 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 flex items-center justify-center shrink-0"><span class="w-3.5 h-3.5 rounded-full" style="background:${hex}"></span></button>
-            <input type="text" maxlength="32" required placeholder="Shop name" value="${esc(s.name)}" data-shn="${i}" class="flex-1 min-w-0 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm font-bold"/>
-            <button type="button" data-shd="${i}" class="p-1.5 rounded-xl text-slate-400 hover:text-rose-600 ${canDel ? '' : 'opacity-30'}">✕</button>
-          </div>
-          <div class="flex items-center gap-2 text-[11px]">
-            <button type="button" data-shl="${i}" class="font-bold text-indigo-600 dark:text-indigo-400 hover:underline">${s.logoDataUrl ? 'Change Logo' : '+ Upload Logo'}</button>
-            ${s.logoDataUrl ? `<button type="button" data-shrl="${i}" class="font-bold text-rose-500 hover:underline">Remove</button>` : ''}
-            <span class="text-slate-300 dark:text-slate-600">·</span>
-            <button type="button" data-shac="${esc(s.id)}" class="font-bold text-rose-600 dark:text-rose-400 hover:underline">+ Add Cost</button>
-          </div>
+        <button type="button" data-shl="${i}" title="Upload logo" class="w-12 h-12 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 flex items-center justify-center overflow-hidden shrink-0 shadow-sm">${s.logoDataUrl ? `<img src="${s.logoDataUrl}" alt="" class="w-full h-full object-cover"/>` : '<span class="text-xl">🛍️</span>'}</button>
+        <div class="flex-1 min-w-0 flex items-center gap-1.5">
+          <input type="text" maxlength="32" required placeholder="Shop name" value="${esc(s.name)}" data-shn="${i}" class="flex-1 min-w-0 px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm font-bold"/>
+          <button type="button" data-shc="${esc(s.id)}" title="Pick color" class="px-2.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-semibold flex items-center gap-1.5 shrink-0"><span class="w-3.5 h-3.5 rounded-full shrink-0" style="background:${col.hex}"></span><span class="hidden sm:inline">${col.label}</span></button>
+          <button type="button" data-shd="${i}" class="p-2 rounded-xl text-slate-400 hover:text-rose-600 ${canDel ? '' : 'opacity-30'}">✕</button>
         </div>
+      </div>
+      ${open ? `<div class="pt-2 pb-1 border-y border-slate-200/70 dark:border-slate-700 flex flex-wrap gap-2">${COLORS.map((c) => `<button type="button" data-shpc="${i}:${c.key}" title="${c.label}" class="w-7 h-7 rounded-full flex items-center justify-center ${c.key === s.colorKey ? 'ring-2 ring-offset-2 ring-amber-500 scale-110' : ''}" style="background:${c.hex}">${c.key === s.colorKey ? '<span class="text-white text-xs font-bold">✓</span>' : ''}</button>`).join('')}</div>` : ''}
+      <div class="flex flex-wrap items-center gap-2">
+        <button type="button" data-shl="${i}" class="flex-1 min-w-[115px] py-2 px-3 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200/70 dark:border-indigo-800/60 text-xs font-bold text-center">📷 ${s.logoDataUrl ? 'Change Logo' : 'Upload Logo'}</button>
+        ${s.logoDataUrl ? `<button type="button" data-shrl="${i}" class="py-2 px-3 rounded-xl bg-slate-200/70 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-bold">Remove</button>` : ''}
+        <button type="button" data-shac="${esc(s.id)}" class="flex-1 min-w-[115px] py-2 px-3 rounded-xl bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200/70 dark:border-rose-800/60 text-xs font-bold text-center">📦 + Add Cost</button>
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
         <div class="space-y-1"><label class="text-[11px] font-semibold text-slate-500">Starting Capital (${esc(cur)})</label><input type="text" inputmode="decimal" placeholder="0" value="${s.startingCapital ? fmtNum(s.startingCapital) : ''}" data-shk="${i}" class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm font-bold tabular-nums"/></div>
@@ -451,7 +517,8 @@ function renderShopsEditor(focusId = null) {
   box.querySelectorAll('[data-shn]').forEach((el) => (el.oninput = () => (state.settingsShopsDraft[+el.dataset.shn].name = el.value)));
   box.querySelectorAll('[data-shf]').forEach((el) => (el.oninput = () => (state.settingsShopsDraft[+el.dataset.shf].footer = el.value)));
   box.querySelectorAll('[data-shk]').forEach((el) => (el.oninput = () => { fmtAmtInput(el); state.settingsShopsDraft[+el.dataset.shk].startingCapital = parseAmt(el.value); }));
-  box.querySelectorAll('[data-shc]').forEach((b) => (b.onclick = () => { const i = +b.dataset.shc, curI = COLORS.findIndex((c) => c.key === state.settingsShopsDraft[i].colorKey); state.settingsShopsDraft[i].colorKey = COLORS[(curI + 1) % COLORS.length].key; renderShopsEditor(); }));
+  box.querySelectorAll('[data-shc]').forEach((b) => (b.onclick = () => { state.openColorPickerShopId = state.openColorPickerShopId === b.dataset.shc ? null : b.dataset.shc; renderShopsEditor(); }));
+  box.querySelectorAll('[data-shpc]').forEach((b) => (b.onclick = () => { const [i, k] = b.dataset.shpc.split(':'); state.settingsShopsDraft[+i].colorKey = k; state.openColorPickerShopId = null; renderShopsEditor(); }));
   box.querySelectorAll('[data-shl]').forEach((b) => (b.onclick = () => { state.logoUploadTargetIdx = +b.dataset.shl; $('shop-logo-file-input').value = ''; $('shop-logo-file-input').click(); }));
   box.querySelectorAll('[data-shrl]').forEach((b) => (b.onclick = () => { state.settingsShopsDraft[+b.dataset.shrl].logoDataUrl = ''; renderShopsEditor(); }));
   box.querySelectorAll('[data-shac]').forEach((b) => (b.onclick = () => { $('shop-settings-modal').classList.add('hidden'); openShopTxModal('capital', null, b.dataset.shac); }));
@@ -460,6 +527,7 @@ function renderShopsEditor(focusId = null) {
 }
 
 export function openManageShops() {
+  state.openColorPickerShopId = null;
   state.settingsShopsDraft = getShops().map((s) => ({ ...s }));
   renderShopsEditor();
   $('shop-settings-modal').classList.remove('hidden');
@@ -615,18 +683,27 @@ export function initShopModule() {
     state.shopFilters.category = 'all';
     state.shopFilters.type = 'pending_cod';
     state.shopFilters.month = 'all';
+    state.shopHistoryMode = 'list';
     switchView('history', { keepShopFilter: true, historySub: 'shop' });
   };
   $('shop-view-all-history-btn').onclick = () => switchView('history', { historySub: 'shop' });
-  $('shop-new-sale-btn')?.addEventListener('click', () => openShopTxModal('sale'));
-  $('shop-new-capital-btn')?.addEventListener('click', () => openShopTxModal('capital'));
   $('manage-shops-btn')?.addEventListener('click', openManageShops);
 
-  // Shop Analytics controls
+  // Shop Analytics controls (Per-Shop + Month)
+  $('sa-shop-select')?.addEventListener('change', (e) => { state.shopAnalyticsShopId = e.target.value; renderShopAnalytics(); });
   $('sa-month-select').onchange = (e) => { state.shopAnalyticsMonth = e.target.value; renderShopAnalytics(); };
   const shiftSa = (d) => { const c = state.shopAnalyticsMonth === 'all' ? curMonth() : state.shopAnalyticsMonth, [y, m] = c.split('-').map(Number), nd = new Date(y, m - 1 + d, 1); state.shopAnalyticsMonth = `${nd.getFullYear()}-${String(nd.getMonth() + 1).padStart(2, '0')}`; renderShopAnalytics(); };
   $('sa-prev-month').onclick = () => shiftSa(-1);
   $('sa-next-month').onclick = () => shiftSa(1);
+
+  // Shop History Calendar & Mode toggles
+  $('shop-history-mode-list')?.addEventListener('click', () => { state.shopHistoryMode = 'list'; renderShopHistory(); });
+  $('shop-history-mode-calendar')?.addEventListener('click', () => { state.shopHistoryMode = 'calendar'; state.shopCalendarMonth = state.shopFilters.month !== 'all' ? state.shopFilters.month : curMonth(); renderShopHistory(); });
+  const shiftShopCal = (d) => { const [y, m] = (state.shopCalendarMonth || curMonth()).split('-').map(Number), nd = new Date(y, m - 1 + d, 1); state.shopCalendarMonth = `${nd.getFullYear()}-${String(nd.getMonth() + 1).padStart(2, '0')}`; renderShopCalendar(); };
+  $('shop-cal-prev-month')?.addEventListener('click', () => shiftShopCal(-1));
+  $('shop-cal-next-month')?.addEventListener('click', () => shiftShopCal(1));
+  $('shop-cal-today-btn')?.addEventListener('click', () => { state.shopCalendarMonth = curMonth(); state.shopCalendarSelectedDate = todayISO(); renderShopCalendar(); });
+  $('shop-cal-add-for-date-btn')?.addEventListener('click', () => openShopTxModal('sale', null, state.shopFilters.category !== 'all' ? state.shopFilters.category : null, state.shopCalendarSelectedDate));
 
   // Sale / Capital Modal
   $('stx-modal-close').onclick = () => $('shop-tx-modal').classList.add('hidden');
@@ -724,7 +801,6 @@ export function initShopModule() {
   // Manage Shops Modal
   $('shop-settings-close').onclick = () => $('shop-settings-modal').classList.add('hidden');
   $('shop-settings-modal').onclick = (e) => { if (e.target.id === 'shop-settings-modal') $('shop-settings-modal').classList.add('hidden'); };
-  $('manage-record-capital-btn').onclick = () => { $('shop-settings-modal').classList.add('hidden'); openShopTxModal('capital'); };
   $('shop-logo-file-input').onchange = (e) => {
     const file = e.target.files?.[0], idx = state.logoUploadTargetIdx;
     if (!file || idx < 0 || !state.settingsShopsDraft[idx]) return;
@@ -764,10 +840,10 @@ export function initShopModule() {
     finally { btn.disabled = false; btn.textContent = 'Save Shops'; }
   };
 
-  // Shop History Filters (Debounced Search — re-renders ONLY History list, never Shop Home!)
+  // Shop History Filters (Debounced Search — re-renders ONLY Shop History/Calendar)
   let shopSearchTimer = 0;
   $('shop-search').oninput = (e) => { clearTimeout(shopSearchTimer); shopSearchTimer = setTimeout(() => { state.shopFilters.search = e.target.value; renderShopHistory(); }, 150); };
-  $('shop-filter-month').onchange = (e) => { state.shopFilters.month = e.target.value; renderShopHistory(); };
+  $('shop-filter-month').onchange = (e) => { state.shopFilters.month = e.target.value; if (e.target.value !== 'all') state.shopCalendarMonth = e.target.value; renderShopHistory(); };
   $('shop-filter-cat').onchange = (e) => { state.shopFilters.category = e.target.value; state.shopFilterActive = e.target.value !== 'all'; renderShopHistory(); };
   $('shop-filter-type').onchange = (e) => { state.shopFilters.type = e.target.value; renderShopHistory(); };
   $('shop-reset-filters-btn').onclick = () => { state.shopFilterActive = false; state.shopFilters = { search: '', month: curMonth(), category: 'all', type: 'all' }; $('shop-search').value = ''; renderShopHistory(); };

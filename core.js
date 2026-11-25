@@ -41,6 +41,7 @@ export const COLORS = [
   ['yellow','Gold','#eab308'],['slate','Slate','#64748b']
 ].map(([key, label, hex]) => ({ key, label, hex }));
 export const COLOR_MAP = Object.fromEntries(COLORS.map((c) => [c.key, c]));
+export const DEFAULT_PERSON_COLORS = { person1: 'indigo', person2: 'fuchsia' };
 
 export const STARTER_WALLETS = [
   { id: 'cash', name: 'Cash', iconType: 'cash', colorKey: 'emerald' },
@@ -62,7 +63,7 @@ export const COST_COLORS = ['#f43f5e', '#f59e0b', '#6366f1', '#0ea5e9', '#10b981
 
 export const MODAL_IDS = [
   'confirm-modal', 'cod-pay-modal', 'receipt-modal',
-  'tx-modal', 'shop-tx-modal', 'settings-modal', 'shop-settings-modal', 'templates-modal'
+  'tx-modal', 'shop-tx-modal', 'wallets-modal', 'settings-modal', 'shop-settings-modal', 'templates-modal'
 ];
 
 // --- DATE & BASIC HELPERS ---
@@ -78,7 +79,8 @@ export const state = {
   darkMode: document.documentElement.classList.contains('dark'), privacyMode: false, activePerson: 'person1',
   workspace: {
     name: 'My Ledger', joinPin: '', wallets: STARTER_WALLETS.map((w) => ({ ...w })), archivedWalletNames: {},
-    openingBalances: { cash: 0, bank: 0 }, userNames: { person1: 'Person 1', person2: 'Person 2' }, currency: 'Ks',
+    openingBalances: { cash: 0, bank: 0 }, userNames: { person1: 'Person 1', person2: 'Person 2' },
+    userColors: { ...DEFAULT_PERSON_COLORS }, currency: 'Ks',
     customExpenseCategories: [], customIncomeCategories: [], quickTemplates: [],
     shopCategories: DEFAULT_SHOPS.map((c) => ({ ...c })),
     shopProfile: { name: '', footer: 'Thank you for your purchase!', logoDataUrl: '' }
@@ -90,11 +92,13 @@ export const state = {
   analyticsMonth: curMonth(), analyticsScope: 'all',
   txDraft: { editId: null, type: 'expense', wallet: 'cash', fromWallet: 'cash', toWallet: 'bank', category: 'Food & Dining', person: 'person1' },
   settingsDraftWallets: [], openColorPickerWalletId: null,
+  settingsPersonColorsDraft: { ...DEFAULT_PERSON_COLORS }, openPersonColorPicker: null,
   // Shop view state
   shopFilterActive: false, shopFilters: { search: '', month: curMonth(), category: 'all', type: 'all' },
-  shopAnalyticsMonth: curMonth(),
+  shopHistoryMode: 'list', shopCalendarMonth: curMonth(), shopCalendarSelectedDate: todayISO(),
+  shopAnalyticsMonth: curMonth(), shopAnalyticsShopId: 'all',
   shopDraft: { editId: null, mode: 'sale', shopCategoryId: 'shop1', costSubType: 'Stock / Capital', wallet: 'cash', items: [{ name: '', qty: 1, price: '' }], splitMode: 'full_paid', existingCodStatus: 'none', existingCodWallet: '', existingCodPaidDate: '' },
-  codPayDraft: { txId: null, wallet: 'cash' }, settingsShopsDraft: [], logoUploadTargetIdx: -1, activeReceiptTx: null,
+  codPayDraft: { txId: null, wallet: 'cash' }, settingsShopsDraft: [], openColorPickerShopId: null, logoUploadTargetIdx: -1, activeReceiptTx: null,
   // Shared UI
   confirmCallback: null,
   charts: { expenseCategory: null, incomeExpense: null, walletDistribution: null, personBreakdown: null, shopTrend: null, shopCats: null, shopCosts: null }
@@ -105,10 +109,18 @@ export const isActiveUser = (v) => v === 'person1' || v === 'person2';
 export const isValidPerson = (v) => isActiveUser(v) || v === 'shared';
 export const getOwner = (t) => (t?.scope === 'shop' || t?.loggedBy === 'shop') ? 'shop' : (isValidPerson(t?.loggedBy) ? t.loggedBy : 'person1');
 export const personName = (k) => k === 'shop' ? 'Shop' : k === 'shared' ? 'Shared' : (k === 'person2' ? (state.workspace.userNames?.person2 || 'Person 2') : (state.workspace.userNames?.person1 || 'Person 1'));
+export const getPersonColor = (k) => {
+  if (k === 'shop') return COLOR_MAP.amber;
+  if (k === 'shared') return COLOR_MAP.teal;
+  const key = k === 'person2'
+    ? (state.workspace.userColors?.person2 || DEFAULT_PERSON_COLORS.person2)
+    : (state.workspace.userColors?.person1 || DEFAULT_PERSON_COLORS.person1);
+  return COLOR_MAP[key] || COLOR_MAP[k === 'person2' ? 'fuchsia' : 'indigo'];
+};
 export const fmtNum = (n) => { const x = Number(n) || 0; return `${x < 0 ? '-' : ''}${Math.abs(x).toLocaleString('en-US', { maximumFractionDigits: 2 })}`; };
 export const fmtMoney = (n, plus = false) => `${plus && Number(n) > 0 ? '+' : ''}${fmtNum(n)} ${state.workspace.currency || 'Ks'}`;
 export const fmtDisp = (n, plus = false) => state.privacyMode ? '••••••' : fmtMoney(n, plus);
-export const fmtCompact = (n) => { if (state.privacyMode) return '••'; const x = Math.abs(Number(n) || 0); return x >= 1e6 ? `${(x/1e6).toFixed(x>=1e7?0:1).replace(/\.0$/,'')}M` : x >= 1e3 ? `${(x/1e3).toFixed(x>=1e5?0:1).replace(/\.0$/,'')}k` : String(Math.round(x)); };
+export const fmtCompact = (n) => { const x = Math.abs(Number(n) || 0); return x >= 1e6 ? `${(x/1e6).toFixed(x>=1e7?0:1).replace(/\.0$/,'')}M` : x >= 1e3 ? `${(x/1e3).toFixed(x>=1e5?0:1).replace(/\.0$/,'')}k` : String(Math.round(x)); };
 export const parseAmt = (v) => { const n = parseFloat(String(v || '').replace(/,/g, '').replace(/[^\d.]/g, '')); return Number.isFinite(n) ? n : 0; };
 export const parseSigned = (v) => String(v || '').trim().startsWith('-') ? -parseAmt(v) : parseAmt(v);
 export const fmtAmtInput = (el) => {
@@ -148,7 +160,7 @@ export const getShops = () => {
     const col = COLOR_MAP[s.colorKey] || COLORS[i % COLORS.length];
     return {
       id: s.id || `shop${i + 1}`, name: s.name || `Shop ${i + 1}`,
-      colorKey: col.key, hex: col.hex, startingCapital: Number(s.startingCapital) || 0,
+      colorKey: col.key, colorLabel: col.label, hex: col.hex, startingCapital: Number(s.startingCapital) || 0,
       footer: s.footer !== undefined ? s.footer : (lp.footer || 'Thank you for your purchase!'),
       logoDataUrl: s.logoDataUrl !== undefined ? s.logoDataUrl : (i === 0 ? (lp.logoDataUrl || '') : '')
     };
@@ -156,8 +168,8 @@ export const getShops = () => {
 };
 export const getShop = (id, fallback = '') => {
   const lp = state.workspace.shopProfile || {};
-  if (id === 'general') return { id: 'general', name: 'General Shop', hex: '#64748b', colorKey: 'slate', startingCapital: 0, footer: lp.footer || 'Thank you for your purchase!', logoDataUrl: lp.logoDataUrl || '' };
-  return getShops().find((s) => s.id === id) || { id: id || 'general', name: fallback || lp.name || 'Shop', hex: '#64748b', colorKey: 'slate', startingCapital: 0, footer: lp.footer || 'Thank you for your purchase!', logoDataUrl: lp.logoDataUrl || '' };
+  if (id === 'general') return { id: 'general', name: 'General Shop', hex: '#64748b', colorKey: 'slate', colorLabel: 'Slate', startingCapital: 0, footer: lp.footer || 'Thank you for your purchase!', logoDataUrl: lp.logoDataUrl || '' };
+  return getShops().find((s) => s.id === id) || { id: id || 'general', name: fallback || lp.name || 'Shop', hex: '#64748b', colorKey: 'slate', colorLabel: 'Slate', startingCapital: 0, footer: lp.footer || 'Thank you for your purchase!', logoDataUrl: lp.logoDataUrl || '' };
 };
 
 // Shop & COD math (shared across Money & Shop)
@@ -198,7 +210,7 @@ export const computeBalances = () => {
 
 export const getAvailableMonths = () => {
   const s = new Set([curMonth()]);
-  [state.analyticsMonth, state.filters.month, state.shopAnalyticsMonth, state.shopFilters.month].forEach((m) => { if (m && m !== 'all') s.add(m); });
+  [state.analyticsMonth, state.filters.month, state.shopAnalyticsMonth, state.shopFilters.month, state.calendarMonth, state.shopCalendarMonth].forEach((m) => { if (m && m !== 'all') s.add(m); });
   state.transactions.forEach((t) => { if (t.date?.length >= 7) s.add(t.date.slice(0, 7)); });
   const now = new Date();
   for (let i = 0; i < 6; i++) { const d = new Date(now.getFullYear(), now.getMonth() - i, 1); s.add(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`); }
@@ -262,7 +274,7 @@ export const ensureChartJs = () => typeof Chart !== 'undefined' ? Promise.resolv
 export const ensureGis = () => window.google?.accounts?.id ? Promise.resolve(true) : (gisPromise ||= loadScript('https://accounts.google.com/gsi/client').then((ok) => { if (!ok) gisPromise = null; return ok && Boolean(window.google?.accounts?.id); }));
 
 // --- RENDER SCHEDULER & MODULE HOOKS ---
-const hooks = { onRender: null, ensureShopLoaded: null, onOpenNewEntry: null };
+const hooks = { onRender: null, ensureShopLoaded: null };
 export function registerHooks(h) { Object.assign(hooks, h); }
 
 let renderRaf = 0;
@@ -278,19 +290,25 @@ export function scheduleRender() {
 export function renderHeaderShell() {
   if (!isActiveUser(state.activePerson)) state.activePerson = 'person1';
   const an = personName(state.activePerson), wsName = state.workspace.name || 'My Ledger';
+  const apCol = getPersonColor(state.activePerson);
   const isShopMode = state.currentView === 'shop' || (state.currentView === 'analytics' && state.analyticsSub === 'shop') || (state.currentView === 'history' && state.historySub === 'shop');
 
   const swl = $('sidebar-workspace-label'), mhs = $('mobile-header-subtitle'), mpp = $('mobile-person-pill');
   if (swl) swl.textContent = wsName;
   if (mhs) mhs.textContent = isShopMode ? `${wsName} · Shop` : `${wsName} · ${an}`;
-  if (mpp) { mpp.textContent = an.length > 8 ? an.slice(0, 7) + '…' : an; mpp.classList.toggle('hidden', isShopMode); }
+  if (mpp) {
+    mpp.textContent = an.length > 8 ? an.slice(0, 7) + '…' : an;
+    mpp.style.background = `${apCol.hex}20`;
+    mpp.style.color = apCol.hex;
+    mpp.style.borderColor = `${apCol.hex}55`;
+    mpp.classList.toggle('hidden', isShopMode);
+  }
 
   document.querySelectorAll('.quick-person-btn').forEach((b) => {
-    const k = b.dataset.quickPerson;
-    b.textContent = personName(k);
-    b.className = k === state.activePerson
-      ? 'quick-person-btn py-2 px-1 rounded-lg bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm truncate'
-      : 'quick-person-btn py-2 px-1 rounded-lg text-slate-500 truncate';
+    const k = b.dataset.quickPerson, c = getPersonColor(k), active = k === state.activePerson;
+    b.innerHTML = `<span class="inline-flex items-center justify-center gap-1.5 max-w-full"><span class="w-2 h-2 rounded-full shrink-0" style="background:${c.hex}"></span><span class="truncate">${esc(personName(k))}</span></span>`;
+    b.className = active ? 'quick-person-btn py-2 px-1 rounded-lg bg-white dark:bg-slate-900 shadow-sm truncate font-bold' : 'quick-person-btn py-2 px-1 rounded-lg text-slate-500 truncate';
+    b.style.color = active ? c.hex : '';
   });
 
   // Context-aware mobile FAB color (Emerald for Shop, Indigo for Money)
@@ -402,6 +420,10 @@ export function loadSnap(wsId) {
       wallets: w.wallets?.length ? w.wallets : STARTER_WALLETS.map((x) => ({ ...x })),
       openingBalances: w.openingBalances || {},
       userNames: { person1: w.userNames?.person1 || 'Person 1', person2: w.userNames?.person2 || 'Person 2' },
+      userColors: {
+        person1: COLOR_MAP[w.userColors?.person1] ? w.userColors.person1 : DEFAULT_PERSON_COLORS.person1,
+        person2: COLOR_MAP[w.userColors?.person2] ? w.userColors.person2 : DEFAULT_PERSON_COLORS.person2
+      },
       currency: w.currency || 'Ks',
       shopCategories: w.shopCategories?.length ? w.shopCategories : DEFAULT_SHOPS.map((c) => ({ ...c })),
       shopProfile: { name: w.shopProfile?.name || '', footer: w.shopProfile?.footer || 'Thank you for your purchase!', logoDataUrl: w.shopProfile?.logoDataUrl || '' }
@@ -572,6 +594,10 @@ export function subscribeWs(wsId) {
       ...state.workspace, ...d, name: d.name || 'My Ledger', joinPin: d.joinPin || '', wallets,
       archivedWalletNames: d.archivedWalletNames || {}, openingBalances: ob,
       userNames: { person1: d.userNames?.person1 || 'Person 1', person2: d.userNames?.person2 || 'Person 2' },
+      userColors: {
+        person1: COLOR_MAP[d.userColors?.person1] ? d.userColors.person1 : DEFAULT_PERSON_COLORS.person1,
+        person2: COLOR_MAP[d.userColors?.person2] ? d.userColors.person2 : DEFAULT_PERSON_COLORS.person2
+      },
       currency: d.currency || 'Ks',
       customExpenseCategories: d.customExpenseCategories || [], customIncomeCategories: d.customIncomeCategories || [],
       quickTemplates: d.quickTemplates || [],
@@ -663,7 +689,7 @@ export function startFirebaseBackground() {
   });
 }
 
-// --- CLEAN SPA BACK-BUTTON EXIT GUARD (NO PAGE BOUNCE) ---
+// --- CLEAN SPA BACK-BUTTON EXIT GUARD ---
 export function setupBackGuard() {
   let exiting = false;
   const cleanUrl = `${location.pathname}${location.search}`;
@@ -697,7 +723,7 @@ export function setupBackGuard() {
   $('exit-confirm-btn')?.addEventListener('click', doExit);
 }
 
-// --- AUTO-UPDATE SERVICE WORKER REGISTRATION (NO MANUAL CACHE CLEAR NEEDED) ---
+// --- AUTO-UPDATE SERVICE WORKER REGISTRATION ---
 export function setupServiceWorkerUpdates() {
   if (!('serviceWorker' in navigator) || (location.protocol !== 'https:' && location.hostname !== 'localhost')) return;
   const bootTime = Date.now();
@@ -706,7 +732,6 @@ export function setupServiceWorkerUpdates() {
   const triggerUpdate = () => {
     if (notified) return;
     notified = true;
-    // Seamless auto-reload if update arrives right on launch & no modal is open (with loop guard)
     const lastAuto = Number(sessionStorage.getItem('df_last_auto_reload') || 0);
     if (Date.now() - bootTime < 5000 && !hasOpenModal() && Date.now() - lastAuto > 15000) {
       sessionStorage.setItem('df_last_auto_reload', String(Date.now()));
@@ -786,7 +811,8 @@ export function bindCoreEvents() {
       await fb.setDoc(fb.doc(db, 'delights_flow_workspaces', wsId), {
         ownerUid: state.user.uid, memberUids: [state.user.uid], joinPin: pin, name, currency,
         wallets: STARTER_WALLETS.map((w) => ({ ...w })), archivedWalletNames: {}, openingBalances: { cash: 0, bank: 0 },
-        userNames: { person1: p1, person2: 'Person 2' }, customExpenseCategories: [], customIncomeCategories: [], quickTemplates: [],
+        userNames: { person1: p1, person2: 'Person 2' }, userColors: { ...DEFAULT_PERSON_COLORS },
+        customExpenseCategories: [], customIncomeCategories: [], quickTemplates: [],
         shopCategories: DEFAULT_SHOPS.map((c) => ({ ...c })), shopProfile: { name: '', footer: 'Thank you for your purchase!', logoDataUrl: '' },
         createdAt: Date.now(), updatedAt: Date.now()
       });
@@ -816,7 +842,7 @@ export function bindCoreEvents() {
   const togTheme = () => { state.darkMode = !state.darkMode; applyTheme(); saveUserProfile(); };
   $('desktop-theme-btn').onclick = togTheme; $('mobile-theme-btn').onclick = togTheme;
   const togPriv = () => { state.privacyMode = !state.privacyMode; applyPrivacy(); saveUserProfile(); scheduleRender(); };
-  ['hero-privacy-btn', 'shop-hero-privacy-btn', 'mobile-privacy-btn'].forEach((id) => { if ($(id)) $(id).onclick = togPriv; });
+  if ($('hero-privacy-btn')) $('hero-privacy-btn').onclick = togPriv;
 
   document.querySelectorAll('.quick-person-btn').forEach((b) => b.addEventListener('click', () => { state.activePerson = b.dataset.quickPerson; scheduleRender(); saveUserProfile(); }));
   $('mobile-person-pill').onclick = () => { state.activePerson = state.activePerson === 'person1' ? 'person2' : 'person1'; scheduleRender(); saveUserProfile(); };
