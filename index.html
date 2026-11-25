@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Delights Flow</title>
+  
+  <!-- Anti-Cache Meta Tags to prevent GitHub Pages caching old versions -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%233b82f6'/><path d='M30 50 L45 65 L70 35' stroke='white' stroke-width='8' fill='none' stroke-linecap='round'/></svg>" />
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'] }, colors: { brand: '#3b82f6', shop: '#8b5cf6' } } }
+    }
+  </script>
+  <script>
+    if (localStorage.getItem('df_dark') === '1' || (!('df_dark' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) document.documentElement.classList.add('dark');
+    else document.documentElement.classList.remove('dark');
+  </script>
+  <script>
+    window.__firebase_config = {
+      apiKey: "AIzaSyAKgqAtXONpTX9h87pm-sUx7MY0JJyEPTE",
+      authDomain: "delights-flow.firebaseapp.com",
+      projectId: "delights-flow",
+      storageBucket: "delights-flow.firebasestorage.app",
+      messagingSenderId: "967458395131",
+      appId: "1:967458395131:web:9cafabf5ed0a6c3bc0b15e"
+    };
+    window.__google_web_client_id = "967458395131-ahj573n9ea4artc7l3dj25gv4k26l92p.apps.googleusercontent.com";
+  </script>
+
+  <style>
+    body { overscroll-behavior-y: none; }
+    .hidden-scrollbar::-webkit-scrollbar { display: none; }
+    .hidden-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
+</head>
+<body class="bg-gray-50 text-gray-900 dark:bg-gray-950 dark:text-gray-100 antialiased selection:bg-brand selection:text-white transition-colors duration-200">
+
+  <div id="loading-screen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white dark:bg-gray-950">
+    <div class="animate-spin rounded-full h-12 w-12 border-4 border-brand border-t-transparent mb-4"></div>
+    <h2 class="text-lg font-semibold">Loading...</h2>
+  </div>
+
+  <div id="auth-screen" style="display: none;" class="fixed inset-0 z-40 bg-white dark:bg-gray-950 flex-col items-center justify-center p-4">
+    <div class="w-full max-w-md p-6 bg-white dark:bg-gray-900 rounded-2xl shadow-xl flex flex-col items-center">
+      <h1 class="text-2xl font-bold text-center mb-6">Delights Flow</h1>
+      <div id="g_id_onload" 
+           data-client_id="967458395131-ahj573n9ea4artc7l3dj25gv4k26l92p.apps.googleusercontent.com" 
+           data-context="signin" 
+           data-ux_mode="popup" 
+           data-callback="handleGoogleSignIn" 
+           data-auto_prompt="false"></div>
+      <div class="g_id_signin" data-type="standard" data-shape="rectangular" data-theme="outline" data-text="signin_with" data-size="large" data-logo_alignment="left"></div>
+    </div>
+  </div>
+
+  <div id="app-shell" style="display: none;" class="h-screen w-full overflow-hidden">
+    <div class="flex-1 flex flex-col h-full overflow-hidden relative">
+      <header class="md:hidden sticky top-0 z-20 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-800 px-4 h-14 flex items-center justify-between">
+        <div class="flex items-center gap-2"><h1 class="text-lg font-bold">DF</h1><div class="w-2 h-2 rounded-full bg-green-500"></div></div>
+        <button id="btn-logout" class="text-xs text-red-500 font-bold">Log Out</button>
+      </header>
+
+      <main class="flex-1 overflow-y-auto pb-20 md:pb-6 p-4 md:p-6">
+        <!-- Money Views -->
+        <div id="view-overview" style="display: block;">
+          <div class="bg-white dark:bg-gray-900 p-5 rounded-2xl shadow-sm mb-6">
+            <h2 id="mo-net" class="text-3xl font-bold mb-4">$0.00</h2>
+            <div class="grid grid-cols-2 gap-4">
+              <div class="bg-green-50 dark:bg-green-900/20 p-3 rounded-xl"><div class="text-xs text-green-600">Income</div><div id="mo-inc" class="text-lg font-bold text-green-700">$0</div></div>
+              <div class="bg-red-50 dark:bg-red-900/20 p-3 rounded-xl"><div class="text-xs text-red-600">Expense</div><div id="mo-exp" class="text-lg font-bold text-red-700">$0</div></div>
+            </div>
+          </div>
+          <h3 class="font-bold text-lg mb-3">Wallets</h3><div id="mo-wallets" class="grid grid-cols-2 gap-3 mb-6"></div>
+          <h3 class="font-bold text-lg mb-3">Recent</h3><div id="mo-recent" class="space-y-2"></div>
+        </div>
+        <div id="view-history" style="display: none;"><h2 class="text-xl font-bold mb-4">History</h2><div id="mh-list" class="space-y-3"></div></div>
+        
+        <!-- Shop Views -->
+        <div id="shop-tab-home" style="display: none;">
+          <div class="bg-white dark:bg-gray-900 p-5 rounded-2xl shadow-sm mb-6 border border-shop/20">
+            <div class="text-sm font-medium text-shop mb-1">Today's Sales</div>
+            <h2 id="sh-today" class="text-3xl font-bold mb-4">$0.00</h2>
+          </div>
+          <h3 class="font-bold text-lg mb-3">Shops</h3><div id="sh-shops" class="grid grid-cols-2 gap-3 mb-6"></div>
+          <h3 class="font-bold text-lg mb-3">Recent</h3><div id="sh-recent" class="space-y-2"></div>
+        </div>
+        <div id="shop-tab-history" style="display: none;"><h2 class="text-xl font-bold mb-4">Shop History</h2><div id="sh-list" class="space-y-3"></div></div>
+      </main>
+
+      <!-- Mobile Navs -->
+      <div id="mobile-nav-money" style="display: flex;" class="md:hidden absolute bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 justify-around items-center h-16 pb-safe">
+        <button class="flex flex-col items-center p-2 text-brand font-medium"><span class="text-xl">📊</span><span class="text-[10px]">Overview</span></button>
+        <button class="flex flex-col items-center p-2 text-gray-500"><span class="text-xl">🏪</span><span class="text-[10px]">Shop</span></button>
+        <button class="w-12 h-12 -mt-6 bg-brand text-white rounded-full flex items-center justify-center text-2xl shadow-lg shadow-brand/30">+</button>
+        <button class="flex flex-col items-center p-2 text-gray-500"><span class="text-xl">📜</span><span class="text-[10px]">History</span></button>
+      </div>
+      
+      <div id="mobile-nav-shop" style="display: none;" class="md:hidden absolute bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 justify-around items-center h-16 pb-safe">
+        <button class="flex flex-col items-center p-2 text-gray-500"><span class="text-xl">💵</span><span class="text-[10px]">Money</span></button>
+        <button class="flex flex-col items-center p-2 text-shop font-medium"><span class="text-xl">🏪</span><span class="text-[10px]">Shop</span></button>
+        <button class="w-12 h-12 -mt-6 bg-shop text-white rounded-full flex items-center justify-center text-2xl shadow-lg shadow-shop/30">+</button>
+        <button class="flex flex-col items-center p-2 text-gray-500"><span class="text-xl">📜</span><span class="text-[10px]">History</span></button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast-container" class="fixed top-4 right-4 z-[100] flex flex-col gap-2 pointer-events-none"></div>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+
+  <script>
+    const COLORS = ['#ef4444', '#f97316', '#f59e0b', '#84cc16', '#22c55e', '#10b981', '#14b8a6', '#06b6d4', '#0ea5e9', '#3b82f6', '#6366f1', '#8b5cf6', '#a855f7', '#d946ef', '#ec4899', '#f43f5e', '#64748b', '#78716c'];
+    const STARTER_WALLETS = [{ id: 'w1', name: 'Cash', icon: '💵', color: COLORS[4], opening: 0 }, { id: 'w2', name: 'Bank', icon: '🏦', color: COLORS[9], opening: 0 }];
+    const DEFAULT_SHOPS = [{ id: 's1', name: 'Shop 1', logoUrl: null, active: true }];
+
+    const state = {
+      mode: 'money', moneyView: 'overview', shopTab: 'home',
+      user: null, workspaceId: null, workspace: null, transactions: [], balances: {},
+      firebaseLoaded: false
+    };
+
+    const D = {};
+    const $ = id => document.getElementById(id);
+    const esc = str => String(str).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+    const fmtNum = (num, dec = 2) => Number(num).toLocaleString('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec });
+    const fmtMoney = (num, curr = '$', dec = 2) => `${num < 0 ? '-' : ''}${curr}${fmtNum(Math.abs(num), dec)}`;
+    const todayISO = () => new Date().toISOString().split('T')[0];
+    const curMonth = () => todayISO().substring(0, 7);
+
+    const getWallets = () => state.workspace?.wallets || STARTER_WALLETS;
+    const getShops = () => state.workspace?.shops || DEFAULT_SHOPS;
+
+    function toast(msg, type = 'info') {
+      if (!D.toast) D.toast = $('toast-container');
+      const t = document.createElement('div');
+      t.className = `px-4 py-2 rounded-lg text-white text-sm font-medium shadow-lg transform transition-all duration-300 translate-y-4 opacity-0 ${type === 'error' ? 'bg-red-500' : type === 'success' ? 'bg-green-500' : 'bg-gray-800'}`;
+      t.innerText = msg; D.toast.appendChild(t);
+      requestAnimationFrame(() => t.classList.remove('translate-y-4', 'opacity-0'));
+      setTimeout(() => { t.classList.add('translate-y-4', 'opacity-0'); setTimeout(() => t.remove(), 300); }, 3000);
+    }
+
+    function computeBalances() {
+      const b = { wallets: {}, shop: { rev: 0, cap: 0, cost: 0, pendCod: 0, net: 0, sIds: {} } };
+      getWallets().forEach(w => b.wallets[w.id] = w.opening || 0);
+      getShops().forEach(s => b.shop.sIds[s.id] = { rev: 0, cap: 0, cost: 0, pendCod: 0, net: 0 });
+
+      state.transactions.forEach(tx => {
+        if (tx.type === 'income') { b.wallets[tx.wId] += tx.amt; } 
+        else if (tx.type === 'expense') { b.wallets[tx.wId] -= tx.amt; }
+        else if (tx.type === 'shop_sale') {
+          b.shop.rev += tx.total; b.shop.net += tx.total;
+          if (b.shop.sIds[tx.sId]) { b.shop.sIds[tx.sId].rev += tx.total; b.shop.sIds[tx.sId].net += tx.total; }
+          if (tx.paidNow > 0 && tx.wId) b.wallets[tx.wId] += tx.paidNow;
+        } 
+      });
+      state.balances = b;
+    }
+
+    let fb = {};
+    async function ensureFirebase() {
+      if (state.firebaseLoaded) return fb;
+      try {
+        const [app, auth, firestore] = await Promise.all([
+          import('https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js'),
+          import('https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js'),
+          import('https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js')
+        ]);
+        const firebaseApp = app.initializeApp(window.__firebase_config);
+        fb.auth = auth.getAuth(firebaseApp); fb.db = firestore.getFirestore(firebaseApp);
+        fb.authMod = auth; fb.fsMod = firestore;
+        try { firestore.initializeFirestore(firebaseApp, { localCache: firestore.persistentLocalCache({ tabManager: firestore.persistentSingleTabManager({ forceOwnership: true }) }) }); } catch(e){}
+        state.firebaseLoaded = true;
+        return fb;
+      } catch(e) {}
+    }
+
+    // Google Sign-In Callback handler
+    window.handleGoogleSignIn = async (response) => {
+      try {
+        D.authScreen.style.display = 'none';
+        D.loadingScreen.style.display = 'flex';
+        const { auth, authMod } = await ensureFirebase();
+        const credential = authMod.GoogleAuthProvider.credential(response.credential);
+        const result = await authMod.signInWithCredential(auth, credential);
+        state.user = result.user;
+        localStorage.setItem('df_last_uid', state.user.uid);
+        localStorage.setItem('df_active_ws', state.user.uid + '_workspace'); // Default workspace mapping
+        window.location.reload();
+      } catch(e) {
+        toast("Login Failed", "error");
+        D.loadingScreen.style.display = 'none';
+        D.authScreen.style.display = 'flex';
+      }
+    };
+
+    function switchMode(mode, subTab = null) {
+      requestAnimationFrame(() => {
+        state.mode = mode;
+        if (mode === 'money') {
+          if(subTab) state.moneyView = subTab;
+          D.mobileNavMoney.style.display = 'flex'; D.mobileNavShop.style.display = 'none';
+          ['overview', 'history'].forEach(v => D[`view${v.charAt(0).toUpperCase()+v.slice(1)}`].style.display = (state.moneyView === v) ? 'block' : 'none');
+          D.shopTabHome.style.display = 'none'; D.shopTabHistory.style.display = 'none';
+          renderMoney();
+        } else {
+          if(subTab) state.shopTab = subTab;
+          D.mobileNavMoney.style.display = 'none'; D.mobileNavShop.style.display = 'flex';
+          ['home', 'history'].forEach(v => D[`shopTab${v.charAt(0).toUpperCase()+v.slice(1)}`].style.display = (state.shopTab === v) ? 'block' : 'none');
+          D.viewOverview.style.display = 'none'; D.viewHistory.style.display = 'none';
+          renderShop();
+        }
+      });
+    }
+
+    function renderMoney() {
+      if (state.moneyView !== 'overview') return;
+      const month = curMonth();
+      let netBal = getWallets().reduce((sum, w) => sum + (state.balances.wallets[w.id] || 0), 0);
+      let inc = 0, exp = 0;
+      
+      state.transactions.filter(t => t.date.startsWith(month)).forEach(t => {
+        if (t.type === 'income' || t.type === 'shop_sale') inc += (t.total || t.amt); 
+        else if (t.type === 'expense' || t.type === 'shop_cap') exp += (t.total || t.amt);
+      });
+      
+      $('mo-net').innerText = fmtMoney(netBal, state.workspace?.currency);
+      $('mo-inc').innerText = fmtMoney(inc, state.workspace?.currency, 0);
+      $('mo-exp').innerText = fmtMoney(exp, state.workspace?.currency, 0);
+      $('mo-wallets').innerHTML = getWallets().map(w => `<div class="bg-white dark:bg-gray-900 p-4 rounded-xl shadow-sm border-l-4" style="border-left-color: ${w.color||'#3b82f6'}"><div class="text-xl mb-2">${w.icon}</div><div class="text-sm text-gray-500 font-medium truncate">${esc(w.name)}</div><div class="text-lg font-bold">${fmtMoney(state.balances.wallets[w.id]||0, state.workspace?.currency, 0)}</div></div>`).join('');
+      $('mo-recent').innerHTML = state.transactions.slice(0, 8).map(t => `<div class="flex justify-between p-3 bg-white dark:bg-gray-900 rounded-xl mb-2"><div class="font-bold text-sm">${esc(t.note || 'Record')}</div><div class="font-bold ${t.type.includes('income')||t.type==='shop_sale'?'text-green-600':'text-red-600'}">${fmtMoney(t.total||t.amt, state.workspace?.currency)}</div></div>`).join('');
+    }
+
+    function renderShop() {
+      if (state.shopTab !== 'home') return;
+      let tSales = 0; 
+      state.transactions.forEach(t => { if (t.type==='shop_sale' && t.date===todayISO()) tSales += (t.paidNow||0); });
+      $('sh-today').innerText = fmtMoney(tSales, state.workspace?.currency);
+      $('sh-shops').innerHTML = getShops().map(s => {
+        const b = state.balances.shop.sIds[s.id] || { rev:0, cap:0 };
+        return `<div class="bg-white dark:bg-gray-900 p-4 rounded-xl border"><div class="font-bold mb-2">${esc(s.name)}</div><div class="text-xs">Sales: ${fmtCompact(b.rev)}</div></div>`;
+      }).join('');
+      $('sh-recent').innerHTML = state.transactions.filter(t => t.type.startsWith('shop_')).slice(0, 8).map(t => `<div class="flex justify-between p-3 bg-white dark:bg-gray-900 rounded-xl mb-2"><div class="font-bold text-sm">${t.type==='shop_sale'?'🛒 Sale':'🔥 Cost'}</div><div class="font-bold text-gray-800 dark:text-gray-200">${fmtMoney(t.total, state.workspace?.currency)}</div></div>`).join('');
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      ['loading-screen', 'auth-screen', 'app-shell', 'toast-container', 'mobile-nav-money', 'mobile-nav-shop', 'view-overview', 'view-history', 'shop-tab-home', 'shop-tab-history'].forEach(id => D[id.replace(/-([a-z])/g, g => g[1].toUpperCase())] = $(id));
+
+      const navSetup = (parent, isShopNav) => {
+        Array.from(parent.children).forEach((el, i) => {
+          el.onpointerdown = (e) => {
+            e.preventDefault();
+            if (isShopNav && i === 0) switchMode('money', 'overview');
+            else if (!isShopNav && i === 1) switchMode('shop', 'home');
+            else switchMode(isShopNav ? 'shop' : 'money', ['overview','shop','','history'][i]);
+          };
+          el.onclick = e => e.preventDefault();
+        });
+      };
+      navSetup(D.mobileNavMoney, false);
+      navSetup(D.mobileNavShop, true);
+
+      $('btn-logout').onclick = async () => {
+        const { auth, authMod } = await ensureFirebase();
+        authMod.signOut(auth);
+        localStorage.clear();
+        window.location.reload();
+      };
+
+      const lUid = localStorage.getItem('df_last_uid');
+      const lWs = localStorage.getItem('df_active_ws');
+      
+      if (lUid && lWs) {
+        try {
+          const snap = JSON.parse(localStorage.getItem(`df_snap_${lWs}`));
+          if (snap) { 
+            state.workspaceId = lWs; state.workspace = snap.ws || { wallets: STARTER_WALLETS, shops: DEFAULT_SHOPS }; state.transactions = snap.txs || []; 
+            computeBalances(); 
+            D.loadingScreen.style.display = 'none'; 
+            D.appShell.style.display = 'flex'; 
+            switchMode(state.mode, state.mode === 'money' ? state.moneyView : state.shopTab); 
+          }
+        } catch(e) {}
+        
+        setTimeout(async () => {
+          const fb = await ensureFirebase();
+          fb.authMod.onAuthStateChanged(fb.auth, user => {
+            if (!user || user.uid !== lUid) {
+               localStorage.removeItem('df_last_uid');
+               window.location.reload();
+            }
+          });
+        }, 50);
+      } else {
+        D.loadingScreen.style.display = 'none';
+        D.authScreen.style.display = 'flex';
+        setTimeout(ensureFirebase, 50);
+      }
+    });
+  </script>
+</body>
+</html>
