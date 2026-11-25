@@ -317,12 +317,40 @@ document.addEventListener('DOMContentLoaded', async () => {
   D.mobNMoney.children[2].onpointerdown = (e) => { e.preventDefault(); openMTxModal(); };
   D.mobNShop.children[2].onpointerdown = (e) => { e.preventDefault(); openShopTxModal(); };
 
-  // Load from Cache
+  const lUid = localStorage.getItem('df_last_uid');
   const lWs = localStorage.getItem('df_active_ws');
-  if (lWs) {
+  
+  if (lUid && lWs) {
     try {
       const snap = JSON.parse(localStorage.getItem(`df_snap_${lWs}`));
-      if (snap) { state.workspaceId = lWs; state.workspace = snap.ws; state.transactions = snap.txs || []; computeBalances(); $('loading-screen').classList.add('hidden'); D.appShell.classList.remove('hidden'); switchMode(state.mode, 'overview', {noHistory:true}); }
-    } catch(e) {}
+      if (snap) { 
+        state.workspaceId = lWs; 
+        state.workspace = snap.ws; 
+        state.transactions = snap.txs || []; 
+        computeBalances(); 
+        
+        $('loading-screen').classList.add('hidden'); 
+        D.appShell.classList.remove('hidden'); 
+        switchMode(state.mode, state.mode === 'money' ? state.moneyView : state.shopTab, {noHistory:true}); 
+      }
+    } catch(e) {
+      console.warn("Local cache corrupt, waiting for Firebase.");
+    }
+    
+    setTimeout(async () => {
+      const fb = await ensureFirebase();
+      fb.authMod.onAuthStateChanged(fb.auth, user => {
+        if (!user || user.uid !== lUid) {
+           localStorage.removeItem('df_last_uid');
+           window.location.reload();
+        }
+      });
+    }, 50);
+
+  } else {
+    $('loading-screen').classList.add('hidden');
+    D.authScreen.classList.remove('hidden'); D.authScreen.classList.add('flex');
+    
+    setTimeout(ensureFirebase, 50);
   }
 });
