@@ -1507,6 +1507,22 @@
       const shopName = shop.name || state.workspace.name || 'Delights Flow';
       const orderTotal = getSaleOrderTotal(tx), paidUp = getSalePaidUpfront(tx), codAmt = getSaleCodAmount(tx), codSt = getSaleCodStatus(tx);
       const items = Array.isArray(tx.items) && tx.items.length ? tx.items : [{ name: tx.note || 'Order Item', qty: 1, price: orderTotal }];
+
+      // Clean Invoice Style (Style A) payment lines
+      let paymentLines = [];
+      if (codAmt <= 0) {
+        paymentLines = [`Status     : ✓ PAID IN FULL`];
+      } else if (codSt === 'paid') {
+        paymentLines = [`Status     : ✓ PAID IN FULL (COD Received)`];
+      } else if (paidUp > 0) {
+        paymentLines = [
+          `Paid       : -${fmtMoney(paidUp)}`,
+          `COD Balance (To Pay) : ${fmtMoney(codAmt)}`
+        ];
+      } else {
+        paymentLines = [`Cash on Delivery (COD) : ${fmtMoney(codAmt)}`];
+      }
+
       return [
         `✨ ${shopName}`, `══════════════════════`,
         `Receipt No : ${tx.receiptNo || 'DF-RECEIPT'}`,
@@ -1518,9 +1534,8 @@
         `──────────────────────`,
         Number(tx.deliveryFee) > 0 ? `Delivery   : +${fmtMoney(tx.deliveryFee)}` : null,
         Number(tx.discount) > 0 ? `Discount   : -${fmtMoney(tx.discount)}` : null,
-        `GRAND TOTAL: ${fmtMoney(orderTotal)}`,
-        `Paid       : ${fmtMoney(codAmt > 0 ? paidUp : orderTotal)}`,
-        codAmt > 0 ? `${codSt === 'paid' ? 'COD (Paid) ' : 'COD Amount '}: ${fmtMoney(codAmt)}` : null,
+        `Total      : ${fmtMoney(orderTotal)}`,
+        ...paymentLines,
         `══════════════════════`,
         shop.footer || 'Thank you for shopping with us!'
       ].filter(Boolean).join('\n');
@@ -1537,6 +1552,11 @@
       const items = Array.isArray(tx.items) && tx.items.length ? tx.items : [{ name: tx.note || 'Order Item', qty: 1, price: orderTotal }];
       const subtotal = items.reduce((s, i) => s + ((Number(i.qty) || 1) * (Number(i.price) || 0)), 0);
       const delivery = Number(tx.deliveryFee) || 0, discount = Number(tx.discount) || 0;
+
+      // Payment state flags for Clean Invoice Style (Style A)
+      const isPartialPending = codAmt > 0 && codSt === 'pending' && paidUp > 0;
+      const isFullCodPending = codAmt > 0 && codSt === 'pending' && paidUp <= 0;
+      const isCodReceived = codAmt > 0 && codSt === 'paid';
 
       let logoImg = null;
       if (shop.logoDataUrl) {
@@ -1585,8 +1605,8 @@
       if (delivery > 0 || discount > 0) calcY += 32;
       if (delivery > 0) calcY += 32;
       if (discount > 0) calcY += 32;
-      calcY += 10 + 84;
-      calcY += codAmt > 0 ? 84 : 62;
+      calcY += 10 + 84; // Total bar + gap
+      calcY += isPartialPending ? 104 : isFullCodPending ? 70 : 64; // Style A payment section
       calcY += 16 + footerLines.length * 26 + 26;
 
       const cardH = calcY - outerPad;
@@ -1679,36 +1699,57 @@
       if (delivery > 0) drawKV('Delivery Fee', `+${fmtMoney(delivery)}`, false);
       if (discount > 0) drawKV('Discount', `-${fmtMoney(discount)}`, false, '#e11d48');
 
+      // Total Bar
       y += 10;
       const tGrad = ctx.createLinearGradient(leftX, y, rightX, y);
       tGrad.addColorStop(0, '#0f172a'); tGrad.addColorStop(1, '#312e81');
       drawRoundedRect(ctx, leftX, y, contentW, 68, 18); ctx.fillStyle = tGrad; ctx.fill();
       ctx.save();
       ctx.textBaseline = 'middle';
-      ctx.textAlign = 'left'; ctx.fillStyle = '#e0e7ff'; ctx.font = '700 18px Inter, system-ui, sans-serif'; ctx.fillText('GRAND TOTAL', leftX + 22, y + 34);
+      ctx.textAlign = 'left'; ctx.fillStyle = '#e0e7ff'; ctx.font = '700 20px Inter, system-ui, sans-serif'; ctx.fillText('Total', leftX + 22, y + 34);
       ctx.textAlign = 'right'; ctx.fillStyle = '#ffffff'; ctx.font = '800 28px Inter, system-ui, sans-serif'; ctx.fillText(fmtMoney(orderTotal), rightX - 22, y + 34);
       ctx.restore();
       y += 84;
 
-      if (codAmt > 0) {
-        const halfW = (contentW - 14) / 2;
-        drawRoundedRect(ctx, leftX, y, halfW, 66, 14); ctx.fillStyle = '#ecfdf5'; ctx.fill();
-        ctx.textAlign = 'left'; ctx.fillStyle = '#047857'; ctx.font = '700 13px Inter, system-ui, sans-serif'; ctx.fillText('PAID', leftX + 16, y + 12);
-        ctx.font = '800 20px Inter, system-ui, sans-serif'; ctx.fillText(fmtMoney(paidUp), leftX + 16, y + 34);
+      // Style A (Clean Invoice Style) — Adaptive Paid / COD Section
+      if (isPartialPending) {
+        // Paid deduction line
+        ctx.textAlign = 'left'; ctx.fillStyle = '#047857'; ctx.font = '700 18px Inter, system-ui, sans-serif'; ctx.fillText('Paid', leftX + 14, y + 2);
+        ctx.textAlign = 'right'; ctx.fillStyle = '#047857'; ctx.font = '700 18px Inter, system-ui, sans-serif'; ctx.fillText(`-${fmtMoney(paidUp)}`, rightX - 14, y + 2);
+        y += 34;
 
-        const codX = leftX + halfW + 14;
-        drawRoundedRect(ctx, codX, y, halfW, 66, 14); ctx.fillStyle = codSt === 'paid' ? '#ecfdf5' : '#fffbeb'; ctx.fill();
-        ctx.fillStyle = codSt === 'paid' ? '#047857' : '#b45309'; ctx.font = '700 13px Inter, system-ui, sans-serif'; ctx.fillText(codSt === 'paid' ? 'COD (PAID)' : 'COD AMOUNT', codX + 16, y + 12);
-        ctx.font = '800 20px Inter, system-ui, sans-serif'; ctx.fillText(fmtMoney(codAmt), codX + 16, y + 34);
-        y += 84;
-      } else {
-        drawRoundedRect(ctx, leftX, y, contentW, 46, 12); ctx.fillStyle = '#ecfdf5'; ctx.fill();
+        // Highlighted COD Balance (To Pay) box
+        drawRoundedRect(ctx, leftX, y, contentW, 56, 14);
+        ctx.fillStyle = '#fffbeb'; ctx.fill();
+        ctx.strokeStyle = '#fcd34d'; ctx.lineWidth = 1.5; ctx.stroke();
         ctx.save();
         ctx.textBaseline = 'middle';
-        ctx.textAlign = 'left'; ctx.fillStyle = '#065f46'; ctx.font = '700 16px Inter, system-ui, sans-serif'; ctx.fillText('PAID', leftX + 18, y + 23);
-        ctx.textAlign = 'right'; ctx.fillStyle = '#047857'; ctx.font = '800 18px Inter, system-ui, sans-serif'; ctx.fillText(fmtMoney(orderTotal), rightX - 18, y + 23);
+        ctx.textAlign = 'left'; ctx.fillStyle = '#b45309'; ctx.font = '700 17px Inter, system-ui, sans-serif'; ctx.fillText('COD Balance (To Pay)', leftX + 18, y + 28);
+        ctx.textAlign = 'right'; ctx.fillStyle = '#92400e'; ctx.font = '800 22px Inter, system-ui, sans-serif'; ctx.fillText(fmtMoney(codAmt), rightX - 18, y + 28);
         ctx.restore();
-        y += 62;
+        y += 70;
+      } else if (isFullCodPending) {
+        // Single clean Cash on Delivery (COD) box
+        drawRoundedRect(ctx, leftX, y, contentW, 56, 14);
+        ctx.fillStyle = '#fffbeb'; ctx.fill();
+        ctx.strokeStyle = '#fcd34d'; ctx.lineWidth = 1.5; ctx.stroke();
+        ctx.save();
+        ctx.textBaseline = 'middle';
+        ctx.textAlign = 'left'; ctx.fillStyle = '#b45309'; ctx.font = '700 17px Inter, system-ui, sans-serif'; ctx.fillText('Cash on Delivery (COD)', leftX + 18, y + 28);
+        ctx.textAlign = 'right'; ctx.fillStyle = '#92400e'; ctx.font = '800 22px Inter, system-ui, sans-serif'; ctx.fillText(fmtMoney(codAmt), rightX - 18, y + 28);
+        ctx.restore();
+        y += 70;
+      } else {
+        // Full Paid or COD Received green badge (no duplicated amount)
+        drawRoundedRect(ctx, leftX, y, contentW, 50, 14);
+        ctx.fillStyle = '#ecfdf5'; ctx.fill();
+        ctx.strokeStyle = '#a7f3d0'; ctx.lineWidth = 1.5; ctx.stroke();
+        ctx.save();
+        ctx.textBaseline = 'middle';
+        ctx.textAlign = 'center'; ctx.fillStyle = '#047857'; ctx.font = '800 17px Inter, system-ui, sans-serif';
+        ctx.fillText(isCodReceived ? '✓  PAID IN FULL (COD Received)' : '✓  PAID IN FULL', W / 2, y + 25);
+        ctx.restore();
+        y += 64;
       }
 
       y += 16; ctx.textAlign = 'center'; ctx.fillStyle = '#64748b'; ctx.font = '600 18px Inter, system-ui, sans-serif';
