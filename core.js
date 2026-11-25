@@ -350,45 +350,38 @@ export async function saveUserProfile(extra) {
 
 // 10. Navigation & Mode Switcher
 export function switchMode(mode, subTab = null, opts = {}) {
-  requestAnimationFrame(() => {
-    if (mode === 'money') {
-      state.mode = 'money';
-      if (subTab) state.moneyView = subTab;
-      
-      D.sideMActions.classList.remove('hidden'); D.sideSActions.classList.add('hidden');
-      D.navMLinks.classList.remove('hidden'); D.navSLinks.classList.add('hidden');
-      D.mobNMoney.classList.remove('hidden'); D.mobNShop.classList.add('hidden');
-      
-      ['overview', 'history', 'analytics'].forEach(v => {
-        D[`vM${v.charAt(0).toUpperCase()+v.slice(1)}`].classList.toggle('hidden', state.moneyView !== v);
-      });
-      D.vSHome.classList.add('hidden'); D.vSHistory.classList.add('hidden'); D.vSAnalytics.classList.add('hidden');
-      
-      document.body.classList.remove('shop-mode-active');
-    } else {
-      state.mode = 'shop';
-      if (subTab) state.shopTab = subTab;
-      
-      D.sideMActions.classList.add('hidden'); D.sideSActions.classList.remove('hidden');
-      D.navMLinks.classList.add('hidden'); D.navSLinks.classList.remove('hidden');
-      D.mobNMoney.classList.add('hidden'); D.mobNShop.classList.remove('hidden');
-      
-      ['home', 'history', 'analytics'].forEach(v => {
-        D[`vS${v.charAt(0).toUpperCase()+v.slice(1)}`].classList.toggle('hidden', state.shopTab !== v);
-      });
-      D.vMOverview.classList.add('hidden'); D.vMHistory.classList.add('hidden'); D.vMAnalytics.classList.add('hidden');
-      
-      document.body.classList.add('shop-mode-active');
-    }
+  state.mode = mode;
+  if (mode === 'money' && subTab) state.moneyView = subTab;
+  if (mode === 'shop' && subTab) state.shopTab = subTab;
 
-    if (subTab === 'analytics') scheduleRender();
-  });
-
-  if (!opts.noHistory) {
-    setTimeout(() => {
-      history.pushState({ mode: state.mode, view: state.mode === 'money' ? state.moneyView : state.shopTab }, '');
-    }, 10);
+  if (mode === 'money') {
+    D.sideMActions.classList.remove('hidden'); D.sideSActions.classList.add('hidden');
+    D.navMLinks.classList.remove('hidden'); D.navSLinks.classList.add('hidden');
+    D.mobNMoney.classList.remove('hidden'); D.mobNShop.classList.add('hidden');
+    
+    ['overview', 'history', 'analytics'].forEach(v => {
+      D[`vM${v.charAt(0).toUpperCase()+v.slice(1)}`].classList.toggle('hidden', state.moneyView !== v);
+    });
+    D.vSHome.classList.add('hidden'); D.vSHistory.classList.add('hidden'); D.vSAnalytics.classList.add('hidden');
+    document.body.classList.remove('shop-mode-active');
+  } else {
+    D.sideMActions.classList.add('hidden'); D.sideSActions.classList.remove('hidden');
+    D.navMLinks.classList.add('hidden'); D.navSLinks.classList.remove('hidden');
+    D.mobNMoney.classList.add('hidden'); D.mobNShop.classList.remove('hidden');
+    
+    ['home', 'history', 'analytics'].forEach(v => {
+      D[`vS${v.charAt(0).toUpperCase()+v.slice(1)}`].classList.toggle('hidden', state.shopTab !== v);
+    });
+    D.vMOverview.classList.add('hidden'); D.vMHistory.classList.add('hidden'); D.vMAnalytics.classList.add('hidden');
+    document.body.classList.add('shop-mode-active');
   }
+
+  setTimeout(() => {
+    scheduleRender();
+    if (!opts.noHistory) {
+      history.pushState({ mode: state.mode, view: state.mode === 'money' ? state.moneyView : state.shopTab }, '');
+    }
+  }, 50);
 }
 export function openShopTxDeepLink(txId) {
   switchMode('shop', 'home');
