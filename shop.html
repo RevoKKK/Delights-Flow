@@ -27,12 +27,42 @@
 <body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 font-sans min-h-screen overflow-x-hidden transition-colors duration-200 selection:bg-amber-500 selection:text-white">
 
   <!-- LOADING SPLASH -->
-  <div id="loading-screen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-950 gap-4">
+  <div id="loading-screen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-950 gap-3 px-6">
     <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-white shadow-xl shadow-amber-500/30 animate-pulse">
       <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349M3.75 21V9.349" /></svg>
     </div>
-    <p class="text-sm font-bold text-slate-500 dark:text-slate-400">Loading Delights Flow Shop...</p>
+    <p id="loading-status" class="text-sm font-bold text-slate-600 dark:text-slate-300 text-center">Loading Delights Flow Shop...</p>
+    <p id="loading-detail" class="hidden max-w-xs text-center text-xs text-rose-500 dark:text-rose-400 break-words"></p>
+    <div id="loading-actions" class="hidden flex flex-wrap items-center justify-center gap-2 pt-2">
+      <button id="loading-retry-btn" type="button" class="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold shadow-sm">Retry</button>
+      <a href="index.html" class="px-4 py-2 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-bold">Back to Money</a>
+    </div>
   </div>
+  <script>
+    window.__dfBooted = false;
+    window.__dfSetLoadStatus = function (msg, detail, showActions) {
+      var st = document.getElementById('loading-status');
+      var dt = document.getElementById('loading-detail');
+      var ac = document.getElementById('loading-actions');
+      if (st && msg) st.textContent = msg;
+      if (dt) {
+        if (detail) { dt.textContent = detail; dt.classList.remove('hidden'); }
+        else { dt.textContent = ''; dt.classList.add('hidden'); }
+      }
+      if (ac && showActions) ac.classList.remove('hidden');
+    };
+    document.getElementById('loading-retry-btn').addEventListener('click', function () { location.reload(); });
+    setTimeout(function () {
+      var scr = document.getElementById('loading-screen');
+      if (scr && !scr.classList.contains('hidden')) {
+        if (!window.__dfBooted) {
+          window.__dfSetLoadStatus('Shop scripts are taking too long to load.', 'Network may be slow. Try Retry or go Back to Money.', true);
+        } else {
+          document.getElementById('loading-actions').classList.remove('hidden');
+        }
+      }
+    }, 6500);
+  </script>
 
   <!-- SIGN-IN REQUIRED SCREEN -->
   <div id="signin-screen" class="hidden min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-slate-100 via-amber-50/40 to-orange-50/40 dark:from-slate-950 dark:via-amber-950/20 dark:to-slate-950">
@@ -584,8 +614,8 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
     import {
-      initializeFirestore, persistentLocalCache, persistentMultipleTabManager, getFirestore,
-      doc, getDoc, setDoc, addDoc, updateDoc, deleteDoc, onSnapshot, collection
+      initializeFirestore, persistentLocalCache, persistentSingleTabManager, getFirestore,
+      doc, getDoc, getDocFromCache, setDoc, addDoc, updateDoc, deleteDoc, onSnapshot, collection
     } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
     // =========================================================================
@@ -614,8 +644,8 @@
     let db;
     try {
       db = initializeFirestore(app, {
-        experimentalAutoDetectLongPolling: true,
-        localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() })
+        experimentalForceLongPolling: true,
+        localCache: persistentLocalCache({ tabManager: persistentSingleTabManager({ forceOwnership: true }) })
       });
     } catch { db = getFirestore(app); }
     const auth = getAuth(app);
@@ -786,8 +816,9 @@
     // =========================================================================
     function bootUserShop(user) {
       state.user = user;
+      window.__dfSetLoadStatus?.('Loading shops...');
 
-      // 1. Instant Cache-First Boot: open Shop immediately without waiting on network getDoc()
+      // 1. Instant Cache-First Boot via localStorage
       let cachedWs = '';
       try {
         const lastUid = localStorage.getItem('df_last_uid') || '';
@@ -800,15 +831,22 @@
 
       if (cachedWs) {
         subscribeShopWorkspace(cachedWs);
+      } else {
+        getDocFromCache(doc(db, 'delights_flow_users', user.uid)).then((cSnap) => {
+          if (state.workspaceId || !cSnap.exists()) return;
+          const d = cSnap.data();
+          const wsId = d.activeWorkspaceId || d.workspaces?.[0]?.id || '';
+          if (wsId) subscribeShopWorkspace(wsId);
+        }).catch(() => {});
       }
 
       // 2. Background real-time user profile sync (never blocks splash screen)
       if (unsubUser) unsubUser();
       let resolvedProfile = Boolean(cachedWs);
 
-      // Fallback timeout for brand-new devices if initial network is stalled
       const bootTimer = setTimeout(() => {
         if (resolvedProfile || state.workspaceId) return;
+        window.__dfSetLoadStatus?.('Still connecting to server...', 'Checking your shop workspace...', true);
         getDoc(doc(db, 'delights_flow_users', user.uid)).then((snap) => {
           if (resolvedProfile || state.workspaceId) return;
           resolvedProfile = true;
@@ -820,17 +858,16 @@
           } else {
             showScreen('signin');
           }
-        }).catch(() => {
+        }).catch((err) => {
           if (!resolvedProfile && !state.workspaceId) {
-            resolvedProfile = true;
-            showScreen('signin');
+            window.__dfSetLoadStatus?.('Could not load shop.', err?.message || err?.code || 'Check internet or tap Retry.', true);
           }
         });
-      }, 6000);
+      }, 5000);
 
       unsubUser = onSnapshot(doc(db, 'delights_flow_users', user.uid), (snap) => {
-        clearTimeout(bootTimer);
         if (snap.exists()) {
+          clearTimeout(bootTimer);
           resolvedProfile = true;
           const d = snap.data();
           if (typeof d.darkMode === 'boolean' && d.darkMode !== state.darkMode) { state.darkMode = d.darkMode; applyTheme(); }
@@ -842,14 +879,14 @@
             showScreen('signin');
           }
         } else if (!snap.metadata.fromCache) {
+          clearTimeout(bootTimer);
           resolvedProfile = true;
           if (!state.workspaceId) showScreen('signin');
         }
-      }, () => {
+      }, (err) => {
         clearTimeout(bootTimer);
         if (!resolvedProfile && !state.workspaceId) {
-          resolvedProfile = true;
-          showScreen('signin');
+          window.__dfSetLoadStatus?.('Sync error while opening shop.', err?.message || err?.code || 'Please tap Retry.', true);
         }
       });
     }
@@ -2267,6 +2304,8 @@
     }
 
     function bootstrap() {
+      window.__dfBooted = true;
+      window.__dfSetLoadStatus?.('Checking account...');
       try {
         const params = new URLSearchParams(location.search);
         state.pendingDeepLinkTxId = params.get('tx') || '';
@@ -2279,7 +2318,17 @@
       applyPrivacyUI();
       bindEvents();
       switchShopTab('home');
+
+      let authResolved = false;
+      const authTimer = setTimeout(() => {
+        if (!authResolved) {
+          window.__dfSetLoadStatus?.('Sign-in check is taking longer than expected.', 'Try Retry or return to Money Tracker.', true);
+        }
+      }, 6000);
+
       onAuthStateChanged(auth, (user) => {
+        authResolved = true;
+        clearTimeout(authTimer);
         if (user) bootUserShop(user);
         else {
           if (unsubUser) { unsubUser(); unsubUser = null; }

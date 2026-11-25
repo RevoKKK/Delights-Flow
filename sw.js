@@ -5,7 +5,7 @@
  * while still updating cached files in the background whenever online.
  */
 
-const CACHE_NAME = 'delights-flow-v2';
+const CACHE_NAME = 'delights-flow-v3';
 const NETWORK_TIMEOUT_MS = 2000;
 const ASSETS = ['./', './index.html', './shop.html', './manifest.json'];
 

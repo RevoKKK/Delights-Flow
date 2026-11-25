@@ -34,12 +34,55 @@
 <body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 font-sans min-h-screen overflow-x-hidden transition-colors duration-200 selection:bg-indigo-500 selection:text-white">
 
   <!-- ==================== SCREEN 0: LOADING SPLASH ==================== -->
-  <div id="loading-screen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-950 gap-4">
+  <div id="loading-screen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-950 gap-3 px-6">
     <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-600 to-sky-500 flex items-center justify-center text-white shadow-xl shadow-indigo-500/30 animate-pulse">
       <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a2.25 2.25 0 0 0-2.25-2.25H15a3 3 0 1 1-6 0H5.25A2.25 2.25 0 0 0 3 12m18 0v6a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 18v-6m18 0V9M3 12V9m18 0a2.25 2.25 0 0 0-2.25-2.25H5.25A2.25 2.25 0 0 0 3 9m18 0V6a2.25 2.25 0 0 0-2.25-2.25H5.25A2.25 2.25 0 0 0 3 6v3" /></svg>
     </div>
-    <p class="text-sm font-bold text-slate-500 dark:text-slate-400">Loading Delights Flow...</p>
+    <p id="loading-status" class="text-sm font-bold text-slate-600 dark:text-slate-300 text-center">Loading Delights Flow...</p>
+    <p id="loading-detail" class="hidden max-w-xs text-center text-xs text-rose-500 dark:text-rose-400 break-words"></p>
+    <div id="loading-actions" class="hidden flex flex-wrap items-center justify-center gap-2 pt-2">
+      <button id="loading-retry-btn" type="button" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-sm">Retry</button>
+      <button id="loading-signin-btn" type="button" class="px-4 py-2 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-bold">Sign In</button>
+      <button id="loading-reset-btn" type="button" class="px-4 py-2 rounded-xl bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-300 text-xs font-bold">Reset Cache</button>
+    </div>
   </div>
+  <script>
+    // Startup watchdog: shows exact status & recovery buttons even if external scripts fail/hang
+    window.__dfBooted = false;
+    window.__dfSetLoadStatus = function (msg, detail, showActions) {
+      var st = document.getElementById('loading-status');
+      var dt = document.getElementById('loading-detail');
+      var ac = document.getElementById('loading-actions');
+      if (st && msg) st.textContent = msg;
+      if (dt) {
+        if (detail) { dt.textContent = detail; dt.classList.remove('hidden'); }
+        else { dt.textContent = ''; dt.classList.add('hidden'); }
+      }
+      if (ac && showActions) ac.classList.remove('hidden');
+    };
+    document.getElementById('loading-retry-btn').addEventListener('click', function () { location.reload(); });
+    document.getElementById('loading-signin-btn').addEventListener('click', function () {
+      document.getElementById('loading-screen').classList.add('hidden');
+      document.getElementById('auth-screen').classList.remove('hidden');
+    });
+    document.getElementById('loading-reset-btn').addEventListener('click', function () {
+      try { localStorage.removeItem('df_active_ws'); localStorage.removeItem('df_last_uid'); } catch (e) {}
+      var done = function () { location.reload(); };
+      if ('caches' in window) {
+        caches.keys().then(function (ks) { return Promise.all(ks.map(function (k) { return caches.delete(k); })); }).finally(done);
+      } else { done(); }
+    });
+    setTimeout(function () {
+      var scr = document.getElementById('loading-screen');
+      if (scr && !scr.classList.contains('hidden')) {
+        if (!window.__dfBooted) {
+          window.__dfSetLoadStatus('App scripts are taking too long to load.', 'Network may be blocking Firebase/CDN scripts. Try Retry or Reset Cache.', true);
+        } else {
+          document.getElementById('loading-actions').classList.remove('hidden');
+        }
+      }
+    }, 6500);
+  </script>
 
   <!-- ==================== SCREEN 1: AUTHENTICATION (GOOGLE DIRECT + EMAIL/PASSWORD) ==================== -->
   <div id="auth-screen" class="hidden min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-slate-100 via-indigo-50/40 to-sky-50/50 dark:from-slate-950 dark:via-indigo-950/30 dark:to-slate-950">
@@ -809,8 +852,8 @@
       createUserWithEmailAndPassword, sendPasswordResetEmail, updateProfile, signOut, onAuthStateChanged
     } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
     import {
-      initializeFirestore, persistentLocalCache, persistentMultipleTabManager, getFirestore,
-      doc, getDoc, setDoc, addDoc, updateDoc, deleteDoc, onSnapshot, collection, arrayUnion
+      initializeFirestore, persistentLocalCache, persistentSingleTabManager, getFirestore,
+      doc, getDoc, getDocFromCache, setDoc, addDoc, updateDoc, deleteDoc, onSnapshot, collection, arrayUnion
     } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
     // =========================================================================
@@ -863,8 +906,8 @@
     let db;
     try {
       db = initializeFirestore(app, {
-        experimentalAutoDetectLongPolling: true,
-        localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() })
+        experimentalForceLongPolling: true,
+        localCache: persistentLocalCache({ tabManager: persistentSingleTabManager({ forceOwnership: true }) })
       });
     } catch { db = getFirestore(app); }
     const auth = getAuth(app);
@@ -1137,8 +1180,9 @@
     function bootSignedInUser(user) {
       state.user = user;
       $('settings-account-email').textContent = user.email || 'Signed in';
+      window.__dfSetLoadStatus?.('Loading workspace...');
 
-      // 1. Instant Cache-First Boot: open Home Screen immediately without waiting for network getDoc()
+      // 1. Instant Cache-First Boot via localStorage
       let cachedWs = '';
       try {
         const lastUid = localStorage.getItem('df_last_uid') || '';
@@ -1153,15 +1197,26 @@
 
       if (cachedWs) {
         subscribeToWorkspace(cachedWs);
+      } else {
+        // 1b. Read IndexedDB cache directly (<20ms) so existing users never wait on network
+        getDocFromCache(doc(db, 'delights_flow_users', user.uid)).then((cSnap) => {
+          if (state.workspaceId || !cSnap.exists()) return;
+          const d = cSnap.data();
+          state.userWorkspaces = Array.isArray(d.workspaces) ? d.workspaces : [];
+          state.activePerson = isActiveUserKey(d.activePerson) ? d.activePerson : state.activePerson;
+          const wsId = d.activeWorkspaceId || state.userWorkspaces[0]?.id || '';
+          if (wsId) subscribeToWorkspace(wsId);
+        }).catch(() => {});
       }
 
       // 2. Background real-time user profile sync (never blocks loading screen)
       if (unsubUser) unsubUser();
       let resolvedProfile = Boolean(cachedWs);
 
-      // Fallback timeout for brand-new devices if initial network is stalled
+      // Fallback timer if cache had no workspace yet and server is slow or blocked
       const bootTimer = setTimeout(() => {
         if (resolvedProfile || state.workspaceId) return;
+        window.__dfSetLoadStatus?.('Still connecting to server...', 'Checking your saved ledger...', true);
         getDoc(doc(db, 'delights_flow_users', user.uid)).then((snap) => {
           if (resolvedProfile || state.workspaceId) return;
           resolvedProfile = true;
@@ -1173,17 +1228,16 @@
           } else {
             openOnboardingScreen(false);
           }
-        }).catch(() => {
+        }).catch((err) => {
           if (!resolvedProfile && !state.workspaceId) {
-            resolvedProfile = true;
-            openOnboardingScreen(false);
+            window.__dfSetLoadStatus?.('Could not load workspace.', err?.message || err?.code || 'Check internet or Firebase API key restrictions.', true);
           }
         });
-      }, 6000);
+      }, 5000);
 
       unsubUser = onSnapshot(doc(db, 'delights_flow_users', user.uid), (snap) => {
-        clearTimeout(bootTimer);
         if (snap.exists()) {
+          clearTimeout(bootTimer);
           resolvedProfile = true;
           const d = snap.data();
           state.userWorkspaces = Array.isArray(d.workspaces) ? d.workspaces : [];
@@ -1198,6 +1252,7 @@
             openOnboardingScreen(false);
           }
         } else if (!snap.metadata.fromCache) {
+          clearTimeout(bootTimer);
           resolvedProfile = true;
           if (!state.workspaceId) openOnboardingScreen(false);
         }
@@ -1205,8 +1260,7 @@
         clearTimeout(bootTimer);
         console.warn('User profile sync error:', err);
         if (!resolvedProfile && !state.workspaceId) {
-          resolvedProfile = true;
-          openOnboardingScreen(false);
+          window.__dfSetLoadStatus?.('Sync error while opening ledger.', err?.message || err?.code || 'Please tap Retry or Reset Cache.', true);
         }
       });
     }
@@ -2625,6 +2679,8 @@
     }
 
     function bootstrap() {
+      window.__dfBooted = true;
+      window.__dfSetLoadStatus?.('Checking account...');
       try {
         if (localStorage.getItem('df_dark') === '1') state.darkMode = true;
         else if (localStorage.getItem('df_dark') === '0') state.darkMode = false;
@@ -2637,7 +2693,16 @@
       bindEvents();
       switchView('overview');
 
+      let authResolved = false;
+      const authTimer = setTimeout(() => {
+        if (!authResolved) {
+          window.__dfSetLoadStatus?.('Sign-in check is taking longer than expected.', 'Check your internet connection or Firebase API key restrictions, or tap Sign In.', true);
+        }
+      }, 6000);
+
       onAuthStateChanged(auth, (user) => {
+        authResolved = true;
+        clearTimeout(authTimer);
         if (user) bootSignedInUser(user);
         else {
           if (unsubUser) { unsubUser(); unsubUser = null; }
