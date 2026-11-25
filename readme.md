@@ -7,8 +7,6 @@ It keeps your real-world wallets (Cash, Bank, KPay, CBPay, etc.) synced across A
 ### Open Delights Flow
 👉 **[Click here to open Delights Flow](https://YOUR-USERNAME.github.io/delights-flow/)**
 
-*Direct link:* `https://YOUR-USERNAME.github.io/delights-flow/`
-
 > *Tip:* If you opened this link inside Messenger or Viber, tap **Open in Browser (Chrome / Safari)** first so Google Sign-In and App Installation work smoothly.
 
 ---
