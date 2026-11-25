@@ -381,7 +381,11 @@ export function switchMode(mode, subTab = null, opts = {}) {
   }
   
   if (!opts.noHistory) history.pushState({ mode: state.mode, view: state.mode === 'money' ? state.moneyView : state.shopTab }, '');
-  scheduleRender();
+  
+  // Tab ကူးတိုင်း Re-render မလုပ်တော့ပါ။ Analytics ဝင်မှသာ Chart တွေ သေချာပေါ်အောင် Render လုပ်ပါမယ်။
+  if (subTab === 'analytics') {
+    scheduleRender(); 
+  }
 }
 
 export function openShopTxDeepLink(txId) {
