@@ -1,211 +1,150 @@
-# Delights Flow
+# Delights Flow — User Guide
 
-**Delights Flow** is a lightweight, zero-build Progressive Web App (PWA) for **private multi-user personal money tracking**, **multi-shop revenue & capital management**, and **instant customer receipt generation**—built to run for free on GitHub Pages and Firebase.
+**Delights Flow** is a private, real-time **Money Tracker**, **Multi-Shop Manager**, and **Customer Receipt Generator** designed for individuals, couples, and small online sellers.
 
-Designed for individuals, couples, and small online sellers, Delights Flow keeps your real-world wallet balances (Cash, Bank, KPay, CBPay, etc.) synced in real time across Android, iOS, and Desktop while strictly separating personal spending from shop operations in reports.
+It keeps your real-world wallets (Cash, Bank, KPay, CBPay, etc.) synced across Android, iOS, and Desktop—even when you briefly go offline—while keeping personal spending and online shop performance clearly organized.
 
----
+### Open Delights Flow
+👉 **[Click here to open Delights Flow](https://YOUR-USERNAME.github.io/delights-flow/)**
 
-## Key Features
+*Direct link:* `https://YOUR-USERNAME.github.io/delights-flow/`
 
-### 1. Money Tracker (`index.html`)
-* **Customizable Wallets & Banks:** New workspaces start clean with **Cash** and **Bank**. Add, rename, or remove unlimited accounts anytime, pick an account icon (`Cash`, `Bank`, `Mobile Pay`, `Card`), choose from **18 color themes**, and set opening balances. Deleted wallet names remain preserved on historical entries.
-* **Income, Expense & Internal Transfers:** Log daily spending and income with fast amount chips (`+1,000` to `+100,000`) and custom categories. Wallet-to-wallet transfers automatically adjust both accounts without inflating income or expense totals.
-* **2-Person + Shared + Shop Ownership:** Switch quickly between **Person 1** and **Person 2** for logging, tag joint household costs as **Shared**, and keep all online shop transactions automatically isolated under **Shop**.
-* **Quick Templates:** Create 1-tap shortcuts (synced across devices) for recurring daily entries like coffee, bills, or commute costs.
-* **History & Calendar View:** Browse transactions grouped by date or switch to an interactive **Calendar View** showing daily inflows and outflows. Filter by search term, month, wallet, type, owner, or scope (`Personal + Shop`, `Personal Only`, `Shop Only`).
-  * Tap any wallet card on **Overview** to inspect that wallet's history; opening **History** from the navigation bar automatically resets to **All Wallets**.
-  * Tap any **Shop** entry in Recent Activity or History to jump directly to its Receipt or Edit modal in `shop.html`.
-* **Visual Analytics:** Interactive Chart.js dashboards for **Expenses by Category**, **6-Month Income vs. Expense Trend**, **Live Wallet Balances**, and **Owner Breakdown**—with a toggle for Personal, Shop, or Combined reports.
-* **Privacy Mode & Dark Mode:** Mask all balances and figures (`••••••`) with one tap when using the app in public, and switch seamlessly between Light and Dark themes.
-* **CSV Export & Full JSON Backup/Restore:** Export filtered records as UTF-8 BOM CSV files (Excel-ready with full Myanmar/Unicode support), or download/restore full workspace JSON backups with automatic duplicate detection.
-
-### 2. Multi-Shop & Customer Receipts (`shop.html`)
-* **Multiple Shops with Individual Branding:** New users start with **Shop 1** and can add unlimited shops under **Manage Shops**. Each shop maintains its own **Name**, **Color**, **Uploaded Logo** (auto-compressed), **Receipt Footer**, and **Starting Capital**.
-* **Capital vs. Revenue Scorecards:** Track **Today's Sales**, **Total Revenue**, **Total Capital**, **Net Profit / Amount Left to Break Even**, and **Pending COD** at a glance, plus per-shop Capital Recovery progress bars.
-* **Direct Wallet Sync:** Recording a shop sale or capital/cost entry (`Stock / Capital`, `Packaging`, `Delivery`, `Ads / Boost`, `Other`) automatically updates your exact same live wallets in `index.html`—zero double entry.
-* **Paid & COD Payment Split:** Record orders as **Full Paid**, **Full COD**, or **Partial Paid + COD**.
-  * Upfront paid amounts enter your selected wallet immediately.
-  * Unpaid COD amounts stay tracked under **Pending COD** without inflating wallet balances.
-  * When delivery funds arrive, tap **✓ Mark COD Paid** and choose the receiving wallet and date to credit your balance accurately.
-* **Branded Customer Receipt Generator (PNG & Text):**
-  * Multi-item order builder with quantity, unit price, delivery fee, and discount.
-  * Renders a crisp ticket-style **PNG receipt** directly on the device using HTML5 Canvas—complete with per-shop Name, Logo, Footer, Paid/COD status boxes, and automatic text wrapping for long English and Myanmar item names.
-  * One-tap **Share PNG** (via Web Share API on mobile), **Download PNG**, or **Copy Text Receipt** for Messenger/Viber.
-* **Dedicated Shop History & Shop Analytics:** Tap any shop card on Shop Home to view that shop's history, browse All Shops in the dedicated History tab, export Shop CSVs, and analyze Daily/Monthly Sales vs. Capital trends and cost breakdowns.
-
-### 3. Security, Privacy & Multi-User Isolation
-* **Google Direct Sign-In (GIS) + Email/Password:** Uses Google Identity Services (`accounts.google.com`) directly to bypass `*.firebaseapp.com` popup blocks (no VPN needed on restricted networks), with standard Email/Password sign-in and password reset included.
-* **Isolated Workspaces with Partner Join PIN:** Each user's ledger is stored under its own Firestore workspace document protected by strict Security Rules. Partners can only join a shared workspace with both the exact **Workspace ID** and **Join PIN**.
-* **Zero Hardcoded Secrets or Branding:** Shop names, logos, wallets, and transactions live exclusively inside each user's private Firestore workspace—never in public HTML files.
-
-### 4. PWA & Mobile-First Experience
-* **Installable App:** Works as a standalone full-screen app on Android, iOS, and Windows/macOS via `manifest.json`.
-* **Offline-First:** Service Worker (`sw.js`) caches the app shell while Firestore's IndexedDB `persistentLocalCache` queues offline edits and syncs automatically when connectivity returns.
-* **Smart Mobile Navigation & Back Handling:** Consistent 5-slot bottom navigation bars (`Overview | Shop | (+) | Analytics | History` on Money Tracker; `Money | Shop | (+) | Analytics | History` on Shop) and smart hardware back-button handling (closes open modals → returns to Home tab → asks for exit confirmation on Overview).
+> *Tip:* If you opened this link inside Messenger or Viber, tap **Open in Browser (Chrome / Safari)** first so Google Sign-In and App Installation work smoothly.
 
 ---
 
-## Tech Stack
+## Quick Start — How to Start Using Delights Flow
 
-| Layer | Technology |
-| :--- | :--- |
-| **Frontend** | HTML5, Vanilla JavaScript (ES Modules) |
-| **Styling** | Tailwind CSS (CDN, class-based Dark Mode), Inter Font |
-| **Charts** | Chart.js v4.4.1 |
-| **Receipts** | Native HTML5 Canvas API + Web Share API |
-| **Auth** | Firebase Auth v11.6.1 + Google Identity Services (GIS) |
-| **Database** | Firebase Cloud Firestore (with IndexedDB Offline Persistence) |
-| **Hosting & PWA** | GitHub Pages, Web App Manifest (`manifest.json`), Service Worker (`sw.js`) |
+Follow these 5 simple steps to get started in under 2 minutes:
 
-No Node.js, npm, or build step is required—every file runs directly in the browser.
+1. **Open the App:** Open **[Delights Flow](https://YOUR-USERNAME.github.io/delights-flow/)** in **Chrome** (Android/Windows/macOS), **Safari** (iPhone/iPad), or **Edge**.
+2. **Install to Your Home Screen *(Optional, Recommended)*:** Add Delights Flow to your home screen (see Section 1) so it opens full-screen like a native app and works offline.
+3. **Sign In:** Tap **Continue with Google** or sign in with **Email & Password** (**Create Account** for first-time users).
+4. **Create or Join a Ledger:**
+   * **Starting fresh?** Choose **Create New Ledger**, pick your name, currency (e.g., `Ks`), and a 4+ character Partner Join PIN.
+   * **Sharing with a partner?** Choose **Join Partner's** and enter the **Workspace ID** and **Join PIN** they shared with you.
+5. **Set Your Wallets & Start Tracking:** Open **Wallets & Settings** to add your real-world accounts (Cash, Bank, KPay, CBPay, etc.) and enter each account's current **Opening Balance**. Tap **+** anytime to record your first transaction, or tap **Shop** to start recording sales and receipts.
 
 ---
 
-## Repository Structure
+## 1. Install as an App (Recommended)
 
-```text
-delights-flow/
-├── index.html      # Money Tracker (Auth, Workspaces, Overview, History, Calendar, Analytics, Settings)
-├── shop.html       # Multi-Shop Dashboard, COD Tracking, Shop Analytics & Customer Receipt Generator
-├── manifest.json   # PWA manifest & app icon metadata
-├── sw.js           # Service Worker for offline shell caching
-└── README.md       # Project documentation
-```
+Installing Delights Flow to your home screen gives you a fast, full-screen app experience with offline support:
+
+* **Android (Chrome):** Open **[Delights Flow](https://YOUR-USERNAME.github.io/delights-flow/)** → tap **⋮** (top right) → **Add to Home screen** → **Install** *(or open **Wallets & Settings** inside the app and tap **Install Delights Flow App**)*.
+* **iOS (Safari):** Open **[Delights Flow](https://YOUR-USERNAME.github.io/delights-flow/)** in Safari → tap the **Share** button → **Add to Home Screen** → **Add**.
+* **Windows / macOS (Chrome or Edge):** Open **[Delights Flow](https://YOUR-USERNAME.github.io/delights-flow/)** → click the **Install App** icon on the right side of the address bar.
 
 ---
 
-## Firestore Data Model
+## 2. Sign In & Set Up Your Ledger
 
-```text
-delights_flow_users/{userId}
-  ├── email, displayName
-  ├── activeWorkspaceId
-  ├── workspaces: [{ id, name }]
-  └── activePerson, darkMode, privacyMode
+### Sign In
+* Tap **Continue with Google** for instant sign-in, or use **Email & Password** (**Sign In** / **Create Account**).
+* If you forget your email password, tap **Forgot password?** on the Sign-In screen.
 
-delights_flow_workspaces/{workspaceId}
-  ├── ownerUid, memberUids[], joinPin
-  ├── name, currency, userNames { person1, person2 }
-  ├── wallets[], archivedWalletNames{}, openingBalances{}
-  ├── customExpenseCategories[], customIncomeCategories[]
-  ├── quickTemplates[]
-  ├── shopCategories[]   # Per-shop id, name, colorKey, startingCapital, footer, logoDataUrl
-  └── transactions/{txId}
-        ├── type ("income" | "expense" | "transfer")
-        ├── scope ("personal" | "shop")
-        ├── amount, date, wallet, fromWallet, toWallet, category, loggedBy, note
-        └── (shop fields) shopEntryType, shopCategoryId, items[], orderTotal,
-                          paidAmount, codAmount, codStatus, codWallet, codPaidDate,
-                          deliveryFee, discount, receiptNo, customerName, customerPhone
-```
+### Create Your Own Private Ledger
+1. On the **Set Up Your Ledger** screen, choose **Create New Ledger**.
+2. Enter your **Ledger Name** (e.g., *My Ledger* or *Home & Shop*), **Currency** (e.g., `Ks`), and a **Partner Join PIN** (at least 4 characters).
+3. Tap **Create Private Ledger**. Every new ledger starts clean with **Cash** and **Bank** wallets.
+
+### Share a Ledger with a Partner (2-Person Live Sync)
+1. **Person 1:** Open **Wallets & Settings** → scroll to **Private Workspace & Partner Invite** → copy both the **Workspace ID** and **Join PIN** and send them privately to your partner.
+2. **Person 2:** Sign in with their own Google or Email account → select **Join Partner's** → enter the **Workspace ID** and **Join PIN** → tap **Join Shared Ledger**.
+3. Both devices now see live updates across all wallets, personal entries, shops, and receipts.
+
+> You can also switch between multiple ledgers or create/join another one anytime inside **Wallets & Settings**.
 
 ---
 
-## Setup & Deployment Guide (Self-Hosting)
+## 3. Using the Money Tracker
 
-If you are deploying your own instance of **Delights Flow**:
+Navigate using the bottom bar on mobile (**Overview · Shop · (+) · Analytics · History**) or the left sidebar on desktop.
 
-### 1. Create a Firebase Project
-1. Go to [Firebase Console](https://console.firebase.google.com) and create a new project.
-2. Add a **Web App (`</>`)** and copy your `firebaseConfig`.
-3. Replace `window.__firebase_config` in both `index.html` and `shop.html` with your own config.
+### Manage Wallets & Opening Balances
+1. Open **Wallets & Settings** (or tap **Manage Wallets** on Overview).
+2. Tap **+ Add Wallet** to add bank accounts or mobile wallets (e.g., *KBZ Bank*, *KPay*, *CBPay*).
+3. Customize each wallet's **Name**, **Type** (*Cash*, *Bank*, *Mobile Pay*, *Card / Pay*), **Color** (18 options), and **Opening Balance**, then tap **Save Settings**.
 
-### 2. Enable Authentication & Direct Google Sign-In (GIS)
-1. In Firebase Console → **Build → Authentication → Sign-in method**, enable:
-   * **Google**
-   * **Email/Password**
-2. Under **Authentication → Settings → Authorized domains**, add your hosting domain (e.g., `YOUR-USERNAME.github.io`).
-3. Copy your **Web client ID** from **Authentication → Sign-in method → Google → Web SDK configuration**, and update `window.__google_web_client_id` in `index.html`.
-4. Open [Google Cloud Console → Credentials](https://console.cloud.google.com/apis/credentials), select your Web client ID, and add `https://YOUR-USERNAME.github.io` under **Authorized JavaScript origins** (without a trailing slash or repo path).
+### Record Expense, Income, or Transfer
+1. Tap **+** (mobile) or **+ New Entry** (desktop).
+2. Choose **Expense**, **Income**, or **Transfer**.
+3. Enter the amount (use quick chips like `+1,000` to `+100,000` for faster entry).
+4. Pick the wallet(s) and category (tap **+ Custom** to add your own category), set the **Date**, select the **Owner** (*Person 1*, *Person 2*, or *Shared*), and add an optional note.
+5. Tap **Save Entry**. Wallet balances update immediately.
+   * *Transfers move money between two wallets without inflating your monthly Income or Expense totals.*
 
-### 3. Publish Firestore Security Rules
-In **Build → Firestore Database → Rules**, publish the following rules to enforce strict workspace isolation:
+### 1-Tap Quick Templates
+* Save frequent entries (like daily coffee, commute, or monthly bills) by tapping **+ Manage** in the **Quick Templates** section—or by checking **Also save as 1-tap Quick Template** when adding a new entry.
+* Tap any template card on **Overview** to log it instantly.
 
-```javascript
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
+### Switch Active User
+* Tap the user pill in the top header (mobile) or the switcher at the bottom of the sidebar (desktop) to switch quickly between **Person 1** and **Person 2**.
 
-    // Private per-user preferences and workspace list
-    match /delights_flow_users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
-    }
+### Browse History & Calendar View
+* **List vs. Calendar:** Switch between date-grouped **List** view and **Calendar** view (shows daily income/expense totals on each day; tap any date to inspect or add entries for that day).
+* **Filters:** Search by keyword or filter by **Month**, **Wallet**, **Type**, **Owner**, or **Scope** (*Personal + Shop*, *Personal Only*, *Shop Only*).
+* **Quick Wallet Filter:** Tap any wallet card on **Overview** to see transactions for that wallet; tapping **History** in the navigation bar resets back to **All Wallets**.
+* **Shop Entries in History:** Tap any entry marked **Shop** to jump straight to its receipt or edit screen in the Shop section.
 
-    // Isolated Workspaces
-    match /delights_flow_workspaces/{workspaceId} {
-      allow read: if request.auth != null &&
-        request.auth.uid in resource.data.memberUids;
-
-      allow create: if request.auth != null &&
-        request.resource.data.ownerUid == request.auth.uid &&
-        request.auth.uid in request.resource.data.memberUids;
-
-      // Members can update settings; a partner can join ONLY with the exact Join PIN
-      allow update: if request.auth != null && (
-        request.auth.uid in resource.data.memberUids ||
-        (
-          resource.data.joinPin is string &&
-          resource.data.joinPin.size() >= 4 &&
-          request.resource.data.diff(resource.data).affectedKeys()
-            .hasOnly(['memberUids', 'lastJoinPinAttempt', 'updatedAt']) &&
-          request.resource.data.lastJoinPinAttempt == resource.data.joinPin &&
-          request.resource.data.memberUids.hasAll(resource.data.memberUids) &&
-          request.resource.data.memberUids.size() == resource.data.memberUids.size() + 1 &&
-          request.auth.uid in request.resource.data.memberUids
-        )
-      );
-
-      allow delete: if request.auth != null &&
-        resource.data.ownerUid == request.auth.uid;
-
-      // Isolated Transactions subcollection
-      match /transactions/{txId} {
-        allow read, write: if request.auth != null &&
-          request.auth.uid in get(/databases/$(database)/documents/delights_flow_workspaces/$(workspaceId)).data.memberUids;
-      }
-    }
-
-  }
-}
-```
-
-### 4. Deploy to GitHub Pages
-1. Push `index.html`, `shop.html`, `manifest.json`, and `sw.js` to your GitHub repository.
-2. Go to **Settings → Pages**.
-3. Under **Build and deployment**, choose **Deploy from a branch** → select `main` and `/ (root)` → click **Save**.
-4. Your app will be live at `https://YOUR-USERNAME.github.io/delights-flow/`.
+### View Money Analytics
+* Open **Analytics** to inspect **Period Income**, **Period Expense**, **Net Savings**, and **Savings Rate**, along with charts for **Expenses by Category**, **6-Month Income vs. Expense Trend**, **Live Wallet Balances**, and **Owner Breakdown**.
+* Use the scope selector at the top to switch between **Personal + Shop**, **Personal Only**, and **Shop Only**.
 
 ---
 
-## Installing as a Native-Like App
+## 4. Using Multi-Shop & Customer Receipts
 
-Open your live URL in your browser:
-* **Android (Chrome):** Tap **⋮** → **Add to Home screen** → **Install** *(or use **Install Delights Flow App** inside Wallets & Settings)*.
-* **iOS (Safari):** Tap **Share** → **Add to Home Screen** → **Add**.
-* **Windows / macOS (Chrome / Edge):** Click the **Install App** icon on the right side of the address bar.
+Tap **Shop** in the navigation bar to open your shop dashboard. Tap **Money** anytime to return to your personal Money Tracker.
+
+### Set Up & Manage Multiple Shops
+1. Tap **Manage Shops** (or the sliders icon in the top bar).
+2. New ledgers start with **Shop 1**—rename it or tap **+ Add Shop** to run multiple shops separately.
+3. For each shop, you can customize:
+   * **Shop Name** & **Color**
+   * **Shop Logo** (tap the logo icon or **+ Upload Logo** — appears automatically on receipts)
+   * **Starting Capital** (tracked toward your break-even / capital recovery progress)
+   * **Receipt Footer** (thank-you note or shop policy shown at the bottom of receipts)
+4. Tap **Save Shops**.
+
+### Record a Shop Sale (Full Paid, Full COD, or Partial)
+1. Tap **+** (mobile) or **+ Record Sale** (desktop).
+2. Select the **Shop**, enter optional **Customer Name** and **Phone**, and add one or more items (**Item name**, **Qty**, **Price**). Add **Delivery Fee** or **Discount** if needed.
+3. Choose how the customer is paying under **Payment (Paid / COD)**:
+   * **Full Paid:** The full amount is added to your selected wallet right away.
+   * **Full COD:** Nothing is added to your wallet yet; the full amount is tracked under **Pending COD**.
+   * **Partial Paid + COD:** Enter the **Paid Now** deposit (added to your wallet immediately) and the remaining **COD Amount** stays pending until delivery payment arrives.
+4. Choose the deposit wallet, check **Open Customer Receipt immediately after saving** if desired, and tap **Save Sale**.
+
+### Mark COD Orders as Paid
+1. Find any pending COD order in **Recent Activity**, **Shop History**, or by tapping the **⏳ Pending COD** bar on Shop Home.
+2. Tap **✓ Mark COD Paid**.
+3. Select the wallet where the delivery cash/transfer was received and the received date, then tap **✓ Confirm Paid**. Your wallet balance and total revenue update automatically.
+
+### Generate & Share Customer Receipts
+* Tap **🧾 Receipt** on any sale (or let it open right after saving a sale).
+* Each receipt displays that shop's **Name**, **Logo**, **Receipt No.**, **Date**, **Customer details**, itemized list, **Total**, **Paid / COD status**, and **Footer**.
+* Choose how to send it to your customer:
+  * **↗ Share PNG:** Share the receipt image directly to Messenger, Viber, or other apps.
+  * **↓ Download PNG:** Save the receipt image to your device.
+  * **📋 Copy Text Receipt:** Copy a clean text slip to paste straight into chat.
+
+### Record Shop Capital & Costs
+1. Tap **+ Record Capital / Cost** (desktop sidebar), open **Manage Shops → + Capital / Cost**, or switch to the **📦 Capital / Cost** tab inside the `+` entry modal.
+2. Select the **Shop** (or *General Shop*), choose a **Cost Type** (*Stock / Capital*, *Packaging*, *Delivery*, *Ads / Boost*, *Other*), enter the amount, and pick the wallet you paid from.
+3. Saving automatically deducts the amount from your wallet and updates your shop's **Total Capital**, **Net Profit / Break-Even**, and **Capital Recovery %**.
+
+### Shop History & Shop Analytics
+* Tap any **Shop Card** on Shop Home to view that specific shop's history, or open the **History** tab to browse all shops, filter by **Pending COD**, and export a **Shop CSV**.
+* Open **Analytics** inside Shop to review **Daily/Monthly Sales vs. Capital Trends**, **Sales vs. Capital by Shop**, **Average Order Value**, and **Capital & Cost Breakdown**.
 
 ---
 
-## Quick Usage Guide
+## 5. Privacy, Backups & Daily Tips
 
-### Pairing with a Partner
-1. **Person 1** creates a ledger and opens **Wallets & Settings → Private Workspace & Partner Invite** to copy the **Workspace ID** and **Join PIN**.
-2. **Person 2** signs in with their own Google or Email account, selects **Join Partner's**, and enters the Workspace ID + PIN.
-3. Both devices now sync all wallets, templates, personal entries, shops, and receipts in real time.
-
-### Recording Sales with COD
-1. Open **Shop** → tap **+** → select your shop and add items.
-2. Choose **Full Paid**, **Full COD**, or enter custom **Paid Now** and **COD Amount** values.
-3. Save to immediately generate and share the customer receipt.
-4. Once delivery cash arrives, tap **✓ Mark COD Paid** on the order and select the receiving wallet.
-
-### Safe Backups & Rollbacks
-* Download a periodic snapshot anytime via **Wallets & Settings → Download Backup (JSON)**.
-* Because all ledger data lives in Firebase Firestore, rolling back `index.html` or `shop.html` in GitHub never affects your saved financial records.
-
----
-
-## License
-
-This project is open for personal use and customization.
+* **Privacy Mode:** Tap the **eye icon** in the header or balance card to hide all amounts (`••••••`) when using the app in public.
+* **Dark & Light Mode:** Tap the **moon/sun icon** to switch themes anytime.
+* **Offline Ready:** Once opened, Delights Flow loads instantly even without internet. Entries recorded offline are saved on your device and synced automatically once you reconnect.
+* **Export CSV:** Export filtered Money or Shop records to Excel-friendly CSV files from the **History** tab.
+* **Backup & Restore (JSON):** Periodically save a full backup of your wallets, templates, and transactions via **Wallets & Settings → Download Backup**, and restore anytime using **Restore JSON**.
+* **Smart Mobile Back Button:** Pressing Back closes open popups first, returns to the home tab, and asks for confirmation before exiting the app.
