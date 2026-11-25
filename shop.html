@@ -22,7 +22,7 @@
       theme: { extend: { fontFamily: { sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'] } } }
     };
   </script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer></script>
 </head>
 <body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 font-sans min-h-screen overflow-x-hidden transition-colors duration-200 selection:bg-amber-500 selection:text-white">
 
@@ -612,10 +612,15 @@
 
     const app = initializeApp(window.__firebase_config);
     let db;
-    try { db = initializeFirestore(app, { localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }) }); }
-    catch { db = getFirestore(app); }
+    try {
+      db = initializeFirestore(app, {
+        experimentalAutoDetectLongPolling: true,
+        localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() })
+      });
+    } catch { db = getFirestore(app); }
     const auth = getAuth(app);
 
+    let unsubUser = null;
     let unsubWs = null;
     let unsubTx = null;
 
@@ -777,34 +782,100 @@
     }
 
     // =========================================================================
-    // 3. FIREBASE SYNC & CRUD
+    // 3. FIREBASE SYNC & CRUD (INSTANT CACHE-FIRST BOOT)
     // =========================================================================
-    async function bootUserShop(user) {
+    function bootUserShop(user) {
       state.user = user;
-      let wsId = '';
+
+      // 1. Instant Cache-First Boot: open Shop immediately without waiting on network getDoc()
+      let cachedWs = '';
       try {
-        const snap = await getDoc(doc(db, 'delights_flow_users', user.uid));
-        if (snap.exists()) {
-          const d = snap.data();
-          wsId = d.activeWorkspaceId || d.workspaces?.[0]?.id || '';
-          if (typeof d.darkMode === 'boolean') { state.darkMode = d.darkMode; applyTheme(); }
-          if (typeof d.privacyMode === 'boolean') { state.privacyMode = d.privacyMode; applyPrivacyUI(); }
+        const lastUid = localStorage.getItem('df_last_uid') || '';
+        const ws = localStorage.getItem('df_active_ws') || '';
+        if (ws && (!lastUid || lastUid === user.uid)) {
+          cachedWs = ws;
+          localStorage.setItem('df_last_uid', user.uid);
         }
       } catch {}
-      if (!wsId) { try { wsId = localStorage.getItem('df_active_ws') || ''; } catch {} }
-      if (!wsId) { showScreen('signin'); return; }
-      subscribeShopWorkspace(wsId);
+
+      if (cachedWs) {
+        subscribeShopWorkspace(cachedWs);
+      }
+
+      // 2. Background real-time user profile sync (never blocks splash screen)
+      if (unsubUser) unsubUser();
+      let resolvedProfile = Boolean(cachedWs);
+
+      // Fallback timeout for brand-new devices if initial network is stalled
+      const bootTimer = setTimeout(() => {
+        if (resolvedProfile || state.workspaceId) return;
+        getDoc(doc(db, 'delights_flow_users', user.uid)).then((snap) => {
+          if (resolvedProfile || state.workspaceId) return;
+          resolvedProfile = true;
+          if (snap.exists()) {
+            const d = snap.data();
+            const wsId = d.activeWorkspaceId || d.workspaces?.[0]?.id || '';
+            if (wsId) subscribeShopWorkspace(wsId);
+            else showScreen('signin');
+          } else {
+            showScreen('signin');
+          }
+        }).catch(() => {
+          if (!resolvedProfile && !state.workspaceId) {
+            resolvedProfile = true;
+            showScreen('signin');
+          }
+        });
+      }, 6000);
+
+      unsubUser = onSnapshot(doc(db, 'delights_flow_users', user.uid), (snap) => {
+        clearTimeout(bootTimer);
+        if (snap.exists()) {
+          resolvedProfile = true;
+          const d = snap.data();
+          if (typeof d.darkMode === 'boolean' && d.darkMode !== state.darkMode) { state.darkMode = d.darkMode; applyTheme(); }
+          if (typeof d.privacyMode === 'boolean' && d.privacyMode !== state.privacyMode) { state.privacyMode = d.privacyMode; applyPrivacyUI(); }
+          const wsId = d.activeWorkspaceId || d.workspaces?.[0]?.id || '';
+          if (wsId) {
+            if (wsId !== state.workspaceId) subscribeShopWorkspace(wsId);
+          } else if (!state.workspaceId) {
+            showScreen('signin');
+          }
+        } else if (!snap.metadata.fromCache) {
+          resolvedProfile = true;
+          if (!state.workspaceId) showScreen('signin');
+        }
+      }, () => {
+        clearTimeout(bootTimer);
+        if (!resolvedProfile && !state.workspaceId) {
+          resolvedProfile = true;
+          showScreen('signin');
+        }
+      });
     }
 
     function subscribeShopWorkspace(wsId) {
+      if (!wsId || !state.user) return;
       if (unsubWs) unsubWs();
       if (unsubTx) unsubTx();
       state.workspaceId = wsId;
+      try {
+        localStorage.setItem('df_active_ws', wsId);
+        localStorage.setItem('df_last_uid', state.user.uid);
+      } catch {}
       showScreen('shop');
       updateSyncUI('connecting');
+      renderAll();
 
       unsubWs = onSnapshot(doc(db, 'delights_flow_workspaces', wsId), (snap) => {
-        if (!snap.exists()) { showScreen('signin'); return; }
+        if (!snap.exists()) {
+          if (!snap.metadata.fromCache) {
+            try { localStorage.removeItem('df_active_ws'); } catch {}
+            state.workspaceId = '';
+            showScreen('signin');
+          }
+          return;
+        }
         const d = snap.data();
         state.workspace = {
           ...state.workspace,
@@ -823,7 +894,17 @@
         };
         updateSyncUI('synced');
         renderAll();
-      }, () => updateSyncUI('offline'));
+      }, (err) => {
+        if (err?.code === 'permission-denied') {
+          try { localStorage.removeItem('df_active_ws'); } catch {}
+          if (unsubWs) { unsubWs(); unsubWs = null; }
+          if (unsubTx) { unsubTx(); unsubTx = null; }
+          state.workspaceId = '';
+          showScreen('signin');
+          return;
+        }
+        updateSyncUI('offline');
+      });
 
       unsubTx = onSnapshot(collection(db, 'delights_flow_workspaces', wsId, 'transactions'), (qSnap) => {
         const list = [];
@@ -832,31 +913,39 @@
         state.allTransactions = list;
         updateSyncUI('synced');
         renderAll();
-        processPendingDeepLink();
-      }, () => updateSyncUI('offline'));
+        handlePendingDeepLink();
+      }, (err) => {
+        console.error('Shop transactions snapshot error:', err);
+        updateSyncUI('offline');
+      });
     }
 
-    function processPendingDeepLink() {
+    function handlePendingDeepLink() {
       if (!state.pendingDeepLinkTxId) return;
       const target = state.allTransactions.find((t) => t.id === state.pendingDeepLinkTxId);
       if (!target) return;
       state.pendingDeepLinkTxId = '';
-      try { history.replaceState({ dfGuard: true }, '', `${location.pathname}${location.hash || ''}`); } catch {}
+      try {
+        history.replaceState(history.state || { dfGuard: true }, '', location.pathname);
+      } catch {}
       const isSale = (target.shopEntryType || (target.type === 'income' ? 'sale' : 'capital')) === 'sale';
       if (isSale) openReceiptModal(target);
       else openShopTxModal('capital', target);
     }
 
-    const getShopTransactions = () => state.allTransactions.filter((t) => t.scope === 'shop');
+    function getShopTransactions() {
+      return state.allTransactions.filter((t) => t.scope === 'shop');
+    }
 
     async function persistShopTx(payload, editId = null) {
       const colRef = collection(db, 'delights_flow_workspaces', state.workspaceId, 'transactions');
       if (editId) {
         await updateDoc(doc(colRef, editId), { ...payload, updatedAt: Date.now() });
         return { id: editId, ...payload };
+      } else {
+        const ref = await addDoc(colRef, { ...payload, createdByUid: state.user.uid, createdAt: Date.now() });
+        return { id: ref.id, ...payload };
       }
-      const ref = await addDoc(colRef, { ...payload, createdByUid: state.user.uid, createdAt: Date.now() });
-      return { id: ref.id, ...payload };
     }
 
     async function deleteShopTx(txId) {
@@ -864,35 +953,33 @@
     }
 
     // =========================================================================
-    // 4. TABS, FILTERING & MAIN RENDERING
+    // 4. TABS, FILTERING & RENDERING
     // =========================================================================
     function switchShopTab(tab, opts = {}) {
       if (tab === 'history' && !opts.keepShopFilter) {
         state.filters.category = 'all';
+        state.filters.type = 'all';
         if (state.shopFilterActive) {
           state.filters.month = getCurrentMonthKey();
-          state.filters.type = 'all';
           state.shopFilterActive = false;
         }
       } else if (tab !== 'history') {
         state.filters.category = 'all';
+        state.filters.type = 'all';
         if (state.shopFilterActive) {
           state.filters.month = getCurrentMonthKey();
-          state.filters.type = 'all';
           state.shopFilterActive = false;
         }
       }
 
       state.currentTab = tab;
-      $('shop-tab-home').classList.toggle('hidden', tab !== 'home');
-      $('shop-tab-history').classList.toggle('hidden', tab !== 'history');
-      $('shop-tab-analytics').classList.toggle('hidden', tab !== 'analytics');
+      ['home', 'history', 'analytics'].forEach((t) => $(`shop-tab-${t}`).classList.toggle('hidden', t !== tab));
 
       document.querySelectorAll('.shop-side-nav').forEach((b) => {
         const act = b.dataset.shopTab === tab;
         b.className = act
           ? 'shop-side-nav w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 transition-all'
-          : 'shop-side-nav w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-all';
+          : 'shop-side-nav w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/80 hover:text-slate-900 dark:hover:text-white transition-all';
       });
       document.querySelectorAll('.shop-mobile-tab').forEach((b) => {
         const act = b.dataset.shopTab === tab;
@@ -1489,7 +1576,6 @@
           if (ctx.measureText(test).width <= maxW) current = test;
           else { if (current) lines.push(current); current = word; }
         } else {
-          // Break long token by grapheme/character so Myanmar words never overflow
           for (const ch of Array.from(word)) {
             const test = current + ch;
             if (ctx.measureText(test).width <= maxW || !current) current = test;
@@ -1508,7 +1594,6 @@
       const orderTotal = getSaleOrderTotal(tx), paidUp = getSalePaidUpfront(tx), codAmt = getSaleCodAmount(tx), codSt = getSaleCodStatus(tx);
       const items = Array.isArray(tx.items) && tx.items.length ? tx.items : [{ name: tx.note || 'Order Item', qty: 1, price: orderTotal }];
 
-      // Clean Invoice Style (Style A) payment lines
       let paymentLines = [];
       if (codAmt <= 0) {
         paymentLines = [`Status     : ✓ PAID IN FULL`];
@@ -1553,7 +1638,6 @@
       const subtotal = items.reduce((s, i) => s + ((Number(i.qty) || 1) * (Number(i.price) || 0)), 0);
       const delivery = Number(tx.deliveryFee) || 0, discount = Number(tx.discount) || 0;
 
-      // Payment state flags for Clean Invoice Style (Style A)
       const isPartialPending = codAmt > 0 && codSt === 'pending' && paidUp > 0;
       const isFullCodPending = codAmt > 0 && codSt === 'pending' && paidUp <= 0;
       const isCodReceived = codAmt > 0 && codSt === 'paid';
@@ -1563,13 +1647,12 @@
         logoImg = await new Promise((res) => { const img = new Image(); img.onload = () => res(img); img.onerror = () => res(null); img.src = shop.logoDataUrl; });
       }
 
-      // Generous top-baseline layout so Item / Qty / Amount never crowd header bar or divider lines
       const itemColMaxW = 350, qtyColX = leftX + 412;
       const lineStep = 30;
       const headerBarH = 44;
-      const gapAfterHeader = 22;   // clean gap below header bar to TOP of first item text
-      const rowBottomPad = 18;     // clean gap below item text before divider
-      const gapAfterDivider = 20;  // clean gap below divider to TOP of next item text
+      const gapAfterHeader = 22;
+      const rowBottomPad = 18;
+      const gapAfterDivider = 20;
 
       ctx.font = '700 20px Inter, system-ui, sans-serif';
       const measuredItems = items.map((it) => {
@@ -1590,11 +1673,10 @@
         ...(tx.customerPhone ? [['Phone', tx.customerPhone, false]] : [])
       ];
 
-      // Exact height calculation matching drawing pass
       let calcY = outerPad + 40;
       calcY += logoImg ? (96 + 24) : 8;
       calcY += shopNameLines.length * 40 + 18;
-      calcY += 30; // notch + spacing
+      calcY += 30;
       calcY += metaRows.length * 32 + 12;
       calcY += headerBarH + gapAfterHeader;
       measuredItems.forEach((m, idx) => {
@@ -1605,8 +1687,8 @@
       if (delivery > 0 || discount > 0) calcY += 32;
       if (delivery > 0) calcY += 32;
       if (discount > 0) calcY += 32;
-      calcY += 10 + 84; // Total bar + gap
-      calcY += isPartialPending ? 104 : isFullCodPending ? 70 : 64; // Style A payment section
+      calcY += 10 + 84;
+      calcY += isPartialPending ? 104 : isFullCodPending ? 70 : 64;
       calcY += 16 + footerLines.length * 26 + 26;
 
       const cardH = calcY - outerPad;
@@ -1659,7 +1741,7 @@
       };
       metaRows.forEach(([k, v, b]) => drawKV(k, v, b));
 
-      // Table Header Bar (ITEM / QTY / AMOUNT) — vertically centered cleanly
+      // Table Header Bar (ITEM / QTY / AMOUNT)
       y += 12;
       drawRoundedRect(ctx, leftX, y, contentW, headerBarH, 10); ctx.fillStyle = '#f8fafc'; ctx.fill();
       ctx.save();
@@ -1672,7 +1754,7 @@
       ctx.restore();
       y += headerBarH + gapAfterHeader;
 
-      // Item Rows (using textBaseline = 'top' so text sits comfortably BELOW lines with zero collision)
+      // Item Rows
       measuredItems.forEach((m, idx) => {
         const topY = y;
         ctx.textAlign = 'left'; ctx.fillStyle = '#0f172a'; ctx.font = '700 20px Inter, system-ui, sans-serif';
@@ -1713,12 +1795,10 @@
 
       // Style A (Clean Invoice Style) — Adaptive Paid / COD Section
       if (isPartialPending) {
-        // Paid deduction line
         ctx.textAlign = 'left'; ctx.fillStyle = '#047857'; ctx.font = '700 18px Inter, system-ui, sans-serif'; ctx.fillText('Paid', leftX + 14, y + 2);
         ctx.textAlign = 'right'; ctx.fillStyle = '#047857'; ctx.font = '700 18px Inter, system-ui, sans-serif'; ctx.fillText(`-${fmtMoney(paidUp)}`, rightX - 14, y + 2);
         y += 34;
 
-        // Highlighted COD Balance (To Pay) box
         drawRoundedRect(ctx, leftX, y, contentW, 56, 14);
         ctx.fillStyle = '#fffbeb'; ctx.fill();
         ctx.strokeStyle = '#fcd34d'; ctx.lineWidth = 1.5; ctx.stroke();
@@ -1729,7 +1809,6 @@
         ctx.restore();
         y += 70;
       } else if (isFullCodPending) {
-        // Single clean Cash on Delivery (COD) box
         drawRoundedRect(ctx, leftX, y, contentW, 56, 14);
         ctx.fillStyle = '#fffbeb'; ctx.fill();
         ctx.strokeStyle = '#fcd34d'; ctx.lineWidth = 1.5; ctx.stroke();
@@ -1740,7 +1819,6 @@
         ctx.restore();
         y += 70;
       } else {
-        // Full Paid or COD Received green badge (no duplicated amount)
         drawRoundedRect(ctx, leftX, y, contentW, 50, 14);
         ctx.fillStyle = '#ecfdf5'; ctx.fill();
         ctx.strokeStyle = '#a7f3d0'; ctx.lineWidth = 1.5; ctx.stroke();
@@ -2203,7 +2281,14 @@
       switchShopTab('home');
       onAuthStateChanged(auth, (user) => {
         if (user) bootUserShop(user);
-        else showScreen('signin');
+        else {
+          if (unsubUser) { unsubUser(); unsubUser = null; }
+          if (unsubWs) { unsubWs(); unsubWs = null; }
+          if (unsubTx) { unsubTx(); unsubTx = null; }
+          state.user = null;
+          state.workspaceId = '';
+          showScreen('signin');
+        }
       });
     }
 

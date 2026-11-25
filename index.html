@@ -27,7 +27,7 @@
       theme: { extend: { fontFamily: { sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'] } } }
     };
   </script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer></script>
   <!-- Google Identity Services (Direct Google Sign-In — Bypasses firebaseapp.com) -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
@@ -862,10 +862,14 @@
     const app = initializeApp(window.__firebase_config);
     let db;
     try {
-      db = initializeFirestore(app, { localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }) });
+      db = initializeFirestore(app, {
+        experimentalAutoDetectLongPolling: true,
+        localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() })
+      });
     } catch { db = getFirestore(app); }
     const auth = getAuth(app);
 
+    let unsubUser = null;
     let unsubWs = null;
     let unsubTx = null;
     let deferredInstallPrompt = null;
@@ -1101,7 +1105,9 @@
       try {
         localStorage.setItem('df_dark', state.darkMode ? '1' : '0');
         localStorage.setItem('df_privacy', state.privacyMode ? '1' : '0');
+        localStorage.setItem('df_active_person', state.activePerson || 'person1');
         if (state.workspaceId) localStorage.setItem('df_active_ws', state.workspaceId);
+        if (state.user?.uid) localStorage.setItem('df_last_uid', state.user.uid);
       } catch {}
       if (!state.user) return;
       try {
@@ -1128,22 +1134,81 @@
       showScreen('workspace');
     }
 
-    async function bootSignedInUser(user) {
+    function bootSignedInUser(user) {
       state.user = user;
       $('settings-account-email').textContent = user.email || 'Signed in';
+
+      // 1. Instant Cache-First Boot: open Home Screen immediately without waiting for network getDoc()
+      let cachedWs = '';
       try {
-        const snap = await getDoc(doc(db, 'delights_flow_users', user.uid));
+        const lastUid = localStorage.getItem('df_last_uid') || '';
+        const ws = localStorage.getItem('df_active_ws') || '';
+        const savedPerson = localStorage.getItem('df_active_person') || '';
+        if (isActiveUserKey(savedPerson)) state.activePerson = savedPerson;
+        if (ws && (!lastUid || lastUid === user.uid)) {
+          cachedWs = ws;
+          localStorage.setItem('df_last_uid', user.uid);
+        }
+      } catch {}
+
+      if (cachedWs) {
+        subscribeToWorkspace(cachedWs);
+      }
+
+      // 2. Background real-time user profile sync (never blocks loading screen)
+      if (unsubUser) unsubUser();
+      let resolvedProfile = Boolean(cachedWs);
+
+      // Fallback timeout for brand-new devices if initial network is stalled
+      const bootTimer = setTimeout(() => {
+        if (resolvedProfile || state.workspaceId) return;
+        getDoc(doc(db, 'delights_flow_users', user.uid)).then((snap) => {
+          if (resolvedProfile || state.workspaceId) return;
+          resolvedProfile = true;
+          if (snap.exists()) {
+            const d = snap.data();
+            const targetWs = d.activeWorkspaceId || d.workspaces?.[0]?.id || '';
+            if (targetWs) subscribeToWorkspace(targetWs);
+            else openOnboardingScreen(false);
+          } else {
+            openOnboardingScreen(false);
+          }
+        }).catch(() => {
+          if (!resolvedProfile && !state.workspaceId) {
+            resolvedProfile = true;
+            openOnboardingScreen(false);
+          }
+        });
+      }, 6000);
+
+      unsubUser = onSnapshot(doc(db, 'delights_flow_users', user.uid), (snap) => {
+        clearTimeout(bootTimer);
         if (snap.exists()) {
+          resolvedProfile = true;
           const d = snap.data();
           state.userWorkspaces = Array.isArray(d.workspaces) ? d.workspaces : [];
-          state.activePerson = isActiveUserKey(d.activePerson) ? d.activePerson : 'person1';
-          if (typeof d.darkMode === 'boolean') { state.darkMode = d.darkMode; applyTheme(); }
-          if (typeof d.privacyMode === 'boolean') { state.privacyMode = d.privacyMode; applyPrivacyUI(); }
+          state.activePerson = isActiveUserKey(d.activePerson) ? d.activePerson : state.activePerson;
+          if (typeof d.darkMode === 'boolean' && d.darkMode !== state.darkMode) { state.darkMode = d.darkMode; applyTheme(); }
+          if (typeof d.privacyMode === 'boolean' && d.privacyMode !== state.privacyMode) { state.privacyMode = d.privacyMode; applyPrivacyUI(); }
           const targetWs = d.activeWorkspaceId || state.userWorkspaces[0]?.id || '';
-          if (targetWs) { subscribeToWorkspace(targetWs); return; }
+          if (targetWs) {
+            if (targetWs !== state.workspaceId) subscribeToWorkspace(targetWs);
+            else renderAll();
+          } else if (!state.workspaceId) {
+            openOnboardingScreen(false);
+          }
+        } else if (!snap.metadata.fromCache) {
+          resolvedProfile = true;
+          if (!state.workspaceId) openOnboardingScreen(false);
         }
-      } catch (err) { console.warn('Load user profile failed:', err); }
-      openOnboardingScreen(false);
+      }, (err) => {
+        clearTimeout(bootTimer);
+        console.warn('User profile sync error:', err);
+        if (!resolvedProfile && !state.workspaceId) {
+          resolvedProfile = true;
+          openOnboardingScreen(false);
+        }
+      });
     }
 
     function subscribeToWorkspace(wsId) {
@@ -1152,12 +1217,23 @@
       if (unsubTx) unsubTx();
 
       state.workspaceId = wsId;
-      try { localStorage.setItem('df_active_ws', wsId); } catch {}
+      try {
+        localStorage.setItem('df_active_ws', wsId);
+        localStorage.setItem('df_last_uid', state.user.uid);
+      } catch {}
       showScreen('app');
       updateSyncUI('connecting');
+      renderAll();
 
       unsubWs = onSnapshot(doc(db, 'delights_flow_workspaces', wsId), (snap) => {
-        if (!snap.exists()) { openOnboardingScreen(false); return; }
+        if (!snap.exists()) {
+          if (!snap.metadata.fromCache) {
+            try { localStorage.removeItem('df_active_ws'); } catch {}
+            state.workspaceId = '';
+            openOnboardingScreen(false);
+          }
+          return;
+        }
         const d = snap.data();
         const wallets = Array.isArray(d.wallets) && d.wallets.length ? d.wallets : STARTER_WALLETS.map((w) => ({ ...w }));
         const ob = { ...(d.openingBalances || {}) };
@@ -1188,6 +1264,14 @@
         renderAll();
       }, (err) => {
         console.error('Workspace snapshot error:', err);
+        if (err?.code === 'permission-denied') {
+          try { localStorage.removeItem('df_active_ws'); } catch {}
+          if (unsubWs) { unsubWs(); unsubWs = null; }
+          if (unsubTx) { unsubTx(); unsubTx = null; }
+          state.workspaceId = '';
+          openOnboardingScreen(false);
+          return;
+        }
         updateSyncUI('offline');
       });
 
@@ -2219,9 +2303,14 @@
       });
 
       const doSignOut = async () => {
-        if (unsubWs) unsubWs();
-        if (unsubTx) unsubTx();
-        try { window.google?.accounts?.id?.disableAutoSelect?.(); } catch {}
+        if (unsubUser) { unsubUser(); unsubUser = null; }
+        if (unsubWs) { unsubWs(); unsubWs = null; }
+        if (unsubTx) { unsubTx(); unsubTx = null; }
+        try {
+          localStorage.removeItem('df_active_ws');
+          localStorage.removeItem('df_last_uid');
+          window.google?.accounts?.id?.disableAutoSelect?.();
+        } catch {}
         await signOut(auth);
       };
       $('ws-signout-btn').addEventListener('click', doSignOut);
@@ -2550,7 +2639,14 @@
 
       onAuthStateChanged(auth, (user) => {
         if (user) bootSignedInUser(user);
-        else { state.user = null; state.workspaceId = ''; showScreen('auth'); }
+        else {
+          if (unsubUser) { unsubUser(); unsubUser = null; }
+          if (unsubWs) { unsubWs(); unsubWs = null; }
+          if (unsubTx) { unsubTx(); unsubTx = null; }
+          state.user = null;
+          state.workspaceId = '';
+          showScreen('auth');
+        }
       });
     }
 
