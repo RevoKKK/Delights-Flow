@@ -5,7 +5,7 @@
 It keeps your real-world wallets (Cash, Bank, KPay, CBPay, etc.) synced across Android, iOS, and Desktop—even when you briefly go offline—while keeping personal spending and online shop performance clearly organized.
 
 ### Open Delights Flow
-👉 **[Click here to open Delights Flow](https://revokkk.github.io/delights-flow/)**
+👉 **[Click here to open Delights Flow](https://revokkk.github.io/Delights-Flow/)**
 
 > *Tip:* If you opened this link inside Messenger or Viber, tap **Open in Browser (Chrome / Safari)** first so Google Sign-In and App Installation work smoothly.
 
@@ -15,7 +15,7 @@ It keeps your real-world wallets (Cash, Bank, KPay, CBPay, etc.) synced across A
 
 Follow these 5 simple steps to get started in under 2 minutes:
 
-1. **Open the App:** Open **[Delights Flow](https://revokkk.github.io/delights-flow/)** in **Chrome** (Android/Windows/macOS), **Safari** (iPhone/iPad), or **Edge**.
+1. **Open the App:** Open **[Delights Flow](https://revokkk.github.io/Delights-Flow/)** in **Chrome** (Android/Windows/macOS), **Safari** (iPhone/iPad), or **Edge**.
 2. **Install to Your Home Screen *(Optional, Recommended)*:** Add Delights Flow to your home screen (see Section 1) so it opens full-screen like a native app and works offline.
 3. **Sign In:** Tap **Continue with Google** or sign in with **Email & Password** (**Create Account** for first-time users).
 4. **Create or Join a Ledger:**
@@ -29,9 +29,9 @@ Follow these 5 simple steps to get started in under 2 minutes:
 
 Installing Delights Flow to your home screen gives you a fast, full-screen app experience with offline support:
 
-* **Android (Chrome):** Open **[Delights Flow](https://revokkk.github.io/delights-flow/)** → tap **⋮** (top right) → **Add to Home screen** → **Install** *(or open **Wallets & Settings** inside the app and tap **Install Delights Flow App**)*.
-* **iOS (Safari):** Open **[Delights Flow](https://revokkk.github.io/delights-flow/)** in Safari → tap the **Share** button → **Add to Home Screen** → **Add**.
-* **Windows / macOS (Chrome or Edge):** Open **[Delights Flow](https://revokkk.github.io/delights-flow/)** → click the **Install App** icon on the right side of the address bar.
+* **Android (Chrome):** Open **[Delights Flow](https://revokkk.github.io/Delights-Flow/)** → tap **⋮** (top right) → **Add to Home screen** → **Install** *(or open **Wallets & Settings** inside the app and tap **Install Delights Flow App**)*.
+* **iOS (Safari):** Open **[Delights Flow](https://revokkk.github.io/Delights-Flow/)** in Safari → tap the **Share** button → **Add to Home Screen** → **Add**.
+* **Windows / macOS (Chrome or Edge):** Open **[Delights Flow](https://revokkk.github.io/Delights-Flow/)** → click the **Install App** icon on the right side of the address bar.
 
 ---
 
