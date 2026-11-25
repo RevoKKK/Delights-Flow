@@ -1,29 +1,510 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="antialiased">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Delights Flow</title>
-  
-  <!-- Anti-Cache Meta Tags to prevent GitHub Pages caching old versions -->
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-  <meta http-equiv="Pragma" content="no-cache" />
-  <meta http-equiv="Expires" content="0" />
-  
+  <meta name="theme-color" content="#4f46e5" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Delights Flow" />
+  <title>Delights Flow — Money &amp; Shop Tracker</title>
+
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%234f46e5'/%3E%3Cstop offset='100%25' stop-color='%230ea5e9'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='512' height='512' rx='112' fill='url(%23g)'/%3E%3Cg transform='translate(112 112) scale(12)' fill='none' stroke='%23ffffff' stroke-width='2.1' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 12a2.25 2.25 0 0 0-2.25-2.25H15a3 3 0 1 1-6 0H5.25A2.25 2.25 0 0 0 3 12m18 0v6a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 18v-6m18 0V9M3 12V9m18 0a2.25 2.25 0 0 0-2.25-2.25H5.25A2.25 2.25 0 0 0 3 9m18 0V6a2.25 2.25 0 0 0-2.25-2.25H5.25A2.25 2.25 0 0 0 3 6v3'/%3E%3C/g%3E%3C/svg%3E" />
   <link rel="manifest" href="manifest.json" />
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%233b82f6'/><path d='M30 50 L45 65 L70 35' stroke='white' stroke-width='8' fill='none' stroke-linecap='round'/></svg>" />
-  
+  <link rel="prefetch" href="shop.html" as="document" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
+  <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" /></noscript>
+
+  <!-- Instant pre-paint dark mode (eliminates white flash during page switch) -->
+  <script>
+    try {
+      const dm = localStorage.getItem('df_dark');
+      if (dm === '1' || (dm === null && matchMedia('(prefers-color-scheme:dark)').matches)) document.documentElement.classList.add('dark');
+    } catch {}
+  </script>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'] } } } };</script>
+  <style>
+    @keyframes dfBar { 0% { transform: translateX(-100%); } 100% { transform: translateX(260%); } }
+    .df-bar-anim { animation: dfBar .85s ease-in-out infinite; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 font-sans min-h-screen overflow-x-hidden transition-colors duration-150 selection:bg-indigo-500 selection:text-white">
+
+  <!-- INSTANT TOP SWITCH PROGRESS BAR -->
+  <div id="nav-progress" class="hidden fixed top-0 inset-x-0 h-1 z-[80] overflow-hidden bg-indigo-500/20 pointer-events-none">
+    <div class="h-full w-2/5 rounded-full bg-gradient-to-r from-indigo-500 via-sky-400 to-amber-500 df-bar-anim"></div>
+  </div>
+
+  <!-- SCREEN 0: LOADING SPLASH -->
+  <div id="loading-screen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-950 gap-3 px-6">
+    <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-600 to-sky-500 flex items-center justify-center text-white shadow-xl shadow-indigo-500/30 animate-pulse">
+      <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a2.25 2.25 0 0 0-2.25-2.25H15a3 3 0 1 1-6 0H5.25A2.25 2.25 0 0 0 3 12m18 0v6a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 18v-6m18 0V9M3 12V9m18 0a2.25 2.25 0 0 0-2.25-2.25H5.25A2.25 2.25 0 0 0 3 9m18 0V6a2.25 2.25 0 0 0-2.25-2.25H5.25A2.25 2.25 0 0 0 3 6v3" /></svg>
+    </div>
+    <p id="loading-status" class="text-sm font-bold text-slate-600 dark:text-slate-300 text-center">Loading Delights Flow...</p>
+    <p id="loading-detail" class="hidden max-w-xs text-center text-xs text-rose-500 dark:text-rose-400 break-words"></p>
+    <div id="loading-actions" class="hidden flex flex-wrap items-center justify-center gap-2 pt-2">
+      <button id="loading-retry-btn" type="button" class="px-4 py-2 rounded-xl bg-indigo-600 text-white text-xs font-bold">Retry</button>
+      <button id="loading-signin-btn" type="button" class="px-4 py-2 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-bold">Sign In</button>
+      <button id="loading-reset-btn" type="button" class="px-4 py-2 rounded-xl bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-300 text-xs font-bold">Reset Cache</button>
+    </div>
+  </div>
   <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'] }, colors: { brand: '#3b82f6', shop: '#8b5cf6' } } }
-    }
+    window.__dfBooted = false;
+    window.__dfSetLoadStatus = (m, d, a) => {
+      const st = document.getElementById('loading-status'), dt = document.getElementById('loading-detail'), ac = document.getElementById('loading-actions');
+      if (st && m) st.textContent = m;
+      if (dt) { dt.textContent = d || ''; dt.classList.toggle('hidden', !d); }
+      if (ac && a) ac.classList.remove('hidden');
+    };
+    document.getElementById('loading-retry-btn').onclick = () => location.reload();
+    document.getElementById('loading-signin-btn').onclick = () => { document.getElementById('loading-screen').classList.add('hidden'); document.getElementById('auth-screen').classList.remove('hidden'); };
+    document.getElementById('loading-reset-btn').onclick = () => {
+      try { Object.keys(localStorage).forEach((k) => { if (k.startsWith('df_') && k !== 'df_dark' && k !== 'df_privacy') localStorage.removeItem(k); }); } catch {}
+      const done = () => location.reload();
+      'caches' in window ? caches.keys().then((ks) => Promise.all(ks.map((k) => caches.delete(k)))).finally(done) : done();
+    };
+    setTimeout(() => {
+      const s = document.getElementById('loading-screen');
+      if (s && !s.classList.contains('hidden')) {
+        if (!window.__dfBooted) window.__dfSetLoadStatus('App scripts are taking too long.', 'Try Retry or Reset Cache.', true);
+        else document.getElementById('loading-actions').classList.remove('hidden');
+      }
+    }, 6500);
   </script>
-  <script>
-    if (localStorage.getItem('df_dark') === '1' || (!('df_dark' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) document.documentElement.classList.add('dark');
-    else document.documentElement.classList.remove('dark');
-  </script>
+
+  <!-- SCREEN 1: AUTHENTICATION (LAZY-LOADED GOOGLE GIS + EMAIL/PASS) -->
+  <div id="auth-screen" class="hidden min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-slate-100 via-indigo-50/40 to-sky-50/50 dark:from-slate-950 dark:via-indigo-950/30 dark:to-slate-950">
+    <div class="w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200/80 dark:border-slate-800 p-6 sm:p-8 space-y-6">
+      <div class="text-center space-y-2">
+        <div class="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-br from-indigo-600 to-sky-500 flex items-center justify-center text-white shadow-lg shadow-indigo-500/30">
+          <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a2.25 2.25 0 0 0-2.25-2.25H15a3 3 0 1 1-6 0H5.25A2.25 2.25 0 0 0 3 12m18 0v6a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 18v-6" /></svg>
+        </div>
+        <h1 class="text-2xl font-extrabold tracking-tight">Delights Flow</h1>
+        <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400">Private multi-user money &amp; online shop tracker</p>
+      </div>
+
+      <div class="space-y-2">
+        <div id="google-gis-loading" class="w-full py-2.5 px-4 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-500 text-xs font-semibold text-center animate-pulse">Loading Google Sign-In...</div>
+        <div id="google-gis-btn" class="w-full flex justify-center min-h-[44px]"></div>
+        <button id="google-signin-btn" type="button" class="hidden w-full py-3 px-4 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-bold text-sm flex items-center justify-center gap-3 shadow-sm">
+          <svg class="w-5 h-5" viewBox="0 0 24 24"><path fill="#EA4335" d="M12 5.04c1.64 0 3.12.56 4.28 1.67l3.21-3.21C17.55 1.69 14.99.6 12 .6 7.36.6 3.36 3.26 1.44 7.13l3.74 2.9C6.07 7.18 8.79 5.04 12 5.04z"/><path fill="#4285F4" d="M23.49 12.27c0-.79-.07-1.54-.19-2.27H12v4.51h6.47c-.29 1.48-1.14 2.73-2.4 3.58l3.7 2.87c2.16-1.99 3.72-4.93 3.72-8.69z"/><path fill="#FBBC05" d="M5.18 14.97a7.02 7.02 0 0 1 0-4.94L1.44 7.13a11.4 11.4 0 0 0 0 10.74l3.74-2.9z"/><path fill="#34A853" d="M12 23.4c3.24 0 5.95-1.07 7.93-2.91l-3.7-2.87c-1.08.72-2.45 1.15-4.23 1.15-3.21 0-5.93-2.14-6.82-5.04l-3.74 2.9C3.36 20.74 7.36 23.4 12 23.4z"/></svg>
+          <span>Continue with Google</span>
+        </button>
+      </div>
+
+      <div class="flex items-center gap-3"><div class="h-px flex-1 bg-slate-200 dark:bg-slate-800"></div><span class="text-[11px] font-bold uppercase text-slate-400">Or Email</span><div class="h-px flex-1 bg-slate-200 dark:bg-slate-800"></div></div>
+
+      <div class="grid grid-cols-2 gap-1 p-1 rounded-2xl bg-slate-100 dark:bg-slate-800">
+        <button id="auth-tab-signin" type="button" class="py-2 rounded-xl text-xs font-bold bg-white dark:bg-slate-900 text-indigo-600 shadow-sm">Sign In</button>
+        <button id="auth-tab-signup" type="button" class="py-2 rounded-xl text-xs font-bold text-slate-500">Create Account</button>
+      </div>
+
+      <form id="auth-email-form" class="space-y-3.5">
+        <div id="auth-name-wrap" class="hidden space-y-1">
+          <label for="auth-name" class="text-xs font-semibold text-slate-500">Your Name</label>
+          <input id="auth-name" type="text" maxlength="32" placeholder="e.g. Su Su" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm" />
+        </div>
+        <div class="space-y-1">
+          <label for="auth-email" class="text-xs font-semibold text-slate-500">Email</label>
+          <input id="auth-email" type="email" required autocomplete="email" placeholder="you@gmail.com" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm" />
+        </div>
+        <div class="space-y-1">
+          <div class="flex justify-between"><label for="auth-password" class="text-xs font-semibold text-slate-500">Password</label><button id="auth-forgot-btn" type="button" class="text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">Forgot password?</button></div>
+          <input id="auth-password" type="password" required minlength="6" autocomplete="current-password" placeholder="••••••••" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm" />
+        </div>
+        <div id="auth-error-box" class="hidden p-3 rounded-xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs font-semibold"></div>
+        <button id="auth-submit-btn" type="submit" class="w-full py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm shadow-lg shadow-indigo-600/25">Sign In</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- SCREEN 2: WORKSPACE ONBOARDING -->
+  <div id="workspace-screen" class="hidden min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-slate-100 via-indigo-50/40 to-sky-50/50 dark:from-slate-950 dark:via-indigo-950/30 dark:to-slate-950">
+    <div class="w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200/80 dark:border-slate-800 p-6 sm:p-8 space-y-6">
+      <div class="flex items-center justify-between gap-2">
+        <div class="min-w-0"><h2 class="text-xl font-extrabold">Set Up Your Ledger</h2><p id="ws-user-email" class="text-xs text-slate-500 mt-0.5 truncate"></p></div>
+        <div class="flex gap-1.5 shrink-0">
+          <button id="ws-back-btn" type="button" class="hidden px-3 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-xs font-bold text-indigo-600">Back</button>
+          <button id="ws-signout-btn" type="button" class="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-bold text-slate-600 dark:text-slate-300">Sign Out</button>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-1 p-1 rounded-2xl bg-slate-100 dark:bg-slate-800">
+        <button id="ws-tab-create" type="button" class="py-2 rounded-xl text-xs font-bold bg-white dark:bg-slate-900 text-indigo-600 shadow-sm">Create New Ledger</button>
+        <button id="ws-tab-join" type="button" class="py-2 rounded-xl text-xs font-bold text-slate-500">Join Partner's</button>
+      </div>
+      <form id="ws-create-form" class="space-y-4">
+        <div class="space-y-1"><label for="ws-create-name" class="text-xs font-semibold text-slate-500">Ledger Name</label><input id="ws-create-name" type="text" required maxlength="32" value="My Ledger" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-semibold" /></div>
+        <div class="grid grid-cols-2 gap-3">
+          <div class="space-y-1"><label for="ws-create-currency" class="text-xs font-semibold text-slate-500">Currency</label><input id="ws-create-currency" type="text" required maxlength="8" value="Ks" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-semibold" /></div>
+          <div class="space-y-1"><label for="ws-create-pin" class="text-xs font-semibold text-slate-500">Partner Join PIN</label><input id="ws-create-pin" type="text" required minlength="4" maxlength="12" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-mono font-bold" /></div>
+        </div>
+        <p class="text-[11px] text-slate-500 bg-slate-50 dark:bg-slate-800/60 p-3 rounded-xl">Starts clean with <strong>Cash</strong> and <strong>Bank</strong>. Add custom wallets anytime in Settings.</p>
+        <div id="ws-create-error" class="hidden p-3 rounded-xl bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 text-xs font-semibold"></div>
+        <button id="ws-create-btn" type="submit" class="w-full py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm shadow-lg">Create Private Ledger</button>
+      </form>
+      <form id="ws-join-form" class="hidden space-y-4">
+        <div class="space-y-1"><label for="ws-join-id" class="text-xs font-semibold text-slate-500">Workspace ID</label><input id="ws-join-id" type="text" required placeholder="e.g. df-8k2m9p4x" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-mono font-semibold" /></div>
+        <div class="space-y-1"><label for="ws-join-pin" class="text-xs font-semibold text-slate-500">Join PIN</label><input id="ws-join-pin" type="text" required minlength="4" placeholder="Enter exact PIN" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-mono font-bold" /></div>
+        <div id="ws-join-error" class="hidden p-3 rounded-xl bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 text-xs font-semibold"></div>
+        <button id="ws-join-btn" type="submit" class="w-full py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-lg">Join Shared Ledger</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- SCREEN 3: MAIN APP SHELL -->
+  <div id="app-shell" class="hidden min-h-screen flex flex-col md:flex-row">
+
+    <!-- DESKTOP SIDEBAR -->
+    <aside class="hidden md:flex md:flex-col md:w-64 lg:w-72 md:fixed md:inset-y-0 bg-white dark:bg-slate-900 border-r border-slate-200/80 dark:border-slate-800 z-30">
+      <div class="p-5 flex items-center justify-between border-b border-slate-100 dark:border-slate-800/80">
+        <div class="flex items-center gap-3 min-w-0">
+          <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-indigo-600 to-sky-500 flex items-center justify-center text-white shadow-lg shadow-indigo-500/25 shrink-0" data-ico="brand"></div>
+          <div class="min-w-0"><h1 class="text-base font-extrabold tracking-tight leading-none truncate">Delights Flow</h1><p id="sidebar-workspace-label" class="text-xs text-slate-500 mt-1 font-medium truncate">My Ledger</p></div>
+        </div>
+        <button id="desktop-theme-btn" type="button" title="Toggle dark mode" class="p-2 rounded-xl text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 shrink-0"><span class="theme-icon-slot"></span></button>
+      </div>
+      <div class="p-4"><button id="desktop-add-btn" type="button" class="w-full py-3.5 px-4 rounded-2xl bg-indigo-600 hover:bg-indigo-700 active:scale-[0.98] text-white font-semibold text-sm shadow-lg shadow-indigo-600/25">+ New Entry</button></div>
+      <nav class="flex-1 px-3 space-y-1.5">
+        <button data-nav="overview" type="button" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold"><span data-ico="grid"></span><span>Overview</span></button>
+        <a href="shop.html" data-nav-page="shop.html" class="w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-semibold text-slate-600 dark:text-slate-400 hover:bg-amber-50 dark:hover:bg-amber-950/40 hover:text-amber-700 dark:hover:text-amber-300 transition-all"><span class="flex items-center gap-3"><span data-ico="shop"></span><span>Shop</span></span><span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300">Sales</span></a>
+        <button data-nav="analytics" type="button" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold"><span data-ico="chart"></span><span>Analytics</span></button>
+        <button data-nav="history" type="button" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold"><span data-ico="list"></span><span>History</span></button>
+        <button id="desktop-settings-btn" type="button" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/80"><span data-ico="sliders"></span><span>Wallets &amp; Settings</span></button>
+      </nav>
+      <div class="p-4 border-t border-slate-100 dark:border-slate-800/80 space-y-3">
+        <div class="bg-slate-100 dark:bg-slate-800/80 p-1 rounded-xl grid grid-cols-2 gap-1 text-[11px] font-semibold">
+          <button data-quick-person="person1" type="button" class="quick-person-btn py-2 px-1 rounded-lg truncate">P1</button>
+          <button data-quick-person="person2" type="button" class="quick-person-btn py-2 px-1 rounded-lg truncate">P2</button>
+        </div>
+        <div class="flex items-center justify-between px-2 text-xs">
+          <div class="flex items-center gap-2 min-w-0"><span class="sync-dot w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse shrink-0"></span><span class="sync-text text-slate-500 font-medium truncate">Connecting...</span></div>
+          <button id="sidebar-open-sync" type="button" class="text-indigo-600 dark:text-indigo-400 hover:underline font-semibold shrink-0">Invite</button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- MOBILE HEADER -->
+    <header class="md:hidden sticky top-0 z-30 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800 px-4 py-3">
+      <div class="flex items-center justify-between gap-2">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-600 to-sky-500 flex items-center justify-center text-white shadow-md shrink-0" data-ico="brand"></div>
+          <div class="min-w-0">
+            <div class="flex items-center gap-1.5"><h1 class="text-base font-extrabold tracking-tight truncate">Delights Flow</h1><span class="sync-dot w-2 h-2 rounded-full bg-amber-400 shrink-0"></span></div>
+            <p id="mobile-header-subtitle" class="text-[11px] font-medium text-slate-500 truncate">My Ledger</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-1 shrink-0">
+          <button id="mobile-person-pill" type="button" class="px-2.5 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 text-xs font-bold border border-indigo-200/70 dark:border-indigo-800/70">P1</button>
+          <button id="mobile-privacy-btn" type="button" title="Privacy Mode" class="p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"><span class="privacy-icon-slot"></span></button>
+          <button id="mobile-theme-btn" type="button" title="Dark Mode" class="p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"><span class="theme-icon-slot"></span></button>
+          <button id="mobile-settings-btn" type="button" title="Settings" class="p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800" data-ico="sliders"></button>
+        </div>
+      </div>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main class="flex-1 md:ml-64 lg:ml-72 pb-28 md:pb-10">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-7 space-y-6">
+
+        <!-- VIEW 1: OVERVIEW -->
+        <section id="view-overview" class="space-y-6">
+          <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white p-5 sm:p-7 shadow-xl border border-white/10">
+            <div class="pointer-events-none absolute -top-20 -right-20 w-64 h-64 rounded-full bg-indigo-500/20 blur-3xl"></div>
+            <div class="pointer-events-none absolute -bottom-24 -left-12 w-56 h-56 rounded-full bg-sky-500/15 blur-3xl"></div>
+            <div class="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
+              <div class="space-y-2">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span id="hero-wallet-count-label" class="text-xs sm:text-sm font-medium uppercase tracking-wider text-indigo-200/90">Total Net Balance</span>
+                  <span id="overview-month-pill" class="px-2.5 py-0.5 rounded-full bg-white/10 text-[11px] font-semibold text-indigo-100">Month</span>
+                  <button id="hero-privacy-btn" type="button" title="Privacy Mode" class="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-indigo-100"><span class="privacy-icon-slot"></span></button>
+                </div>
+                <div id="hero-total-balance" class="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight tabular-nums break-words">0 Ks</div>
+              </div>
+              <div class="grid grid-cols-2 gap-2.5 sm:gap-3 w-full lg:w-auto lg:min-w-[380px]">
+                <div class="rounded-2xl bg-white/10 backdrop-blur-sm p-3.5 border border-white/10"><div class="text-emerald-300 text-xs font-semibold mb-1">↗ Income</div><div id="hero-month-income" class="text-sm sm:text-base font-extrabold tabular-nums break-words">0 Ks</div></div>
+                <div class="rounded-2xl bg-white/10 backdrop-blur-sm p-3.5 border border-white/10"><div class="text-rose-300 text-xs font-semibold mb-1">↘ Expense</div><div id="hero-month-expense" class="text-sm sm:text-base font-extrabold tabular-nums break-words">0 Ks</div></div>
+                <div class="col-span-2 rounded-2xl bg-white/10 backdrop-blur-sm px-4 py-3 border border-white/10 flex items-center justify-between gap-3"><span class="text-sky-300 text-xs sm:text-sm font-semibold shrink-0">═ Net Savings</span><span id="hero-month-net" class="text-base sm:text-lg font-extrabold tabular-nums text-right break-words">0 Ks</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <div><h2 id="overview-wallets-title" class="text-base sm:text-lg font-bold">Your Wallets</h2><p class="text-xs text-slate-500">Tap a wallet to view its transactions</p></div>
+              <button id="overview-edit-wallets-btn" type="button" class="text-xs sm:text-sm font-semibold text-indigo-600 dark:text-indigo-400 px-3 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/50">Manage Wallets</button>
+            </div>
+            <div id="wallets-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4"></div>
+          </div>
+
+          <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <div><h2 class="text-base sm:text-lg font-bold">Quick Templates</h2><p class="text-xs text-slate-500">Tap once to log frequent entries</p></div>
+              <button id="open-templates-modal-btn" type="button" class="text-xs sm:text-sm font-semibold text-indigo-600 dark:text-indigo-400 px-3 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/50">+ Manage</button>
+            </div>
+            <div id="quick-templates-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5"></div>
+          </div>
+
+          <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
+            <div class="px-5 py-4 border-b border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
+              <h2 class="text-base sm:text-lg font-bold">Recent Activity</h2>
+              <button id="overview-view-all-btn" type="button" class="text-xs sm:text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">View All →</button>
+            </div>
+            <div id="recent-transactions-list" class="divide-y divide-slate-100 dark:divide-slate-800/70"></div>
+          </div>
+        </section>
+
+        <!-- VIEW 2: HISTORY & CALENDAR -->
+        <section id="view-history" class="hidden space-y-5">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div><h2 class="text-xl sm:text-2xl font-extrabold tracking-tight">History</h2><p class="text-xs sm:text-sm text-slate-500">Filter by wallet, owner, or scope, view calendar, or export</p></div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <div class="inline-flex p-1 rounded-xl bg-slate-200/80 dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700">
+                <button id="history-mode-list" type="button" class="px-3 py-1.5 rounded-lg text-xs font-bold">List</button>
+                <button id="history-mode-calendar" type="button" class="px-3 py-1.5 rounded-lg text-xs font-bold">Calendar</button>
+              </div>
+              <button id="export-csv-btn" type="button" class="px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm font-semibold shadow-sm">↓ Export CSV</button>
+            </div>
+          </div>
+
+          <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-4 sm:p-5 shadow-sm space-y-3.5">
+            <input id="filter-search" type="text" placeholder="Search note, category, wallet, customer, or amount..." class="w-full px-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            <div class="grid grid-cols-2 lg:grid-cols-5 gap-2.5">
+              <select id="filter-month" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm font-medium"></select>
+              <select id="filter-wallet" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm font-medium"></select>
+              <select id="filter-type" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm font-medium"><option value="all">All Types</option><option value="expense">Expense</option><option value="income">Income</option><option value="transfer">Transfer</option></select>
+              <select id="filter-person" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm font-medium"><option value="all">All Owners</option><option value="person1">Person 1</option><option value="person2">Person 2</option><option value="shared">Shared (Both)</option><option value="shop">Shop</option></select>
+              <select id="filter-scope" class="col-span-2 lg:col-span-1 w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm font-medium"><option value="all">Personal + Shop</option><option value="personal">Personal Only</option><option value="shop">Shop Only</option></select>
+            </div>
+            <div class="pt-2 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2 text-xs">
+              <div id="history-summary-stats" class="flex flex-wrap items-center gap-3 font-semibold"></div>
+              <button id="clear-filters-btn" type="button" class="hidden text-indigo-600 dark:text-indigo-400 font-semibold hover:underline">Reset filters</button>
+            </div>
+          </div>
+
+          <div id="history-calendar-wrap" class="hidden space-y-4">
+            <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-4 sm:p-5 shadow-sm space-y-4">
+              <div class="flex items-center justify-between gap-2">
+                <button id="cal-prev-month" type="button" class="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 font-bold">‹</button>
+                <div class="flex items-center gap-2"><h3 id="cal-month-title" class="text-sm sm:text-base font-extrabold">Month</h3><button id="cal-today-btn" type="button" class="px-2.5 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-300 text-[11px] font-bold">Today</button></div>
+                <button id="cal-next-month" type="button" class="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 font-bold">›</button>
+              </div>
+              <div class="grid grid-cols-7 gap-1 text-center text-[11px] font-bold uppercase text-slate-400"><div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div></div>
+              <div id="calendar-days-grid" class="grid grid-cols-7 gap-1 sm:gap-1.5"></div>
+            </div>
+            <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
+              <div class="px-4 sm:px-5 py-3.5 bg-slate-50/90 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2">
+                <div class="min-w-0"><h4 id="cal-selected-date-title" class="text-sm font-extrabold truncate">Today</h4><p id="cal-selected-date-summary" class="text-[11px] font-semibold text-slate-500">0 entries</p></div>
+                <button id="cal-add-for-date-btn" type="button" class="px-3 py-1.5 rounded-xl bg-indigo-600 text-white text-xs font-bold shrink-0">+ Add on Day</button>
+              </div>
+              <div id="cal-selected-day-list" class="divide-y divide-slate-100 dark:divide-slate-800/70"></div>
+            </div>
+          </div>
+
+          <div id="history-grouped-list" class="space-y-4"></div>
+        </section>
+
+        <!-- VIEW 3: ANALYTICS -->
+        <section id="view-analytics" class="hidden space-y-6">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div><h2 class="text-xl sm:text-2xl font-extrabold tracking-tight">Analytics &amp; Summary</h2><p class="text-xs sm:text-sm text-slate-500">Toggle between Personal, Shop, or Combined reports</p></div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <select id="analytics-scope-select" class="px-3 py-2 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs sm:text-sm font-bold shadow-sm"><option value="all">Personal + Shop</option><option value="personal">Personal Only</option><option value="shop">Shop Only</option></select>
+              <div class="flex items-center gap-1 bg-white dark:bg-slate-900 p-1 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                <button id="analytics-prev-month" type="button" class="px-2.5 py-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 font-bold">‹</button>
+                <select id="analytics-month-select" class="bg-transparent text-xs sm:text-sm font-bold px-1 py-1 focus:outline-none"></select>
+                <button id="analytics-next-month" type="button" class="px-2.5 py-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 font-bold">›</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            <div class="bg-white dark:bg-slate-900 rounded-3xl p-4 sm:p-5 border border-slate-200/80 dark:border-slate-800 shadow-sm"><p class="text-xs font-semibold text-slate-500">Period Income</p><p id="kpi-income" class="text-base sm:text-xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-1 tabular-nums break-words">0 Ks</p></div>
+            <div class="bg-white dark:bg-slate-900 rounded-3xl p-4 sm:p-5 border border-slate-200/80 dark:border-slate-800 shadow-sm"><p class="text-xs font-semibold text-slate-500">Period Expense</p><p id="kpi-expense" class="text-base sm:text-xl font-extrabold text-rose-600 dark:text-rose-400 mt-1 tabular-nums break-words">0 Ks</p></div>
+            <div class="bg-white dark:bg-slate-900 rounded-3xl p-4 sm:p-5 border border-slate-200/80 dark:border-slate-800 shadow-sm"><p class="text-xs font-semibold text-slate-500">Net Savings</p><p id="kpi-net" class="text-base sm:text-xl font-extrabold mt-1 tabular-nums break-words">0 Ks</p></div>
+            <div class="bg-white dark:bg-slate-900 rounded-3xl p-4 sm:p-5 border border-slate-200/80 dark:border-slate-800 shadow-sm"><p class="text-xs font-semibold text-slate-500">Savings Rate</p><p id="kpi-rate" class="text-base sm:text-xl font-extrabold text-indigo-600 dark:text-indigo-400 mt-1 tabular-nums break-words">0%</p></div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            <div class="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4">
+              <h3 class="text-base font-bold">Expenses by Category</h3>
+              <div class="relative h-56 w-full"><canvas id="chart-expense-category"></canvas><div id="empty-expense-chart" class="hidden absolute inset-0 flex items-center justify-center text-slate-400 text-sm">No expenses recorded</div></div>
+              <div id="category-breakdown-list" class="space-y-2.5 pt-2 border-t border-slate-100 dark:border-slate-800 max-h-52 overflow-y-auto pr-1"></div>
+            </div>
+            <div class="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4">
+              <h3 class="text-base font-bold">Income vs Expense (6-Month Trend)</h3>
+              <div class="relative h-72 w-full"><canvas id="chart-income-expense"></canvas></div>
+            </div>
+            <div class="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4">
+              <h3 id="analytics-wallets-chart-title" class="text-base font-bold">Live Wallet Balances</h3>
+              <div class="relative h-64 w-full"><canvas id="chart-wallet-distribution"></canvas></div>
+            </div>
+            <div class="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4">
+              <h3 class="text-base font-bold">Owner Breakdown</h3>
+              <div class="relative h-52 w-full"><canvas id="chart-person-breakdown"></canvas></div>
+              <div id="person-comparison-cards" class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-2 border-t border-slate-100 dark:border-slate-800"></div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <!-- MOBILE BOTTOM NAV: Overview | Shop | (+) | Analytics | History -->
+    <nav class="md:hidden fixed bottom-0 inset-x-0 z-30 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200/80 dark:border-slate-800 px-2 pb-2 pt-1.5">
+      <div class="grid grid-cols-5 items-center max-w-md mx-auto">
+        <button data-nav="overview" type="button" class="nav-btn-mobile flex flex-col items-center py-1.5 gap-1 rounded-xl text-[11px] font-semibold"><span data-ico="grid"></span><span>Overview</span></button>
+        <a href="shop.html" data-nav-page="shop.html" class="flex flex-col items-center py-1.5 gap-1 rounded-xl text-[11px] font-semibold text-amber-600 dark:text-amber-400 transition-transform active:scale-95"><span data-ico="shop"></span><span>Shop</span></a>
+        <div class="flex justify-center -mt-7"><button id="mobile-fab-add" type="button" aria-label="Add entry" class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-indigo-600 to-sky-500 text-white shadow-xl shadow-indigo-600/35 flex items-center justify-center active:scale-90 transition-transform ring-4 ring-white dark:ring-slate-900" data-ico="plus"></button></div>
+        <button data-nav="analytics" type="button" class="nav-btn-mobile flex flex-col items-center py-1.5 gap-1 rounded-xl text-[11px] font-semibold"><span data-ico="chart"></span><span>Analytics</span></button>
+        <button data-nav="history" type="button" class="nav-btn-mobile flex flex-col items-center py-1.5 gap-1 rounded-xl text-[11px] font-semibold"><span data-ico="list"></span><span>History</span></button>
+      </div>
+    </nav>
+  </div>
+
+  <!-- MODAL 1: TRANSACTION ENTRY / EDIT -->
+  <div id="tx-modal" class="hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-950/60 backdrop-blur-sm p-0 sm:p-4">
+    <div class="bg-white dark:bg-slate-900 w-full sm:max-w-lg rounded-t-3xl sm:rounded-3xl shadow-2xl border border-slate-200/80 dark:border-slate-800 max-h-[92vh] flex flex-col overflow-hidden">
+      <div class="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
+        <h3 id="tx-modal-title" class="text-lg font-extrabold">New Transaction</h3>
+        <button id="tx-modal-close" type="button" class="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white">✕</button>
+      </div>
+      <form id="tx-form" class="p-5 space-y-5 overflow-y-auto flex-1">
+        <div class="grid grid-cols-3 gap-1.5 p-1.5 rounded-2xl bg-slate-100 dark:bg-slate-800/90">
+          <button type="button" data-tx-type="expense" class="tx-type-tab py-2.5 rounded-xl text-sm font-bold">Expense</button>
+          <button type="button" data-tx-type="income" class="tx-type-tab py-2.5 rounded-xl text-sm font-bold">Income</button>
+          <button type="button" data-tx-type="transfer" class="tx-type-tab py-2.5 rounded-xl text-sm font-bold">Transfer</button>
+        </div>
+        <div class="space-y-2">
+          <label for="tx-amount" class="text-xs font-bold uppercase tracking-wider text-slate-500">Amount</label>
+          <div class="relative flex items-center">
+            <input id="tx-amount" type="text" inputmode="decimal" autocomplete="off" placeholder="0" required class="w-full text-3xl font-extrabold tabular-nums px-4 py-3.5 pr-16 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            <span id="tx-currency-badge" class="absolute right-4 text-sm font-bold text-slate-400">Ks</span>
+          </div>
+          <div class="flex flex-wrap gap-1.5">
+            <button type="button" data-quick-amt="1000" class="quick-amt-btn px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-xs font-semibold">+1,000</button>
+            <button type="button" data-quick-amt="5000" class="quick-amt-btn px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-xs font-semibold">+5,000</button>
+            <button type="button" data-quick-amt="10000" class="quick-amt-btn px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-xs font-semibold">+10,000</button>
+            <button type="button" data-quick-amt="50000" class="quick-amt-btn px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-xs font-semibold">+50,000</button>
+            <button type="button" data-quick-amt="100000" class="quick-amt-btn px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-xs font-semibold">+100,000</button>
+          </div>
+        </div>
+        <div id="tx-single-wallet-wrap" class="space-y-2"><label id="tx-wallet-label" class="text-xs font-bold uppercase tracking-wider text-slate-500">Select Wallet</label><div id="tx-wallet-pills" class="grid grid-cols-2 sm:grid-cols-3 gap-2"></div></div>
+        <div id="tx-transfer-wallets-wrap" class="hidden space-y-3">
+          <div class="space-y-1.5"><label class="text-xs font-bold uppercase tracking-wider text-slate-500">From Wallet</label><div id="tx-from-wallet-pills" class="grid grid-cols-2 sm:grid-cols-3 gap-2"></div></div>
+          <div class="flex justify-center"><button id="tx-swap-wallets-btn" type="button" class="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-bold">⇅ Swap Wallets</button></div>
+          <div class="space-y-1.5"><label class="text-xs font-bold uppercase tracking-wider text-slate-500">To Wallet</label><div id="tx-to-wallet-pills" class="grid grid-cols-2 sm:grid-cols-3 gap-2"></div></div>
+        </div>
+        <div id="tx-category-wrap" class="space-y-2">
+          <div class="flex items-center justify-between"><label class="text-xs font-bold uppercase tracking-wider text-slate-500">Category</label><button id="toggle-add-custom-cat" type="button" class="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">+ Custom</button></div>
+          <div id="custom-cat-inline" class="hidden flex items-center gap-2 pb-1"><input id="custom-cat-input" type="text" placeholder="New category name..." class="flex-1 px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm" /><button id="save-custom-cat-btn" type="button" class="px-3.5 py-2 rounded-xl bg-indigo-600 text-white text-xs font-bold">Add</button></div>
+          <div id="tx-category-grid" class="grid grid-cols-3 gap-2 max-h-44 overflow-y-auto pr-0.5"></div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="space-y-1.5"><label for="tx-date" class="text-xs font-bold uppercase tracking-wider text-slate-500">Date</label><input id="tx-date" type="date" required class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-sm font-medium" /></div>
+          <div class="space-y-1.5"><label class="text-xs font-bold uppercase tracking-wider text-slate-500">Owner / Logged By</label><div class="grid grid-cols-3 gap-1 p-1 rounded-xl bg-slate-100 dark:bg-slate-800"><button type="button" data-tx-person="person1" class="tx-person-toggle py-2 px-1.5 rounded-lg text-xs font-bold truncate">P1</button><button type="button" data-tx-person="person2" class="tx-person-toggle py-2 px-1.5 rounded-lg text-xs font-bold truncate">P2</button><button type="button" data-tx-person="shared" class="tx-person-toggle py-2 px-1.5 rounded-lg text-xs font-bold truncate">Shared</button></div></div>
+        </div>
+        <div class="space-y-1.5"><label for="tx-note" class="text-xs font-bold uppercase tracking-wider text-slate-500">Note (Optional)</label><input id="tx-note" type="text" placeholder="e.g. Lunch, bill, transfer note..." class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-sm" /></div>
+        <div id="tx-save-template-wrap" class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700/70"><label for="tx-save-as-template" class="flex items-center gap-2.5 text-xs font-semibold text-slate-700 dark:text-slate-300 cursor-pointer"><input id="tx-save-as-template" type="checkbox" class="w-4 h-4 rounded text-indigo-600" /><span>Also save as 1-tap Quick Template</span></label></div>
+        <div id="tx-form-error" class="hidden p-3 rounded-xl bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs font-semibold"></div>
+        <div class="pt-1 flex items-center gap-2.5">
+          <button id="tx-delete-in-modal-btn" type="button" class="hidden px-4 py-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/50 text-rose-600 font-bold text-sm">Delete</button>
+          <button id="tx-submit-btn" type="submit" class="flex-1 py-3.5 px-5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm shadow-lg shadow-indigo-600/25">Save Entry</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL 2: WALLETS, WORKSPACE & ACCOUNT SETTINGS -->
+  <div id="settings-modal" class="hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-950/60 backdrop-blur-sm p-0 sm:p-4">
+    <div class="bg-white dark:bg-slate-900 w-full sm:max-w-xl rounded-t-3xl sm:rounded-3xl shadow-2xl border border-slate-200/80 dark:border-slate-800 max-h-[92vh] flex flex-col overflow-hidden">
+      <div class="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
+        <div><h3 class="text-lg font-extrabold">Wallets &amp; Settings</h3><p id="settings-account-email" class="text-xs text-slate-500">Signed in</p></div>
+        <button id="settings-modal-close" type="button" class="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white">✕</button>
+      </div>
+      <form id="settings-form" class="p-5 space-y-6 overflow-y-auto flex-1">
+        <div class="space-y-3">
+          <div class="flex items-start justify-between gap-2"><div><h4 class="text-sm font-bold">Customizable Wallets &amp; Banks</h4><p class="text-xs text-slate-500">Add accounts, pick from 18 colors, and set opening balances</p></div><button id="add-wallet-btn" type="button" class="px-3 py-1.5 rounded-xl bg-indigo-600 text-white text-xs font-bold shrink-0">+ Add Wallet</button></div>
+          <div id="settings-wallets-list" class="space-y-2.5"></div>
+        </div>
+        <div class="space-y-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+          <h4 class="text-sm font-bold">Ledger Profile &amp; Currency</h4>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div class="space-y-1"><label for="setting-ws-name" class="text-xs font-semibold text-slate-500">Ledger Name</label><input id="setting-ws-name" type="text" maxlength="32" required class="w-full px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-semibold" /></div>
+            <div class="space-y-1"><label for="setting-currency" class="text-xs font-semibold text-slate-500">Currency Suffix</label><input id="setting-currency" type="text" maxlength="8" required class="w-full px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-semibold" /></div>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div class="space-y-1"><label for="setting-person1" class="text-xs font-semibold text-slate-500">Person 1 Name</label><input id="setting-person1" type="text" maxlength="24" required class="w-full px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-semibold" /></div>
+            <div class="space-y-1"><label for="setting-person2" class="text-xs font-semibold text-slate-500">Person 2 Name</label><input id="setting-person2" type="text" maxlength="24" required class="w-full px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-semibold" /></div>
+          </div>
+        </div>
+        <div class="space-y-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+          <div class="flex items-center justify-between">
+            <div><h4 class="text-sm font-bold">Private Workspace &amp; Partner Invite</h4><p class="text-xs text-slate-500">Share both ID &amp; PIN with your partner</p></div>
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300"><span class="sync-dot w-2 h-2 rounded-full bg-emerald-500"></span><span class="sync-text">Synced</span></span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200/70 dark:border-slate-700/70 flex items-center justify-between gap-2"><div class="min-w-0"><p class="text-[10px] font-bold uppercase text-slate-400">Workspace ID</p><p id="setting-ws-id-display" class="text-xs font-mono font-bold truncate">—</p></div><button id="copy-ws-id-btn" type="button" class="px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-[11px] font-bold shrink-0">Copy</button></div>
+            <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200/70 dark:border-slate-700/70 flex items-center justify-between gap-2"><div class="min-w-0 flex-1"><label for="setting-join-pin" class="text-[10px] font-bold uppercase text-slate-400 block">Join PIN (4+ chars)</label><input id="setting-join-pin" type="text" minlength="4" maxlength="12" required class="w-full bg-transparent text-xs font-mono font-bold focus:outline-none" /></div><button id="copy-ws-pin-btn" type="button" class="px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-[11px] font-bold shrink-0">Copy</button></div>
+          </div>
+          <div class="flex flex-wrap items-center gap-2"><select id="setting-ws-switcher" class="flex-1 min-w-[160px] px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold"></select><button id="open-ws-onboarding-btn" type="button" class="px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-bold">+ New / Join</button></div>
+        </div>
+        <div class="space-y-2.5 pt-4 border-t border-slate-100 dark:border-slate-800">
+          <h4 class="text-sm font-bold">Backup &amp; Restore (JSON)</h4>
+          <div class="grid grid-cols-2 gap-2.5"><button id="backup-export-btn" type="button" class="py-2.5 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-bold">↓ Download Backup</button><button id="backup-import-btn" type="button" class="py-2.5 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-bold">↑ Restore JSON</button><input id="backup-import-file" type="file" accept=".json,application/json" class="hidden" /></div>
+        </div>
+        <div id="pwa-install-card" class="hidden pt-4 border-t border-slate-100 dark:border-slate-800"><button id="pwa-install-btn" type="button" class="w-full py-3 px-4 rounded-2xl bg-emerald-600 text-white font-bold text-sm shadow-md">Install Delights Flow App</button></div>
+        <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center gap-2.5"><button id="settings-signout-btn" type="button" class="px-4 py-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/50 text-rose-600 font-bold text-sm">Sign Out</button><button id="settings-save-btn" type="submit" class="flex-1 py-3.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm shadow-lg">Save Settings</button></div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL 3: QUICK TEMPLATES -->
+  <div id="templates-modal" class="hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-950/60 backdrop-blur-sm p-0 sm:p-4">
+    <div class="bg-white dark:bg-slate-900 w-full sm:max-w-lg rounded-t-3xl sm:rounded-3xl shadow-2xl border border-slate-200/80 dark:border-slate-800 max-h-[92vh] flex flex-col overflow-hidden">
+      <div class="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0"><h3 class="text-lg font-extrabold">Quick Templates</h3><button id="templates-modal-close" type="button" class="p-2 rounded-xl text-slate-400">✕</button></div>
+      <div class="p-5 space-y-5 overflow-y-auto flex-1">
+        <form id="template-form" class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700/80 space-y-3">
+          <input type="hidden" id="tpl-edit-id" value="" />
+          <div class="flex items-center justify-between"><h4 id="tpl-form-heading" class="text-xs font-extrabold uppercase text-indigo-600 dark:text-indigo-400">Add Template</h4><button id="tpl-cancel-edit-btn" type="button" class="hidden text-xs font-semibold text-slate-500">Cancel</button></div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5"><input id="tpl-title" type="text" maxlength="28" required placeholder="Name (e.g. Coffee)" class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm font-semibold" /><input id="tpl-amount" type="text" inputmode="decimal" required placeholder="Amount" class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm font-bold tabular-nums" /></div>
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            <select id="tpl-type" class="w-full px-2.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-semibold"><option value="expense">Expense</option><option value="income">Income</option><option value="transfer">Transfer</option></select>
+            <select id="tpl-wallet" class="w-full px-2.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-semibold"></select>
+            <select id="tpl-to-wallet" class="hidden w-full px-2.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-semibold"></select>
+            <select id="tpl-category" class="w-full px-2.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-semibold"></select>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <select id="tpl-person" class="w-full px-2.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-semibold"><option value="person1">Person 1</option><option value="person2">Person 2</option><option value="shared">Shared</option></select>
+            <input id="tpl-note" type="text" maxlength="60" placeholder="Optional note..." class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs" />
+          </div>
+          <button id="tpl-submit-btn" type="submit" class="w-full py-2.5 rounded-xl bg-indigo-600 text-white text-xs sm:text-sm font-bold">Save Template</button>
+        </form>
+        <div id="templates-modal-list" class="space-y-2"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 4: CONFIRM & MODAL 5: EXIT -->
+  <div id="confirm-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-sm p-4">
+    <div class="bg-white dark:bg-slate-900 w-full max-w-sm rounded-3xl p-6 shadow-2xl border border-slate-200 dark:border-slate-800 space-y-4">
+      <h3 id="confirm-modal-title" class="text-lg font-extrabold">Confirm Action</h3>
+      <p id="confirm-modal-desc" class="text-sm text-slate-500 dark:text-slate-400"></p>
+      <div class="grid grid-cols-2 gap-2.5 pt-2"><button id="confirm-cancel-btn" type="button" class="py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 font-bold text-sm">Cancel</button><button id="confirm-ok-btn" type="button" class="py-2.5 rounded-xl bg-rose-600 text-white font-bold text-sm">Confirm</button></div>
+    </div>
+  </div>
+
+  <div id="exit-modal" class="hidden fixed inset-0 z-[55] flex items-center justify-center bg-slate-950/60 backdrop-blur-sm p-4">
+    <div class="bg-white dark:bg-slate-900 w-full max-w-xs rounded-3xl p-6 shadow-2xl border border-slate-200 dark:border-slate-800 space-y-4 text-center">
+      <div class="w-12 h-12 mx-auto rounded-2xl bg-indigo-50 dark:bg-indigo-950/70 flex items-center justify-center text-xl">👋</div>
+      <div class="space-y-1"><h3 class="text-lg font-extrabold">Exit Delights Flow?</h3><p class="text-xs text-slate-500">Are you sure you want to close the app?</p></div>
+      <div class="grid grid-cols-2 gap-2.5 pt-1"><button id="exit-cancel-btn" type="button" class="py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 font-bold text-sm">Cancel</button><button id="exit-confirm-btn" type="button" class="py-2.5 rounded-xl bg-indigo-600 text-white font-bold text-sm">Yes, Exit</button></div>
+    </div>
+  </div>
+
+  <div id="toast-container" class="fixed top-4 right-4 left-4 sm:left-auto sm:w-80 z-[60] flex flex-col gap-2 pointer-events-none"></div>
+
   <script>
     window.__firebase_config = {
       apiKey: "AIzaSyAKgqAtXONpTX9h87pm-sUx7MY0JJyEPTE",
@@ -36,274 +517,997 @@
     window.__google_web_client_id = "967458395131-ahj573n9ea4artc7l3dj25gv4k26l92p.apps.googleusercontent.com";
   </script>
 
-  <style>
-    body { overscroll-behavior-y: none; }
-    .hidden-scrollbar::-webkit-scrollbar { display: none; }
-    .hidden-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-  </style>
-</head>
-<body class="bg-gray-50 text-gray-900 dark:bg-gray-950 dark:text-gray-100 antialiased selection:bg-brand selection:text-white transition-colors duration-200">
+  <script type="module">
+    // --- 1. COMPACT CONSTANTS & ICON REGISTRY ---
+    const SVG = (d, cls = 'w-5 h-5', sw = 2) => `<svg class="${cls}" fill="none" stroke="currentColor" stroke-width="${sw}" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="${d}"/></svg>`;
+    const UI_ICONS = {
+      brand: SVG('M21 12a2.25 2.25 0 0 0-2.25-2.25H15a3 3 0 1 1-6 0H5.25A2.25 2.25 0 0 0 3 12m18 0v6a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 18v-6m18 0V9M3 12V9m18 0a2.25 2.25 0 0 0-2.25-2.25H5.25A2.25 2.25 0 0 0 3 9m18 0V6a2.25 2.25 0 0 0-2.25-2.25H5.25A2.25 2.25 0 0 0 3 6v3', 'w-5 h-5', 2.2),
+      grid: SVG('M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z'),
+      shop: SVG('M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349M3.75 21V9.349'),
+      chart: SVG('M10.5 6a7.5 7.5 0 1 0 7.5 7.5h-7.5V6ZM13.5 10.5H21A7.5 7.5 0 0 0 13.5 3v7.5Z'),
+      list: SVG('M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75ZM3.75 12h.007v.008H3.75V12Zm0 5.25h.007v.008H3.75v-.008Z'),
+      sliders: SVG('M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75'),
+      plus: SVG('M12 4.5v15m7.5-7.5h-15', 'w-7 h-7', 2.6),
+      sun: SVG('M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z'),
+      moon: SVG('M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z'),
+      eye: SVG('M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178ZM15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z', 'w-4 h-4 sm:w-5 sm:h-5'),
+      eyeOff: SVG('M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 4.242L9.88 9.88', 'w-4 h-4 sm:w-5 sm:h-5')
+    };
+    const W_ICONS = {
+      cash: SVG('M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 0 1 3 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z'),
+      bank: SVG('M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.332A48.36 48.36 0 0 0 12 9.75c-2.551 0-5.056.2-7.5.582V21M3 21h18'),
+      mobile: SVG('M10.5 1.5H8.25A2.25 2.25 0 0 0 6 3.75v16.5a2.25 2.25 0 0 0 2.25 2.25h7.5A2.25 2.25 0 0 0 18 20.25V3.75a2.25 2.25 0 0 0-2.25-2.25H13.5m-3 0V3h3V1.5m-3 18.75h3'),
+      card: SVG('M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z')
+    };
+    const COLORS = [
+      ['emerald','Emerald','#10b981'],['green','Green','#16a34a'],['lime','Lime','#84cc16'],['teal','Teal','#14b8a6'],
+      ['cyan','Cyan','#06b6d4'],['sky','Sky','#0ea5e9'],['blue','Blue','#2563eb'],['indigo','Indigo','#6366f1'],
+      ['violet','Violet','#8b5cf6'],['purple','Purple','#9333ea'],['fuchsia','Fuchsia','#d946ef'],['pink','Pink','#ec4899'],
+      ['rose','Rose','#f43f5e'],['red','Red','#ef4444'],['orange','Orange','#f97316'],['amber','Amber','#f59e0b'],
+      ['yellow','Gold','#eab308'],['slate','Slate','#64748b']
+    ].map(([key, label, hex]) => ({ key, label, hex }));
+    const COLOR_MAP = Object.fromEntries(COLORS.map((c) => [c.key, c]));
+    const STARTER_WALLETS = [{ id: 'cash', name: 'Cash', iconType: 'cash', colorKey: 'emerald' }, { id: 'bank', name: 'Bank', iconType: 'bank', colorKey: 'blue' }];
+    const DEFAULT_SHOPS = [{ id: 'shop1', name: 'Shop 1', colorKey: 'amber', startingCapital: 0, footer: 'Thank you for your purchase!', logoDataUrl: '' }];
+    const EXP_CATS = [['Food & Dining','🍽️'],['Groceries','🛒'],['Transport','🚕'],['Bills & Utilities','⚡'],['Shopping','🛍️'],['Health','💊'],['Family','🏠'],['Entertainment','🎬'],['Other','📌']].map(([name, icon]) => ({ name, icon }));
+    const INC_CATS = [['Salary','💼'],['Business','📈'],['Freelance','💻'],['Gift','🎁'],['Refund','↩️'],['Other','✨']].map(([name, icon]) => ({ name, icon }));
+    const PALETTE = ['#6366f1','#ec4899','#f59e0b','#10b981','#0ea5e9','#8b5cf6','#ef4444','#14b8a6','#f97316','#64748b'];
 
-  <div id="loading-screen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white dark:bg-gray-950">
-    <div class="animate-spin rounded-full h-12 w-12 border-4 border-brand border-t-transparent mb-4"></div>
-    <h2 class="text-lg font-semibold">Loading...</h2>
-  </div>
+    // --- 2. LAZY FIREBASE LOADER & STATE (0ms First Paint, Offline-Grade Speed) ---
+    let app = null, db = null, auth = null, fb = null, fbPromise = null;
+    function ensureFirebase() {
+      if (fb && auth && db) return Promise.resolve(fb);
+      if (fbPromise) return fbPromise;
+      fbPromise = Promise.all([
+        import("https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js"),
+        import("https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js"),
+        import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js")
+      ]).then(([appMod, authMod, fsMod]) => {
+        fb = { ...authMod, ...fsMod };
+        app = appMod.initializeApp(window.__firebase_config);
+        try { db = fsMod.initializeFirestore(app, { experimentalForceLongPolling: true, localCache: fsMod.persistentLocalCache({ tabManager: fsMod.persistentSingleTabManager({ forceOwnership: true }) }) }); }
+        catch { try { db = fsMod.initializeFirestore(app, { experimentalForceLongPolling: true, localCache: fsMod.memoryLocalCache() }); } catch { db = fsMod.getFirestore(app); } }
+        auth = authMod.getAuth(app);
+        return fb;
+      }).catch((err) => { fbPromise = null; throw err; });
+      return fbPromise;
+    }
 
-  <div id="auth-screen" style="display: none;" class="fixed inset-0 z-40 bg-white dark:bg-gray-950 flex-col items-center justify-center p-4">
-    <div class="w-full max-w-md p-6 bg-white dark:bg-gray-900 rounded-2xl shadow-xl flex flex-col items-center">
-      <h1 class="text-2xl font-bold text-center mb-6">Delights Flow</h1>
-      <div id="g_id_onload" 
-           data-client_id="967458395131-ahj573n9ea4artc7l3dj25gv4k26l92p.apps.googleusercontent.com" 
-           data-context="signin" 
-           data-ux_mode="popup" 
-           data-callback="handleGoogleSignIn" 
-           data-auto_prompt="false"></div>
-      <div class="g_id_signin" data-type="standard" data-shape="rectangular" data-theme="outline" data-text="signin_with" data-size="large" data-logo_alignment="left"></div>
-    </div>
-  </div>
+    let unsubUser = null, unsubWs = null, unsubTx = null, deferredInstall = null, gisReady = false, gisPromise = null, chartPromise = null, resolveAuthReady = null;
+    const authReadyPromise = new Promise((r) => (resolveAuthReady = r));
+    const GOOGLE_CLIENT_ID = window.__google_web_client_id;
 
-  <div id="app-shell" style="display: none;" class="h-screen w-full overflow-hidden">
-    <div class="flex-1 flex flex-col h-full overflow-hidden relative">
-      <header class="md:hidden sticky top-0 z-20 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-800 px-4 h-14 flex items-center justify-between">
-        <div class="flex items-center gap-2"><h1 class="text-lg font-bold">DF</h1><div class="w-2 h-2 rounded-full bg-green-500"></div></div>
-        <button id="btn-logout" class="text-xs text-red-500 font-bold">Log Out</button>
-      </header>
-
-      <main class="flex-1 overflow-y-auto pb-20 md:pb-6 p-4 md:p-6">
-        <!-- Money Views -->
-        <div id="view-overview" style="display: block;">
-          <div class="bg-white dark:bg-gray-900 p-5 rounded-2xl shadow-sm mb-6">
-            <h2 id="mo-net" class="text-3xl font-bold mb-4">$0.00</h2>
-            <div class="grid grid-cols-2 gap-4">
-              <div class="bg-green-50 dark:bg-green-900/20 p-3 rounded-xl"><div class="text-xs text-green-600">Income</div><div id="mo-inc" class="text-lg font-bold text-green-700">$0</div></div>
-              <div class="bg-red-50 dark:bg-red-900/20 p-3 rounded-xl"><div class="text-xs text-red-600">Expense</div><div id="mo-exp" class="text-lg font-bold text-red-700">$0</div></div>
-            </div>
-          </div>
-          <h3 class="font-bold text-lg mb-3">Wallets</h3><div id="mo-wallets" class="grid grid-cols-2 gap-3 mb-6"></div>
-          <h3 class="font-bold text-lg mb-3">Recent</h3><div id="mo-recent" class="space-y-2"></div>
-        </div>
-        <div id="view-history" style="display: none;"><h2 class="text-xl font-bold mb-4">History</h2><div id="mh-list" class="space-y-3"></div></div>
-        
-        <!-- Shop Views -->
-        <div id="shop-tab-home" style="display: none;">
-          <div class="bg-white dark:bg-gray-900 p-5 rounded-2xl shadow-sm mb-6 border border-shop/20">
-            <div class="text-sm font-medium text-shop mb-1">Today's Sales</div>
-            <h2 id="sh-today" class="text-3xl font-bold mb-4">$0.00</h2>
-          </div>
-          <h3 class="font-bold text-lg mb-3">Shops</h3><div id="sh-shops" class="grid grid-cols-2 gap-3 mb-6"></div>
-          <h3 class="font-bold text-lg mb-3">Recent</h3><div id="sh-recent" class="space-y-2"></div>
-        </div>
-        <div id="shop-tab-history" style="display: none;"><h2 class="text-xl font-bold mb-4">Shop History</h2><div id="sh-list" class="space-y-3"></div></div>
-      </main>
-
-      <!-- Mobile Navs -->
-      <div id="mobile-nav-money" style="display: flex;" class="md:hidden absolute bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 justify-around items-center h-16 pb-safe">
-        <button class="flex flex-col items-center p-2 text-brand font-medium"><span class="text-xl">📊</span><span class="text-[10px]">Overview</span></button>
-        <button class="flex flex-col items-center p-2 text-gray-500"><span class="text-xl">🏪</span><span class="text-[10px]">Shop</span></button>
-        <button class="w-12 h-12 -mt-6 bg-brand text-white rounded-full flex items-center justify-center text-2xl shadow-lg shadow-brand/30">+</button>
-        <button class="flex flex-col items-center p-2 text-gray-500"><span class="text-xl">📜</span><span class="text-[10px]">History</span></button>
-      </div>
-      
-      <div id="mobile-nav-shop" style="display: none;" class="md:hidden absolute bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 justify-around items-center h-16 pb-safe">
-        <button class="flex flex-col items-center p-2 text-gray-500"><span class="text-xl">💵</span><span class="text-[10px]">Money</span></button>
-        <button class="flex flex-col items-center p-2 text-shop font-medium"><span class="text-xl">🏪</span><span class="text-[10px]">Shop</span></button>
-        <button class="w-12 h-12 -mt-6 bg-shop text-white rounded-full flex items-center justify-center text-2xl shadow-lg shadow-shop/30">+</button>
-        <button class="flex flex-col items-center p-2 text-gray-500"><span class="text-xl">📜</span><span class="text-[10px]">History</span></button>
-      </div>
-    </div>
-  </div>
-
-  <div id="toast-container" class="fixed top-4 right-4 z-[100] flex flex-col gap-2 pointer-events-none"></div>
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
-
-  <script>
-    const COLORS = ['#ef4444', '#f97316', '#f59e0b', '#84cc16', '#22c55e', '#10b981', '#14b8a6', '#06b6d4', '#0ea5e9', '#3b82f6', '#6366f1', '#8b5cf6', '#a855f7', '#d946ef', '#ec4899', '#f43f5e', '#64748b', '#78716c'];
-    const STARTER_WALLETS = [{ id: 'w1', name: 'Cash', icon: '💵', color: COLORS[4], opening: 0 }, { id: 'w2', name: 'Bank', icon: '🏦', color: COLORS[9], opening: 0 }];
-    const DEFAULT_SHOPS = [{ id: 's1', name: 'Shop 1', logoUrl: null, active: true }];
+    const todayISO = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
+    const curMonth = () => todayISO().slice(0, 7);
 
     const state = {
-      mode: 'money', moneyView: 'overview', shopTab: 'home',
-      user: null, workspaceId: null, workspace: null, transactions: [], balances: {},
-      firebaseLoaded: false
+      user: null, userWorkspaces: [], workspaceId: '', authMode: 'signin', currentView: 'overview',
+      darkMode: document.documentElement.classList.contains('dark'), privacyMode: false, activePerson: 'person1',
+      workspace: {
+        name: 'My Ledger', joinPin: '', wallets: STARTER_WALLETS.map((w) => ({ ...w })), archivedWalletNames: {},
+        openingBalances: { cash: 0, bank: 0 }, userNames: { person1: 'Person 1', person2: 'Person 2' }, currency: 'Ks',
+        customExpenseCategories: [], customIncomeCategories: [], quickTemplates: [],
+        shopCategories: DEFAULT_SHOPS.map((c) => ({ ...c })), shopProfile: { name: '', footer: 'Thank you for your purchase!', logoDataUrl: '' }
+      },
+      transactions: [], historyMode: 'list', calendarMonth: curMonth(), calendarSelectedDate: todayISO(), walletFilterActive: false,
+      filters: { search: '', month: curMonth(), wallet: 'all', type: 'all', person: 'all', scope: 'all' },
+      analyticsMonth: curMonth(), analyticsScope: 'all',
+      txDraft: { editId: null, type: 'expense', wallet: 'cash', fromWallet: 'cash', toWallet: 'bank', category: 'Food & Dining', person: 'person1' },
+      settingsDraftWallets: [], openColorPickerWalletId: null, confirmCallback: null,
+      charts: { expenseCategory: null, incomeExpense: null, walletDistribution: null, personBreakdown: null }
     };
 
-    const D = {};
-    const $ = id => document.getElementById(id);
-    const esc = str => String(str).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
-    const fmtNum = (num, dec = 2) => Number(num).toLocaleString('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec });
-    const fmtMoney = (num, curr = '$', dec = 2) => `${num < 0 ? '-' : ''}${curr}${fmtNum(Math.abs(num), dec)}`;
-    const todayISO = () => new Date().toISOString().split('T')[0];
-    const curMonth = () => todayISO().substring(0, 7);
+    // --- 3. HELPERS ---
+    const $ = (id) => document.getElementById(id);
+    const esc = (s) => String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+    const isActiveUser = (v) => v === 'person1' || v === 'person2';
+    const isValidPerson = (v) => isActiveUser(v) || v === 'shared';
+    const getOwner = (t) => (t?.scope === 'shop' || t?.loggedBy === 'shop') ? 'shop' : (isValidPerson(t?.loggedBy) ? t.loggedBy : 'person1');
+    const personName = (k) => k === 'shop' ? 'Shop' : k === 'shared' ? 'Shared' : (k === 'person2' ? (state.workspace.userNames?.person2 || 'Person 2') : (state.workspace.userNames?.person1 || 'Person 1'));
+    const fmtNum = (n) => { const x = Number(n) || 0; return `${x < 0 ? '-' : ''}${Math.abs(x).toLocaleString('en-US', { maximumFractionDigits: 2 })}`; };
+    const fmtMoney = (n, plus = false) => `${plus && Number(n) > 0 ? '+' : ''}${fmtNum(n)} ${state.workspace.currency || 'Ks'}`;
+    const fmtDisp = (n, plus = false) => state.privacyMode ? '••••••' : fmtMoney(n, plus);
+    const fmtCompact = (n) => { if (state.privacyMode) return '••'; const x = Math.abs(Number(n) || 0); return x >= 1e6 ? `${(x/1e6).toFixed(x>=1e7?0:1).replace(/\.0$/,'')}M` : x >= 1e3 ? `${(x/1e3).toFixed(x>=1e5?0:1).replace(/\.0$/,'')}k` : String(Math.round(x)); };
+    const parseAmt = (v) => { const n = parseFloat(String(v || '').replace(/,/g, '').replace(/[^\d.]/g, '')); return Number.isFinite(n) ? n : 0; };
+    const parseSigned = (v) => String(v || '').trim().startsWith('-') ? -parseAmt(v) : parseAmt(v);
+    const fmtMonth = (mk) => { if (!mk || mk === 'all') return 'All Time'; const [y, m] = mk.split('-').map(Number); return y && m ? new Date(y, m - 1, 1).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : mk; };
+    const fmtDateHead = (ds) => {
+      if (ds === todayISO()) return 'Today';
+      const y = new Date(); y.setDate(y.getDate() - 1);
+      if (ds === `${y.getFullYear()}-${String(y.getMonth() + 1).padStart(2, '0')}-${String(y.getDate()).padStart(2, '0')}`) return 'Yesterday';
+      const p = String(ds || '').split('-').map(Number);
+      return p.length === 3 ? new Date(p[0], p[1] - 1, p[2]).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }) : ds;
+    };
+    const getWallets = () => (Array.isArray(state.workspace.wallets) && state.workspace.wallets.length ? state.workspace.wallets : STARTER_WALLETS)
+      .map((w) => { const c = COLOR_MAP[w.colorKey] || COLORS[0], it = W_ICONS[w.iconType] ? w.iconType : 'bank'; return { ...w, iconType: it, colorKey: c.key, colorLabel: c.label, hex: c.hex, icon: W_ICONS[it] }; });
+    const getWallet = (id) => getWallets().find((w) => w.id === id) || { id: id || 'removed', name: state.workspace.archivedWalletNames?.[id] || id || 'Account', hex: '#64748b', icon: W_ICONS.bank };
+    const getCats = (type) => {
+      const base = type === 'income' ? INC_CATS : EXP_CATS, custom = (type === 'income' ? state.workspace.customIncomeCategories : state.workspace.customExpenseCategories) || [];
+      const seen = new Set(base.map((c) => c.name.toLowerCase()));
+      return [...base, ...custom.filter((n) => n && !seen.has(n.toLowerCase())).map((name) => ({ name, icon: type === 'income' ? '💵' : '🏷️' }))];
+    };
+    const catIcon = (txOrType, name) => {
+      if (typeof txOrType === 'object' && txOrType) return txOrType.scope === 'shop' ? (txOrType.type === 'income' ? '🛍️' : '📦') : catIcon(txOrType.type, txOrType.category);
+      if (txOrType === 'transfer') return '🔄';
+      return getCats(txOrType).find((c) => c.name === name)?.icon || (txOrType === 'income' ? '💵' : '🏷️');
+    };
+    const toast = (msg, v = 'info') => {
+      const cls = { success: 'bg-emerald-600 text-white', error: 'bg-rose-600 text-white', info: 'bg-slate-900 dark:bg-slate-800 text-white' };
+      const el = Object.assign(document.createElement('div'), { className: `pointer-events-auto px-4 py-3 rounded-2xl text-xs sm:text-sm font-semibold shadow-lg transition-all duration-300 ${cls[v] || cls.info}`, textContent: msg });
+      $('toast-container').appendChild(el);
+      setTimeout(() => { el.classList.add('opacity-0', '-translate-y-2'); setTimeout(() => el.remove(), 300); }, 2600);
+    };
+    const copyText = (text, msg = 'Copied!') => {
+      try { const ta = Object.assign(document.createElement('textarea'), { value: text }); ta.style.cssText = 'position:fixed;opacity:0'; document.body.appendChild(ta); ta.focus(); ta.select(); document.execCommand('copy'); ta.remove(); toast(msg, 'success'); }
+      catch { toast('Could not copy', 'error'); }
+    };
+    const showScreen = (name) => {
+      ['loading','auth','workspace','app'].forEach((s) => $(`${s === 'app' ? 'app-shell' : `${s}-screen`}`).classList.toggle('hidden', s !== name));
+      if (name === 'auth') renderGoogleBtn();
+    };
+    const loadScript = (src) => new Promise((res) => { const s = Object.assign(document.createElement('script'), { src, async: true, onload: () => res(true), onerror: () => res(false) }); document.head.appendChild(s); });
+    const ensureChartJs = () => typeof Chart !== 'undefined' ? Promise.resolve(true) : (chartPromise ||= loadScript('https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js').then((ok) => { if (!ok) chartPromise = null; return ok && typeof Chart !== 'undefined'; }));
+    const ensureGis = () => window.google?.accounts?.id ? Promise.resolve(true) : (gisPromise ||= loadScript('https://accounts.google.com/gsi/client').then((ok) => { if (!ok) gisPromise = null; return ok && Boolean(window.google?.accounts?.id); }));
 
-    const getWallets = () => state.workspace?.wallets || STARTER_WALLETS;
-    const getShops = () => state.workspace?.shops || DEFAULT_SHOPS;
-
-    function toast(msg, type = 'info') {
-      if (!D.toast) D.toast = $('toast-container');
-      const t = document.createElement('div');
-      t.className = `px-4 py-2 rounded-lg text-white text-sm font-medium shadow-lg transform transition-all duration-300 translate-y-4 opacity-0 ${type === 'error' ? 'bg-red-500' : type === 'success' ? 'bg-green-500' : 'bg-gray-800'}`;
-      t.innerText = msg; D.toast.appendChild(t);
-      requestAnimationFrame(() => t.classList.remove('translate-y-4', 'opacity-0'));
-      setTimeout(() => { t.classList.add('translate-y-4', 'opacity-0'); setTimeout(() => t.remove(), 300); }, 3000);
-    }
-
-    function computeBalances() {
-      const b = { wallets: {}, shop: { rev: 0, cap: 0, cost: 0, pendCod: 0, net: 0, sIds: {} } };
-      getWallets().forEach(w => b.wallets[w.id] = w.opening || 0);
-      getShops().forEach(s => b.shop.sIds[s.id] = { rev: 0, cap: 0, cost: 0, pendCod: 0, net: 0 });
-
-      state.transactions.forEach(tx => {
-        if (tx.type === 'income') { b.wallets[tx.wId] += tx.amt; } 
-        else if (tx.type === 'expense') { b.wallets[tx.wId] -= tx.amt; }
-        else if (tx.type === 'shop_sale') {
-          b.shop.rev += tx.total; b.shop.net += tx.total;
-          if (b.shop.sIds[tx.sId]) { b.shop.sIds[tx.sId].rev += tx.total; b.shop.sIds[tx.sId].net += tx.total; }
-          if (tx.paidNow > 0 && tx.wId) b.wallets[tx.wId] += tx.paidNow;
-        } 
-      });
-      state.balances = b;
-    }
-
-    let fb = {};
-    async function ensureFirebase() {
-      if (state.firebaseLoaded) return fb;
+    const saveSnap = (wsId = state.workspaceId) => {
+      if (!wsId) return;
+      const write = (ws, txs) => { localStorage.setItem(`df_snap_${wsId}`, JSON.stringify({ workspace: ws, transactions: txs, userWorkspaces: state.userWorkspaces, savedAt: Date.now() })); localStorage.setItem('df_user_ws', JSON.stringify(state.userWorkspaces || [])); };
+      try { write(state.workspace, state.transactions); }
+      catch { try { write({ ...state.workspace, shopCategories: (state.workspace.shopCategories || []).map((c) => ({ ...c, logoDataUrl: '' })), shopProfile: { ...(state.workspace.shopProfile || {}), logoDataUrl: '' } }, state.transactions.slice(0, 200)); } catch {} }
+    };
+    const loadSnap = (wsId) => {
       try {
-        const [app, auth, firestore] = await Promise.all([
-          import('https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js'),
-          import('https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js'),
-          import('https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js')
-        ]);
-        const firebaseApp = app.initializeApp(window.__firebase_config);
-        fb.auth = auth.getAuth(firebaseApp); fb.db = firestore.getFirestore(firebaseApp);
-        fb.authMod = auth; fb.fsMod = firestore;
-        try { firestore.initializeFirestore(firebaseApp, { localCache: firestore.persistentLocalCache({ tabManager: firestore.persistentSingleTabManager({ forceOwnership: true }) }) }); } catch(e){}
-        state.firebaseLoaded = true;
-        return fb;
-      } catch(e) {}
-    }
-
-    // Google Sign-In Callback handler
-    window.handleGoogleSignIn = async (response) => {
-      try {
-        D.authScreen.style.display = 'none';
-        D.loadingScreen.style.display = 'flex';
-        const { auth, authMod } = await ensureFirebase();
-        const credential = authMod.GoogleAuthProvider.credential(response.credential);
-        const result = await authMod.signInWithCredential(auth, credential);
-        state.user = result.user;
-        localStorage.setItem('df_last_uid', state.user.uid);
-        localStorage.setItem('df_active_ws', state.user.uid + '_workspace'); // Default workspace mapping
-        window.location.reload();
-      } catch(e) {
-        toast("Login Failed", "error");
-        D.loadingScreen.style.display = 'none';
-        D.authScreen.style.display = 'flex';
-      }
+        const snap = JSON.parse(localStorage.getItem(`df_snap_${wsId}`) || 'null');
+        if (!snap?.workspace) return false;
+        const w = snap.workspace;
+        state.workspace = { ...state.workspace, ...w, wallets: w.wallets?.length ? w.wallets : STARTER_WALLETS.map((x) => ({ ...x })), openingBalances: w.openingBalances || {}, userNames: { person1: w.userNames?.person1 || 'Person 1', person2: w.userNames?.person2 || 'Person 2' }, currency: w.currency || 'Ks' };
+        if (Array.isArray(snap.transactions)) state.transactions = snap.transactions;
+        if (Array.isArray(snap.userWorkspaces) && snap.userWorkspaces.length) state.userWorkspaces = snap.userWorkspaces;
+        return true;
+      } catch { return false; }
+    };
+    const clearSnaps = () => { try { Object.keys(localStorage).forEach((k) => { if (k.startsWith('df_snap_') || ['df_active_ws','df_last_uid','df_user_ws'].includes(k)) localStorage.removeItem(k); }); } catch {} };
+    const requireAuth = async () => {
+      if (state.user && state.workspaceId && db && fb) return true;
+      await ensureFirebase();
+      await Promise.race([authReadyPromise, new Promise((r) => setTimeout(r, 4000))]);
+      if (!state.user || !state.workspaceId) { toast('Still connecting — try again in a moment.', 'info'); throw new Error('Auth not ready'); }
+      return true;
     };
 
-    function switchMode(mode, subTab = null) {
-      requestAnimationFrame(() => {
-        state.mode = mode;
-        if (mode === 'money') {
-          if(subTab) state.moneyView = subTab;
-          D.mobileNavMoney.style.display = 'flex'; D.mobileNavShop.style.display = 'none';
-          ['overview', 'history'].forEach(v => D[`view${v.charAt(0).toUpperCase()+v.slice(1)}`].style.display = (state.moneyView === v) ? 'block' : 'none');
-          D.shopTabHome.style.display = 'none'; D.shopTabHistory.style.display = 'none';
-          renderMoney();
-        } else {
-          if(subTab) state.shopTab = subTab;
-          D.mobileNavMoney.style.display = 'none'; D.mobileNavShop.style.display = 'flex';
-          ['home', 'history'].forEach(v => D[`shopTab${v.charAt(0).toUpperCase()+v.slice(1)}`].style.display = (state.shopTab === v) ? 'block' : 'none');
-          D.viewOverview.style.display = 'none'; D.viewHistory.style.display = 'none';
-          renderShop();
-        }
-      });
-    }
+    // --- 4. AUTH (LAZY-LOADED GOOGLE GIS + EMAIL) & WORKSPACE SYNC ---
+    const authErrMsg = (e) => {
+      const c = e?.code || '';
+      if (c.includes('invalid-credential') || c.includes('wrong-password') || c.includes('user-not-found')) return 'Incorrect email or password.';
+      if (c.includes('email-already-in-use')) return 'Account already exists. Try Sign In.';
+      if (c.includes('weak-password')) return 'Password must be at least 6 characters.';
+      if (c.includes('unauthorized-domain')) return 'Add your GitHub domain in Firebase Authorized Domains.';
+      return c.includes('popup-closed') ? 'Sign-in cancelled.' : (e?.message || 'Authentication failed.');
+    };
 
-    function renderMoney() {
-      if (state.moneyView !== 'overview') return;
-      const month = curMonth();
-      let netBal = getWallets().reduce((sum, w) => sum + (state.balances.wallets[w.id] || 0), 0);
-      let inc = 0, exp = 0;
-      
-      state.transactions.filter(t => t.date.startsWith(month)).forEach(t => {
-        if (t.type === 'income' || t.type === 'shop_sale') inc += (t.total || t.amt); 
-        else if (t.type === 'expense' || t.type === 'shop_cap') exp += (t.total || t.amt);
-      });
-      
-      $('mo-net').innerText = fmtMoney(netBal, state.workspace?.currency);
-      $('mo-inc').innerText = fmtMoney(inc, state.workspace?.currency, 0);
-      $('mo-exp').innerText = fmtMoney(exp, state.workspace?.currency, 0);
-      $('mo-wallets').innerHTML = getWallets().map(w => `<div class="bg-white dark:bg-gray-900 p-4 rounded-xl shadow-sm border-l-4" style="border-left-color: ${w.color||'#3b82f6'}"><div class="text-xl mb-2">${w.icon}</div><div class="text-sm text-gray-500 font-medium truncate">${esc(w.name)}</div><div class="text-lg font-bold">${fmtMoney(state.balances.wallets[w.id]||0, state.workspace?.currency, 0)}</div></div>`).join('');
-      $('mo-recent').innerHTML = state.transactions.slice(0, 8).map(t => `<div class="flex justify-between p-3 bg-white dark:bg-gray-900 rounded-xl mb-2"><div class="font-bold text-sm">${esc(t.note || 'Record')}</div><div class="font-bold ${t.type.includes('income')||t.type==='shop_sale'?'text-green-600':'text-red-600'}">${fmtMoney(t.total||t.amt, state.workspace?.currency)}</div></div>`).join('');
-    }
-
-    function renderShop() {
-      if (state.shopTab !== 'home') return;
-      let tSales = 0; 
-      state.transactions.forEach(t => { if (t.type==='shop_sale' && t.date===todayISO()) tSales += (t.paidNow||0); });
-      $('sh-today').innerText = fmtMoney(tSales, state.workspace?.currency);
-      $('sh-shops').innerHTML = getShops().map(s => {
-        const b = state.balances.shop.sIds[s.id] || { rev:0, cap:0 };
-        return `<div class="bg-white dark:bg-gray-900 p-4 rounded-xl border"><div class="font-bold mb-2">${esc(s.name)}</div><div class="text-xs">Sales: ${fmtCompact(b.rev)}</div></div>`;
-      }).join('');
-      $('sh-recent').innerHTML = state.transactions.filter(t => t.type.startsWith('shop_')).slice(0, 8).map(t => `<div class="flex justify-between p-3 bg-white dark:bg-gray-900 rounded-xl mb-2"><div class="font-bold text-sm">${t.type==='shop_sale'?'🛒 Sale':'🔥 Cost'}</div><div class="font-bold text-gray-800 dark:text-gray-200">${fmtMoney(t.total, state.workspace?.currency)}</div></div>`).join('');
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-      ['loading-screen', 'auth-screen', 'app-shell', 'toast-container', 'mobile-nav-money', 'mobile-nav-shop', 'view-overview', 'view-history', 'shop-tab-home', 'shop-tab-history'].forEach(id => D[id.replace(/-([a-z])/g, g => g[1].toUpperCase())] = $(id));
-
-      const navSetup = (parent, isShopNav) => {
-        Array.from(parent.children).forEach((el, i) => {
-          el.onpointerdown = (e) => {
-            e.preventDefault();
-            if (isShopNav && i === 0) switchMode('money', 'overview');
-            else if (!isShopNav && i === 1) switchMode('shop', 'home');
-            else switchMode(isShopNav ? 'shop' : 'money', ['overview','shop','','history'][i]);
-          };
-          el.onclick = e => e.preventDefault();
-        });
-      };
-      navSetup(D.mobileNavMoney, false);
-      navSetup(D.mobileNavShop, true);
-
-      $('btn-logout').onclick = async () => {
-        const { auth, authMod } = await ensureFirebase();
-        authMod.signOut(auth);
-        localStorage.clear();
-        window.location.reload();
-      };
-
-      const lUid = localStorage.getItem('df_last_uid');
-      const lWs = localStorage.getItem('df_active_ws');
-      
-      if (lUid && lWs) {
+    async function renderGoogleBtn() {
+      const wrap = $('google-gis-btn'), load = $('google-gis-loading'), fallbackBtn = $('google-signin-btn');
+      if (!wrap) return;
+      const ok = await ensureGis();
+      if (ok && GOOGLE_CLIENT_ID) {
         try {
-          const snap = JSON.parse(localStorage.getItem(`df_snap_${lWs}`));
-          if (snap) { 
-            state.workspaceId = lWs; state.workspace = snap.ws || { wallets: STARTER_WALLETS, shops: DEFAULT_SHOPS }; state.transactions = snap.txs || []; 
-            computeBalances(); 
-            D.loadingScreen.style.display = 'none'; 
-            D.appShell.style.display = 'flex'; 
-            switchMode(state.mode, state.mode === 'money' ? state.moneyView : state.shopTab); 
+          if (!gisReady) {
+            window.google.accounts.id.initialize({
+              client_id: GOOGLE_CLIENT_ID, auto_select: false, cancel_on_tap_outside: true,
+              callback: async (res) => {
+                $('auth-error-box').classList.add('hidden');
+                if (!res?.credential) return;
+                try { toast('Signing in with Google...', 'info'); await ensureFirebase(); await fb.signInWithCredential(auth, fb.GoogleAuthProvider.credential(res.credential)); }
+                catch (err) { $('auth-error-box').textContent = authErrMsg(err); $('auth-error-box').classList.remove('hidden'); }
+              }
+            });
+            gisReady = true;
           }
-        } catch(e) {}
-        
-        setTimeout(async () => {
-          const fb = await ensureFirebase();
-          fb.authMod.onAuthStateChanged(fb.auth, user => {
-            if (!user || user.uid !== lUid) {
-               localStorage.removeItem('df_last_uid');
-               window.location.reload();
-            }
-          });
-        }, 50);
-      } else {
-        D.loadingScreen.style.display = 'none';
-        D.authScreen.style.display = 'flex';
-        setTimeout(ensureFirebase, 50);
+          wrap.innerHTML = '';
+          window.google.accounts.id.renderButton(wrap, { type: 'standard', theme: state.darkMode ? 'filled_black' : 'outline', size: 'large', text: 'continue_with', shape: 'pill', width: Math.max(220, Math.min(360, Math.floor(wrap.parentElement?.clientWidth || 320))) });
+          load?.classList.add('hidden'); fallbackBtn?.classList.add('hidden');
+          return;
+        } catch {}
       }
-    });
+      load?.classList.add('hidden'); fallbackBtn?.classList.remove('hidden');
+    }
+
+    const updateSyncUI = (status) => {
+      const eff = navigator.onLine === false ? 'offline' : status;
+      document.querySelectorAll('.sync-dot').forEach((d) => { d.classList.remove('bg-amber-400','bg-emerald-500','animate-pulse'); d.classList.add(eff === 'synced' ? 'bg-emerald-500' : 'bg-amber-400'); if (eff === 'connecting') d.classList.add('animate-pulse'); });
+      document.querySelectorAll('.sync-text').forEach((el) => (el.textContent = eff === 'synced' ? 'Live Synced' : eff === 'offline' ? 'Offline (Queued)' : 'Connecting...'));
+    };
+
+    const saveUserProfile = async (extra = {}) => {
+      try {
+        localStorage.setItem('df_dark', state.darkMode ? '1' : '0'); localStorage.setItem('df_privacy', state.privacyMode ? '1' : '0');
+        localStorage.setItem('df_active_person', state.activePerson || 'person1');
+        if (state.workspaceId) localStorage.setItem('df_active_ws', state.workspaceId);
+        if (state.user?.uid) localStorage.setItem('df_last_uid', state.user.uid);
+      } catch {}
+      if (!state.user || !db || !fb) return;
+      try { await fb.setDoc(fb.doc(db, 'delights_flow_users', state.user.uid), { email: state.user.email || '', displayName: state.user.displayName || '', activeWorkspaceId: state.workspaceId, workspaces: state.userWorkspaces, activePerson: state.activePerson, darkMode: state.darkMode, privacyMode: state.privacyMode, updatedAt: Date.now(), ...extra }, { merge: true }); } catch {}
+    };
+
+    const openOnboarding = (allowBack = false) => {
+      $('ws-user-email').textContent = state.user?.email || '';
+      $('ws-back-btn').classList.toggle('hidden', !allowBack);
+      $('ws-create-pin').value = String(Math.floor(100000 + Math.random() * 900000));
+      $('ws-create-error').classList.add('hidden'); $('ws-join-error').classList.add('hidden');
+      showScreen('workspace');
+    };
+
+    const detachListeners = () => { unsubUser?.(); unsubWs?.(); unsubTx?.(); unsubUser = unsubWs = unsubTx = null; };
+
+    function bootSignedIn(user) {
+      state.user = user;
+      $('settings-account-email').textContent = user.email || 'Signed in';
+      window.__dfSetLoadStatus?.('Loading workspace...');
+
+      let cachedWs = '';
+      try {
+        const uid = localStorage.getItem('df_last_uid') || '', ws = localStorage.getItem('df_active_ws') || '';
+        const sp = localStorage.getItem('df_active_person') || '';
+        if (isActiveUser(sp)) state.activePerson = sp;
+        if (ws && (!uid || uid === user.uid)) { cachedWs = ws; localStorage.setItem('df_last_uid', user.uid); }
+      } catch {}
+
+      if (cachedWs) subscribeWs(cachedWs);
+      else fb.getDocFromCache(fb.doc(db, 'delights_flow_users', user.uid)).then((s) => {
+        if (state.workspaceId || !s.exists()) return;
+        const d = s.data(); state.userWorkspaces = Array.isArray(d.workspaces) ? d.workspaces : [];
+        const wsId = d.activeWorkspaceId || state.userWorkspaces[0]?.id || '';
+        if (wsId) subscribeWs(wsId);
+      }).catch(() => {});
+
+      unsubUser?.();
+      let resolved = Boolean(cachedWs);
+      const timer = setTimeout(() => {
+        if (resolved || state.workspaceId) return;
+        window.__dfSetLoadStatus?.('Still connecting...', 'Checking saved ledger...', true);
+        fb.getDoc(fb.doc(db, 'delights_flow_users', user.uid)).then((s) => {
+          if (resolved || state.workspaceId) return;
+          resolved = true;
+          const wsId = s.exists() ? (s.data().activeWorkspaceId || s.data().workspaces?.[0]?.id || '') : '';
+          wsId ? subscribeWs(wsId) : openOnboarding(false);
+        }).catch((e) => { if (!resolved && !state.workspaceId) window.__dfSetLoadStatus?.('Could not load workspace.', e?.message || 'Tap Retry.', true); });
+      }, 5000);
+
+      unsubUser = fb.onSnapshot(fb.doc(db, 'delights_flow_users', user.uid), (s) => {
+        if (s.exists()) {
+          clearTimeout(timer); resolved = true;
+          const d = s.data();
+          state.userWorkspaces = Array.isArray(d.workspaces) ? d.workspaces : [];
+          if (isActiveUser(d.activePerson)) state.activePerson = d.activePerson;
+          if (typeof d.darkMode === 'boolean' && d.darkMode !== state.darkMode) { state.darkMode = d.darkMode; applyTheme(); }
+          if (typeof d.privacyMode === 'boolean' && d.privacyMode !== state.privacyMode) { state.privacyMode = d.privacyMode; applyPrivacy(); }
+          const wsId = d.activeWorkspaceId || state.userWorkspaces[0]?.id || '';
+          if (wsId) { if (wsId !== state.workspaceId || !unsubWs) subscribeWs(wsId); else renderAll(); }
+          else if (!state.workspaceId) openOnboarding(false);
+        } else if (!s.metadata.fromCache) { clearTimeout(timer); resolved = true; if (!state.workspaceId) openOnboarding(false); }
+      }, (e) => { clearTimeout(timer); if (!resolved && !state.workspaceId) window.__dfSetLoadStatus?.('Sync error.', e?.message || 'Tap Retry.', true); });
+    }
+
+    function subscribeWs(wsId) {
+      if (!wsId || !state.user || !db || !fb) return;
+      unsubWs?.(); unsubTx?.();
+      state.workspaceId = wsId;
+      try { localStorage.setItem('df_active_ws', wsId); localStorage.setItem('df_last_uid', state.user.uid); } catch {}
+      showScreen('app'); updateSyncUI('connecting'); renderAll();
+
+      unsubWs = fb.onSnapshot(fb.doc(db, 'delights_flow_workspaces', wsId), (s) => {
+        if (!s.exists()) { if (!s.metadata.fromCache) { try { localStorage.removeItem('df_active_ws'); } catch {} state.workspaceId = ''; openOnboarding(false); } return; }
+        const d = s.data(), wallets = d.wallets?.length ? d.wallets : STARTER_WALLETS.map((w) => ({ ...w })), ob = { ...(d.openingBalances || {}) };
+        wallets.forEach((w) => { if (ob[w.id] === undefined) ob[w.id] = 0; });
+        state.workspace = {
+          ...state.workspace, ...d, name: d.name || 'My Ledger', joinPin: d.joinPin || '', wallets, archivedWalletNames: d.archivedWalletNames || {}, openingBalances: ob,
+          userNames: { person1: d.userNames?.person1 || 'Person 1', person2: d.userNames?.person2 || 'Person 2' }, currency: d.currency || 'Ks',
+          customExpenseCategories: d.customExpenseCategories || [], customIncomeCategories: d.customIncomeCategories || [], quickTemplates: d.quickTemplates || [],
+          shopCategories: d.shopCategories?.length ? d.shopCategories : DEFAULT_SHOPS.map((c) => ({ ...c })), shopProfile: d.shopProfile || { name: '', footer: 'Thank you for your purchase!', logoDataUrl: '' }
+        };
+        const idx = state.userWorkspaces.findIndex((x) => x.id === wsId);
+        if (idx >= 0) state.userWorkspaces[idx].name = state.workspace.name; else state.userWorkspaces.push({ id: wsId, name: state.workspace.name });
+        saveSnap(wsId); updateSyncUI('synced'); renderAll();
+      }, (e) => {
+        if (e?.code === 'permission-denied') { try { localStorage.removeItem('df_active_ws'); localStorage.removeItem(`df_snap_${wsId}`); } catch {} unsubWs?.(); unsubTx?.(); unsubWs = unsubTx = null; state.workspaceId = ''; openOnboarding(false); return; }
+        updateSyncUI('offline');
+      });
+
+      unsubTx = fb.onSnapshot(fb.collection(db, 'delights_flow_workspaces', wsId, 'transactions'), (qs) => {
+        const list = []; qs.forEach((d) => list.push({ id: d.id, ...d.data() }));
+        list.sort((a, b) => (b.date || '').localeCompare(a.date || '') || (b.createdAt || 0) - (a.createdAt || 0));
+        state.transactions = list; saveSnap(wsId); updateSyncUI('synced'); renderAll();
+      }, () => updateSyncUI('offline'));
+    }
+
+    const patchWs = async (patch) => { await requireAuth(); await fb.updateDoc(fb.doc(db, 'delights_flow_workspaces', state.workspaceId), { ...patch, updatedAt: Date.now() }); };
+    const saveTx = async (payload, editId = null) => {
+      await requireAuth();
+      const col = fb.collection(db, 'delights_flow_workspaces', state.workspaceId, 'transactions');
+      editId ? await fb.updateDoc(fb.doc(col, editId), { ...payload, updatedAt: Date.now() }) : await fb.addDoc(col, { ...payload, createdByUid: state.user.uid, createdAt: Date.now() });
+    };
+    const delTx = async (id) => { await requireAuth(); await fb.deleteDoc(fb.doc(db, 'delights_flow_workspaces', state.workspaceId, 'transactions', id)); };
+
+    // --- 5. COMPUTATIONS & RENDERING ---
+    const getShopSplit = (t) => {
+      if (!t || t.scope !== 'shop' || t.type !== 'income' || t.paidAmount === undefined) return null;
+      const paid = Number(t.paidAmount) || 0, cod = Number(t.codAmount) || 0, codPaid = cod > 0 && t.codStatus === 'paid';
+      return { paid, cod, codPaid, codPending: cod > 0 && !codPaid, codWallet: t.codWallet || t.wallet };
+    };
+    const computeBalances = () => {
+      const bal = {}; getWallets().forEach((w) => (bal[w.id] = Number(state.workspace.openingBalances?.[w.id]) || 0));
+      state.transactions.forEach((t) => {
+        const sp = getShopSplit(t);
+        if (sp) { if (sp.paid > 0 && bal[t.wallet] !== undefined) bal[t.wallet] += sp.paid; if (sp.codPaid && bal[sp.codWallet] !== undefined) bal[sp.codWallet] += sp.cod; return; }
+        const a = Number(t.amount) || 0;
+        if (t.type === 'income' && bal[t.wallet] !== undefined) bal[t.wallet] += a;
+        else if (t.type === 'expense' && bal[t.wallet] !== undefined) bal[t.wallet] -= a;
+        else if (t.type === 'transfer') { if (bal[t.fromWallet] !== undefined) bal[t.fromWallet] -= a; if (bal[t.toWallet] !== undefined) bal[t.toWallet] += a; }
+      });
+      return bal;
+    };
+    const getMonths = () => {
+      const s = new Set([curMonth()]);
+      if (state.analyticsMonth && state.analyticsMonth !== 'all') s.add(state.analyticsMonth);
+      if (state.filters.month && state.filters.month !== 'all') s.add(state.filters.month);
+      state.transactions.forEach((t) => { if (t.date?.length >= 7) s.add(t.date.slice(0, 7)); });
+      const now = new Date(); for (let i = 0; i < 6; i++) { const d = new Date(now.getFullYear(), now.getMonth() - i, 1); s.add(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`); }
+      return Array.from(s).sort((a, b) => b.localeCompare(a));
+    };
+    const matchesScope = (t, sc) => sc === 'all' || (t.scope === 'shop' ? 'shop' : 'personal') === sc;
+    const getFiltered = () => {
+      const { search, month, wallet, type, person, scope } = state.filters, q = search.trim().toLowerCase();
+      return state.transactions.filter((t) => {
+        if (month !== 'all' && !t.date?.startsWith(month)) return false;
+        if (type !== 'all' && t.type !== type) return false;
+        if (person !== 'all' && getOwner(t) !== person) return false;
+        if (!matchesScope(t, scope)) return false;
+        if (wallet !== 'all') {
+          if (t.type === 'transfer') { if (t.fromWallet !== wallet && t.toWallet !== wallet) return false; }
+          else { const sp = getShopSplit(t); if (t.wallet !== wallet && !(sp?.codPaid && sp.codWallet === wallet)) return false; }
+        }
+        if (q) {
+          const wn = t.type === 'transfer' ? `${getWallet(t.fromWallet).name} ${getWallet(t.toWallet).name}` : getWallet(t.wallet).name;
+          if (![t.note, t.category, t.customerName, t.receiptNo, wn, personName(getOwner(t)), t.amount].join(' ').toLowerCase().includes(q)) return false;
+        }
+        return true;
+      });
+    };
+
+    const applyTheme = () => {
+      document.documentElement.classList.toggle('dark', state.darkMode);
+      document.querySelectorAll('.theme-icon-slot').forEach((s) => (s.innerHTML = state.darkMode ? UI_ICONS.sun : UI_ICONS.moon));
+      if (state.currentView === 'analytics' && state.workspaceId) renderAnalytics();
+    };
+    const applyPrivacy = () => document.querySelectorAll('.privacy-icon-slot').forEach((s) => (s.innerHTML = state.privacyMode ? UI_ICONS.eyeOff : UI_ICONS.eye));
+
+    function switchView(view, opts = {}) {
+      if (view !== 'history' || !opts.keepWalletFilter) {
+        state.filters.wallet = 'all';
+        if (state.walletFilterActive) { state.filters.month = curMonth(); state.walletFilterActive = false; }
+      }
+      state.currentView = view;
+      ['overview','history','analytics'].forEach((v) => $(`view-${v}`).classList.toggle('hidden', v !== view));
+      document.querySelectorAll('.nav-btn').forEach((b) => { b.className = b.dataset.nav === view ? 'nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300' : 'nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/80'; });
+      document.querySelectorAll('.nav-btn-mobile').forEach((b) => { b.className = b.dataset.nav === view ? 'nav-btn-mobile flex flex-col items-center py-1.5 gap-1 rounded-xl text-[11px] font-bold text-indigo-600 dark:text-indigo-400' : 'nav-btn-mobile flex flex-col items-center py-1.5 gap-1 rounded-xl text-[11px] font-semibold text-slate-500 dark:text-slate-400'; });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      renderAll();
+    }
+
+    const rowHTML = (t, showDate = false) => {
+      const id = esc(t.id), isTr = t.type === 'transfer', isInc = t.type === 'income', isShop = t.scope === 'shop', sp = getShopSplit(t);
+      const sub = [t.customerName, t.note].filter(Boolean).join(' · ');
+      let wHtml = '';
+      if (isTr) {
+        const fw = getWallet(t.fromWallet), tw = getWallet(t.toWallet);
+        wHtml = `<span class="px-2 py-0.5 rounded-lg text-[11px] font-bold" style="background:${fw.hex}20;color:${fw.hex}">${esc(fw.name)}</span><span class="text-slate-400 text-[11px] font-bold">→</span><span class="px-2 py-0.5 rounded-lg text-[11px] font-bold" style="background:${tw.hex}20;color:${tw.hex}">${esc(tw.name)}</span>`;
+      } else if (sp) {
+        const w = getWallet(t.wallet);
+        if (sp.paid > 0 || !sp.codPending) wHtml += `<span class="px-2 py-0.5 rounded-lg text-[11px] font-bold" style="background:${w.hex}20;color:${w.hex}">${esc(w.name)}</span>`;
+        if (sp.codPaid && sp.codWallet && sp.codWallet !== t.wallet) { const cw = getWallet(sp.codWallet); wHtml += `<span class="px-2 py-0.5 rounded-lg text-[11px] font-bold" style="background:${cw.hex}20;color:${cw.hex}">COD → ${esc(cw.name)}</span>`; }
+        if (sp.codPending) wHtml += `<span class="px-2 py-0.5 rounded-lg text-[11px] font-bold bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300">⏳ COD: ${fmtDisp(sp.cod)}</span>`;
+      } else { const w = getWallet(t.wallet); wHtml = `<span class="px-2 py-0.5 rounded-lg text-[11px] font-bold" style="background:${w.hex}20;color:${w.hex}">${esc(w.name)}</span>`; }
+      const pendOnly = Boolean(sp?.codPending && sp.paid <= 0);
+      const amtCls = pendOnly ? 'text-amber-600 dark:text-amber-400' : isInc ? 'text-emerald-600 dark:text-emerald-400' : isTr ? 'text-sky-600' : 'text-rose-600 dark:text-rose-400';
+      const amtTxt = state.privacyMode ? '••••••' : pendOnly ? `COD ${fmtMoney(sp.cod)}` : `${isInc ? '+' : isTr ? '' : '-'}${fmtMoney(t.amount)}`;
+      const ok = getOwner(t), pn = personName(ok);
+      const pCls = ok === 'shop' ? 'bg-amber-100 dark:bg-amber-950/70 text-amber-700 dark:text-amber-300' : ok === 'shared' ? 'bg-teal-100 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300' : ok === 'person2' ? 'bg-fuchsia-100 dark:bg-fuchsia-950/60 text-fuchsia-700 dark:text-fuchsia-300' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300';
+      const pTxt = ok === 'shop' ? '🛍️ Shop ↗' : ok === 'shared' ? `👥 ${esc(pn)}` : esc(pn);
+      return `<div class="px-4 sm:px-5 py-3.5 hover:bg-slate-50/90 dark:hover:bg-slate-800/40 flex items-center justify-between gap-3">
+        <div class="flex items-center gap-3 min-w-0 flex-1 cursor-pointer" data-edit-tx="${id}" title="${isShop ? 'Open Receipt / Edit in Shop' : 'Edit'}">
+          <div class="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-lg shrink-0">${catIcon(t)}</div>
+          <div class="min-w-0 flex-1">
+            <div class="flex items-center gap-1.5 flex-wrap"><span class="text-sm font-bold truncate">${isTr ? 'Transfer' : esc(t.category || (isInc ? 'Income' : 'Expense'))}</span>${sub ? `<span class="text-xs text-slate-500 truncate max-w-[180px] sm:max-w-xs">· ${esc(sub)}</span>` : ''}</div>
+            <div class="flex items-center gap-1.5 flex-wrap mt-1">${wHtml}<span class="px-2 py-0.5 rounded-lg text-[11px] font-semibold ${pCls}">${pTxt}</span>${showDate ? `<span class="text-[11px] text-slate-400 font-medium">${esc(t.date || '')}</span>` : ''}</div>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 shrink-0"><div class="text-sm sm:text-base font-extrabold tabular-nums cursor-pointer ${amtCls}" data-edit-tx="${id}">${amtTxt}</div><button type="button" data-del-tx="${id}" class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/50">✕</button></div>
+      </div>`;
+    };
+
+    const bindRows = (el) => {
+      el.querySelectorAll('[data-edit-tx]').forEach((n) => n.addEventListener('click', () => {
+        const tx = state.transactions.find((t) => t.id === n.dataset.editTx); if (!tx) return;
+        if (tx.scope === 'shop') { navigateReplace(`shop.html?tx=${encodeURIComponent(tx.id)}`); return; }
+        openTxModal(tx);
+      }));
+      el.querySelectorAll('[data-del-tx]').forEach((n) => n.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openConfirm('Delete Transaction?', 'Wallet balances will update automatically.', async () => { await delTx(n.dataset.delTx); toast('Transaction deleted', 'success'); });
+      }));
+    };
+
+    function renderOverview() {
+      const ws = getWallets(), bal = computeBalances(), total = Object.values(bal).reduce((a, b) => a + b, 0), cm = curMonth();
+      let mIn = 0, mOut = 0;
+      state.transactions.forEach((t) => { if (!t.date?.startsWith(cm)) return; if (t.type === 'income') mIn += Number(t.amount) || 0; else if (t.type === 'expense') mOut += Number(t.amount) || 0; });
+      const mNet = mIn - mOut;
+
+      $('hero-wallet-count-label').textContent = `Total Net Balance (${ws.length} ${ws.length === 1 ? 'Wallet' : 'Wallets'})`;
+      $('overview-wallets-title').textContent = `Your Wallets (${ws.length})`;
+      $('overview-month-pill').textContent = fmtMonth(cm);
+      $('hero-total-balance').textContent = fmtDisp(total);
+      $('hero-month-income').textContent = fmtDisp(mIn, true);
+      $('hero-month-expense').textContent = state.privacyMode ? '••••••' : `-${fmtMoney(mOut)}`;
+      $('hero-month-net').textContent = fmtDisp(mNet, true);
+      $('hero-month-net').className = `text-base sm:text-lg font-extrabold tabular-nums text-right break-words ${mNet >= 0 ? 'text-emerald-300' : 'text-rose-300'}`;
+
+      const wg = $('wallets-grid');
+      wg.innerHTML = ws.map((w) => {
+        const b = bal[w.id] || 0;
+        return `<button type="button" data-wc="${esc(w.id)}" class="text-left bg-white dark:bg-slate-900 rounded-3xl p-4 sm:p-5 border border-slate-200/80 dark:border-slate-800 hover:border-indigo-400 shadow-sm active:scale-[0.98] transition-all flex flex-col justify-between gap-3">
+          <div class="flex items-center justify-between gap-2 w-full"><div class="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0" style="background:${w.hex}20;color:${w.hex}">${w.icon}</div><span class="px-2.5 py-1 rounded-full text-[11px] font-bold truncate" style="background:${w.hex}20;color:${w.hex}">${esc(w.name)}</span></div>
+          <div class="min-w-0"><p class="text-[11px] font-medium text-slate-400">Live Balance</p><p class="text-base sm:text-lg font-extrabold tabular-nums truncate mt-0.5 ${!state.privacyMode && b < 0 ? 'text-rose-600 dark:text-rose-400' : ''}">${fmtDisp(b)}</p></div>
+        </button>`;
+      }).join('');
+      wg.querySelectorAll('[data-wc]').forEach((b) => b.addEventListener('click', () => { state.walletFilterActive = true; state.filters.wallet = b.dataset.wc; state.filters.month = 'all'; switchView('history', { keepWalletFilter: true }); }));
+
+      // Quick Templates
+      const tg = $('quick-templates-grid'), tpls = state.workspace.quickTemplates || [];
+      if (!tpls.length) {
+        tg.innerHTML = `<button type="button" id="empty-tpl-btn" class="col-span-2 sm:col-span-3 lg:col-span-4 p-4 rounded-2xl border border-dashed border-slate-300 dark:border-slate-700 bg-white/60 dark:bg-slate-900/60 hover:border-indigo-400 text-center"><p class="text-xs sm:text-sm font-bold">⚡ Create a Quick Template</p><p class="text-[11px] text-slate-400 mt-0.5">Save frequent entries for 1-tap logging</p></button>`;
+        $('empty-tpl-btn')?.addEventListener('click', openTemplatesModal);
+      } else {
+        tg.innerHTML = tpls.map((tpl) => {
+          const wt = tpl.type === 'transfer' ? `${getWallet(tpl.fromWallet).name} → ${getWallet(tpl.toWallet).name}` : getWallet(tpl.wallet).name;
+          const cls = tpl.type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : tpl.type === 'transfer' ? 'text-sky-600' : 'text-rose-600 dark:text-rose-400';
+          return `<button type="button" data-rtpl="${esc(tpl.id)}" class="text-left p-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 hover:border-indigo-400 shadow-sm active:scale-[0.97] flex flex-col justify-between gap-2">
+            <div class="flex items-center justify-between gap-1.5 w-full"><span class="text-base leading-none">${catIcon(tpl.type, tpl.category)}</span><span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 truncate max-w-[85px]">${esc(personName(tpl.loggedBy))}</span></div>
+            <div class="min-w-0"><p class="text-xs sm:text-sm font-bold truncate">${esc(tpl.title)}</p><p class="text-[11px] text-slate-400 truncate">${esc(wt)}</p></div>
+            <div class="text-xs sm:text-sm font-extrabold tabular-nums ${cls} truncate">${state.privacyMode ? '••••••' : `${tpl.type === 'income' ? '+' : tpl.type === 'transfer' ? '' : '-'}${fmtMoney(tpl.amount)}`}</div>
+          </button>`;
+        }).join('');
+        tg.querySelectorAll('[data-rtpl]').forEach((b) => b.addEventListener('click', async () => {
+          const tpl = tpls.find((t) => t.id === b.dataset.rtpl); if (!tpl) return;
+          try { await saveTx({ type: tpl.type || 'expense', scope: 'personal', amount: Number(tpl.amount) || 0, date: todayISO(), note: tpl.note || tpl.title || '', loggedBy: isValidPerson(tpl.loggedBy) ? tpl.loggedBy : state.activePerson, wallet: tpl.type === 'transfer' ? '' : (tpl.wallet || ws[0]?.id || 'cash'), fromWallet: tpl.type === 'transfer' ? tpl.fromWallet : '', toWallet: tpl.type === 'transfer' ? tpl.toWallet : '', category: tpl.type === 'transfer' ? 'Transfer' : (tpl.category || 'Other') }); toast(`Logged "${tpl.title}"`, 'success'); }
+          catch { toast('Could not log template', 'error'); }
+        }));
+      }
+
+      const rec = state.transactions.slice(0, 8), rEl = $('recent-transactions-list');
+      rEl.innerHTML = rec.length ? rec.map((t) => rowHTML(t, true)).join('') : `<div class="p-8 text-center text-xs text-slate-400">No transactions yet. Tap <strong>+ New Entry</strong> to begin.</div>`;
+      if (rec.length) bindRows(rEl);
+    }
+
+    function populateFilters() {
+      const ms = getMonths(), ws = getWallets();
+      $('filter-month').innerHTML = `<option value="all">All Months</option>${ms.map((m) => `<option value="${m}">${fmtMonth(m)}</option>`).join('')}`;
+      $('filter-month').value = ms.includes(state.filters.month) || state.filters.month === 'all' ? state.filters.month : 'all';
+      $('analytics-month-select').innerHTML = `${ms.map((m) => `<option value="${m}">${fmtMonth(m)}</option>`).join('')}<option value="all">All Time</option>`;
+      $('analytics-month-select').value = ms.includes(state.analyticsMonth) || state.analyticsMonth === 'all' ? state.analyticsMonth : curMonth();
+      $('filter-wallet').innerHTML = `<option value="all">All Wallets (${ws.length})</option>${ws.map((w) => `<option value="${esc(w.id)}">${esc(w.name)}</option>`).join('')}`;
+      if (state.filters.wallet !== 'all' && !ws.some((w) => w.id === state.filters.wallet)) state.filters.wallet = 'all';
+      $('filter-wallet').value = state.filters.wallet;
+    }
+
+    function renderCalendar() {
+      const mk = state.calendarMonth || curMonth(), [y, m] = mk.split('-').map(Number), prevM = state.filters.month;
+      $('cal-month-title').textContent = fmtMonth(mk);
+      state.filters.month = mk; const txs = getFiltered(); state.filters.month = prevM;
+      const byDay = {};
+      txs.forEach((t) => { if (!t.date) return; const d = byDay[t.date] ||= { in: 0, out: 0, tr: 0, items: [] }; d.items.push(t); if (t.type === 'income') d.in += Number(t.amount) || 0; else if (t.type === 'expense') d.out += Number(t.amount) || 0; else d.tr++; });
+      const firstDow = new Date(y, m - 1, 1).getDay(), dim = new Date(y, m, 0).getDate(), td = todayISO();
+      if (!state.calendarSelectedDate?.startsWith(mk)) state.calendarSelectedDate = td.startsWith(mk) ? td : `${mk}-01`;
+      let cells = '<div class="min-h-[58px] rounded-2xl bg-slate-50/40 dark:bg-slate-900/30"></div>'.repeat(firstDow);
+      for (let d = 1; d <= dim; d++) {
+        const iso = `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`, info = byDay[iso], sel = iso === state.calendarSelectedDate;
+        const cls = sel ? 'bg-indigo-50 dark:bg-indigo-950/60 border-indigo-500 ring-1 ring-indigo-500' : iso === td ? 'bg-slate-50 dark:bg-slate-800 border-indigo-300 dark:border-indigo-700' : 'bg-slate-50/70 dark:bg-slate-800/40 border-slate-200/60 dark:border-slate-800';
+        cells += `<button type="button" data-cd="${iso}" class="min-h-[58px] p-1.5 rounded-2xl border text-left flex flex-col justify-between ${cls}">
+          <div class="flex items-center justify-between w-full"><span class="text-[11px] font-extrabold ${sel ? 'text-indigo-700 dark:text-indigo-300' : ''}">${d}</span>${info?.tr ? '<span class="w-1.5 h-1.5 rounded-full bg-sky-500"></span>' : ''}</div>
+          <div class="w-full overflow-hidden space-y-0.5">${info?.in ? `<div class="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 truncate">+${fmtCompact(info.in)}</div>` : ''}${info?.out ? `<div class="text-[9px] font-bold text-rose-600 dark:text-rose-400 truncate">-${fmtCompact(info.out)}</div>` : ''}</div>
+        </button>`;
+      }
+      const cg = $('calendar-days-grid'); cg.innerHTML = cells;
+      cg.querySelectorAll('[data-cd]').forEach((b) => b.addEventListener('click', () => { state.calendarSelectedDate = b.dataset.cd; renderCalendar(); }));
+      const si = byDay[state.calendarSelectedDate] || { in: 0, out: 0, items: [] };
+      $('cal-selected-date-title').textContent = fmtDateHead(state.calendarSelectedDate);
+      $('cal-selected-date-summary').textContent = si.items.length ? `${si.items.length} entries · In ${fmtDisp(si.in)} · Out ${fmtDisp(si.out)}` : 'No entries recorded';
+      const dl = $('cal-selected-day-list');
+      dl.innerHTML = si.items.length ? si.items.map((t) => rowHTML(t, false)).join('') : `<div class="p-6 text-center text-xs text-slate-400">No entries on this date.</div>`;
+      if (si.items.length) bindRows(dl);
+    }
+
+    function renderHistory() {
+      populateFilters();
+      $('filter-type').value = state.filters.type; $('filter-person').value = state.filters.person; $('filter-scope').value = state.filters.scope;
+      const isCal = state.historyMode === 'calendar';
+      $('history-mode-list').className = !isCal ? 'px-3 py-1.5 rounded-lg text-xs font-bold bg-white dark:bg-slate-900 text-indigo-600 shadow-sm' : 'px-3 py-1.5 rounded-lg text-xs font-bold text-slate-500';
+      $('history-mode-calendar').className = isCal ? 'px-3 py-1.5 rounded-lg text-xs font-bold bg-white dark:bg-slate-900 text-indigo-600 shadow-sm' : 'px-3 py-1.5 rounded-lg text-xs font-bold text-slate-500';
+      $('history-calendar-wrap').classList.toggle('hidden', !isCal); $('history-grouped-list').classList.toggle('hidden', isCal);
+
+      const rows = getFiltered(); let sIn = 0, sOut = 0;
+      rows.forEach((t) => { if (t.type === 'income') sIn += Number(t.amount) || 0; else if (t.type === 'expense') sOut += Number(t.amount) || 0; });
+      $('history-summary-stats').innerHTML = `<span class="text-slate-600 dark:text-slate-300">${rows.length} entries</span><span class="text-emerald-600 dark:text-emerald-400">${state.privacyMode ? '••••••' : `+${fmtMoney(sIn)}`}</span><span class="text-rose-600 dark:text-rose-400">${state.privacyMode ? '••••••' : `-${fmtMoney(sOut)}`}</span>`;
+      const f = state.filters;
+      $('clear-filters-btn').classList.toggle('hidden', !(f.search || f.wallet !== 'all' || f.type !== 'all' || f.person !== 'all' || f.scope !== 'all' || f.month !== curMonth()));
+      if (isCal) return renderCalendar();
+
+      const box = $('history-grouped-list');
+      if (!rows.length) { box.innerHTML = `<div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-10 text-center text-xs text-slate-400">No matching transactions.</div>`; return; }
+      const groups = new Map(); rows.forEach((t) => { const k = t.date || 'Unknown'; (groups.get(k) || groups.set(k, []).get(k)).push(t); });
+      box.innerHTML = Array.from(groups.entries()).map(([dk, items]) => {
+        let dIn = 0, dOut = 0; items.forEach((t) => { if (t.type === 'income') dIn += Number(t.amount) || 0; else if (t.type === 'expense') dOut += Number(t.amount) || 0; });
+        const net = dIn - dOut;
+        return `<div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden"><div class="px-4 sm:px-5 py-2.5 bg-slate-50/90 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 flex justify-between text-xs font-bold"><span>${esc(fmtDateHead(dk))}</span><span class="tabular-nums ${net > 0 ? 'text-emerald-600' : net < 0 ? 'text-rose-600' : 'text-slate-400'}">${dIn === 0 && dOut === 0 ? 'Transfer' : fmtDisp(net, true)}</span></div><div class="divide-y divide-slate-100 dark:divide-slate-800/70">${items.map((t) => rowHTML(t, false)).join('')}</div></div>`;
+      }).join('');
+      bindRows(box);
+    }
+
+    const killChart = (k) => { if (state.charts[k]) { state.charts[k].destroy(); state.charts[k] = null; } };
+    function renderAnalytics() {
+      populateFilters();
+      if (state.currentView !== 'analytics') return;
+      $('analytics-scope-select').value = state.analyticsScope;
+      const sm = state.analyticsMonth, sc = state.analyticsScope;
+      const period = state.transactions.filter((t) => (sm === 'all' || t.date?.startsWith(sm)) && matchesScope(t, sc));
+      let inc = 0, exp = 0; const catMap = {}, pStats = { person1: { in: 0, out: 0 }, person2: { in: 0, out: 0 }, shared: { in: 0, out: 0 }, shop: { in: 0, out: 0 } };
+      period.forEach((t) => {
+        const a = Number(t.amount) || 0, pk = getOwner(t);
+        if (t.type === 'income') { inc += a; pStats[pk].in += a; }
+        else if (t.type === 'expense') { exp += a; pStats[pk].out += a; catMap[t.category || 'Other'] = (catMap[t.category || 'Other'] || 0) + a; }
+      });
+      const net = inc - exp;
+      $('kpi-income').textContent = fmtDisp(inc); $('kpi-expense').textContent = fmtDisp(exp);
+      $('kpi-net').textContent = fmtDisp(net, true); $('kpi-net').className = `text-base sm:text-xl font-extrabold mt-1 tabular-nums break-words ${net >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`;
+      $('kpi-rate').textContent = state.privacyMode ? '••%' : `${inc > 0 ? Math.round((net / inc) * 100) : 0}%`;
+
+      const tc = state.darkMode ? '#cbd5e1' : '#475569', gc = state.darkMode ? 'rgba(148,163,184,0.12)' : 'rgba(15,23,42,0.07)', hasC = typeof Chart !== 'undefined';
+      if (!hasC) ensureChartJs().then((ok) => { if (ok && state.currentView === 'analytics') renderAnalytics(); });
+
+      killChart('expenseCategory');
+      const cats = Object.entries(catMap).sort((a, b) => b[1] - a[1]);
+      $('empty-expense-chart').classList.toggle('hidden', cats.length > 0);
+      if (cats.length && hasC) state.charts.expenseCategory = new Chart($('chart-expense-category').getContext('2d'), { type: 'doughnut', data: { labels: cats.map((c) => c[0]), datasets: [{ data: cats.map((c) => c[1]), backgroundColor: cats.map((_, i) => PALETTE[i % PALETTE.length]), borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '66%', plugins: { legend: { display: false }, tooltip: { callbacks: { label: (ctx) => ` ${ctx.label}: ${fmtDisp(ctx.raw)}` } } } } });
+      $('category-breakdown-list').innerHTML = cats.length ? cats.map(([n, v], i) => { const pct = exp > 0 ? ((v / exp) * 100).toFixed(1) : '0.0', col = PALETTE[i % PALETTE.length]; return `<div class="space-y-1"><div class="flex justify-between text-xs font-semibold"><span class="flex items-center gap-2 truncate"><span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:${col}"></span>${esc(n)}</span><span class="tabular-nums">${fmtDisp(v)} <span class="text-slate-400">(${pct}%)</span></span></div><div class="w-full h-1.5 rounded-full bg-slate-100 dark:bg-slate-800"><div class="h-full rounded-full" style="width:${pct}%;background:${col}"></div></div></div>`; }).join('') : `<p class="text-xs text-slate-400 text-center">No expense data.</p>`;
+
+      killChart('incomeExpense');
+      const base = sm === 'all' ? new Date() : new Date(Number(sm.split('-')[0]), Number(sm.split('-')[1]) - 1, 1);
+      const tms = Array.from({ length: 6 }, (_, idx) => { const d = new Date(base.getFullYear(), base.getMonth() - (5 - idx), 1); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`; });
+      if (hasC) state.charts.incomeExpense = new Chart($('chart-income-expense').getContext('2d'), { type: 'bar', data: { labels: tms.map(fmtMonth), datasets: [{ label: 'Income', data: tms.map((mk) => state.transactions.filter((t) => t.type === 'income' && t.date?.startsWith(mk) && matchesScope(t, sc)).reduce((s, t) => s + (Number(t.amount) || 0), 0)), backgroundColor: '#10b981', borderRadius: 6 }, { label: 'Expense', data: tms.map((mk) => state.transactions.filter((t) => t.type === 'expense' && t.date?.startsWith(mk) && matchesScope(t, sc)).reduce((s, t) => s + (Number(t.amount) || 0), 0)), backgroundColor: '#f43f5e', borderRadius: 6 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: tc } } }, scales: { x: { ticks: { color: tc }, grid: { display: false } }, y: { ticks: { color: tc }, grid: { color: gc } } } } });
+
+      killChart('walletDistribution');
+      const ws = getWallets(), bal = computeBalances(), wc = $('chart-wallet-distribution');
+      $('analytics-wallets-chart-title').textContent = `Live Balance Across ${ws.length} ${ws.length === 1 ? 'Wallet' : 'Wallets'}`;
+      if (wc?.parentElement) wc.parentElement.style.height = `${Math.max(220, ws.length * 42)}px`;
+      if (hasC && wc) state.charts.walletDistribution = new Chart(wc.getContext('2d'), { type: 'bar', data: { labels: ws.map((w) => w.name), datasets: [{ label: 'Live Balance', data: ws.map((w) => bal[w.id] || 0), backgroundColor: ws.map((w) => w.hex), borderRadius: 8, maxBarThickness: 28 }] }, options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: (ctx) => ` ${fmtDisp(ctx.raw)}` } } }, scales: { x: { ticks: { color: tc }, grid: { color: gc } }, y: { ticks: { color: tc, font: { weight: 'bold' } }, grid: { display: false } } } } });
+
+      killChart('personBreakdown');
+      const p1 = personName('person1'), p2 = personName('person2');
+      const groups = sc === 'shop' ? [{ l: 'Shop', n: '🛍️ Shop', st: pStats.shop, d: '#f59e0b' }]
+        : sc === 'personal' ? [{ l: p1, n: p1, st: pStats.person1, d: '#6366f1' }, { l: p2, n: p2, st: pStats.person2, d: '#d946ef' }, { l: 'Shared', n: '👥 Shared', st: pStats.shared, d: '#14b8a6' }]
+        : [{ l: p1, n: p1, st: pStats.person1, d: '#6366f1' }, { l: p2, n: p2, st: pStats.person2, d: '#d946ef' }, { l: 'Shared', n: '👥 Shared', st: pStats.shared, d: '#14b8a6' }, { l: 'Shop', n: '🛍️ Shop', st: pStats.shop, d: '#f59e0b' }];
+      if (hasC) state.charts.personBreakdown = new Chart($('chart-person-breakdown').getContext('2d'), { type: 'bar', data: { labels: groups.map((g) => g.l), datasets: [{ label: 'Income', data: groups.map((g) => g.st.in), backgroundColor: '#10b981', borderRadius: 8 }, { label: 'Expense', data: groups.map((g) => g.st.out), backgroundColor: '#6366f1', borderRadius: 8 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: tc } } }, scales: { x: { ticks: { color: tc }, grid: { display: false } }, y: { ticks: { color: tc }, grid: { color: gc } } } } });
+      const totOut = groups.reduce((s, g) => s + g.st.out, 0), ce = $('person-comparison-cards');
+      ce.className = `grid gap-2.5 pt-2 border-t border-slate-100 dark:border-slate-800 ${groups.length === 1 ? 'grid-cols-1' : groups.length === 4 ? 'grid-cols-2' : 'grid-cols-1 sm:grid-cols-3'}`;
+      ce.innerHTML = groups.map((p) => `<div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/70 space-y-1 text-xs"><div class="flex justify-between font-bold"><span class="flex items-center gap-1.5 truncate"><span class="w-2 h-2 rounded-full shrink-0" style="background:${p.d}"></span>${esc(p.n)}</span><span class="text-slate-400">${totOut > 0 ? Math.round((p.st.out / totOut) * 100) : 0}%</span></div><div class="font-semibold text-rose-600 dark:text-rose-400 tabular-nums">Out: ${fmtDisp(p.st.out)}</div><div class="font-semibold text-emerald-600 dark:text-emerald-400 tabular-nums">In: ${fmtDisp(p.st.in)}</div></div>`).join('');
+    }
+
+    function renderAll() {
+      if (!isActiveUser(state.activePerson)) state.activePerson = 'person1';
+      const an = personName(state.activePerson);
+      $('sidebar-workspace-label').textContent = state.workspace.name || 'My Ledger';
+      $('mobile-header-subtitle').textContent = `${state.workspace.name || 'My Ledger'} · ${an}`;
+      $('mobile-person-pill').textContent = an.length > 8 ? an.slice(0, 7) + '…' : an;
+      document.querySelectorAll('.quick-person-btn').forEach((b) => { const k = b.dataset.quickPerson; b.textContent = personName(k); b.className = k === state.activePerson ? 'quick-person-btn py-2 px-1 rounded-lg bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm truncate' : 'quick-person-btn py-2 px-1 rounded-lg text-slate-500 truncate'; });
+      const fp = $('filter-person'); fp.options[1].text = personName('person1'); fp.options[2].text = personName('person2');
+      if (state.currentView === 'overview') renderOverview();
+      else if (state.currentView === 'history') renderHistory();
+      else renderAnalytics();
+    }
+
+    // --- 6. MODALS, CSV & BACKUP ---
+    const renderWPills = (id, sel, cb) => {
+      const box = $(id);
+      box.innerHTML = getWallets().map((w) => `<button type="button" data-pw="${esc(w.id)}" class="px-3 py-2.5 rounded-xl border text-xs font-bold flex items-center gap-2 ${w.id === sel ? 'bg-indigo-50 dark:bg-indigo-950/60 border-indigo-500 text-indigo-700 dark:text-indigo-200 ring-1 ring-indigo-500' : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700'}"><span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:${w.hex}"></span><span class="truncate">${esc(w.name)}</span></button>`).join('');
+      box.querySelectorAll('[data-pw]').forEach((b) => b.addEventListener('click', () => cb(b.dataset.pw)));
+    };
+
+    function renderTxControls() {
+      const ws = getWallets(), fId = ws[0]?.id || 'cash', sId = ws[1]?.id || fId, d = state.txDraft;
+      if (!ws.some((w) => w.id === d.wallet)) d.wallet = fId;
+      if (!ws.some((w) => w.id === d.fromWallet)) d.fromWallet = fId;
+      if (!ws.some((w) => w.id === d.toWallet)) d.toWallet = sId;
+      document.querySelectorAll('.tx-type-tab').forEach((b) => { const t = b.dataset.txType; b.className = t === d.type ? `tx-type-tab py-2.5 rounded-xl text-sm font-bold text-white shadow-sm ${t === 'income' ? 'bg-emerald-600' : t === 'transfer' ? 'bg-sky-600' : 'bg-rose-600'}` : 'tx-type-tab py-2.5 rounded-xl text-sm font-bold text-slate-500'; });
+      const isTr = d.type === 'transfer';
+      $('tx-single-wallet-wrap').classList.toggle('hidden', isTr); $('tx-category-wrap').classList.toggle('hidden', isTr); $('tx-transfer-wallets-wrap').classList.toggle('hidden', !isTr);
+      if (isTr) {
+        renderWPills('tx-from-wallet-pills', d.fromWallet, (id) => { d.fromWallet = id; renderTxControls(); });
+        renderWPills('tx-to-wallet-pills', d.toWallet, (id) => { d.toWallet = id; renderTxControls(); });
+      } else {
+        $('tx-wallet-label').textContent = d.type === 'income' ? 'Deposit Into Wallet' : 'Paid From Wallet';
+        renderWPills('tx-wallet-pills', d.wallet, (id) => { d.wallet = id; renderTxControls(); });
+        const cats = getCats(d.type); if (!cats.some((c) => c.name === d.category)) d.category = cats[0]?.name || 'Other';
+        const cg = $('tx-category-grid');
+        cg.innerHTML = cats.map((c) => `<button type="button" data-pc="${esc(c.name)}" class="px-2 py-2 rounded-xl border text-xs font-semibold flex flex-col items-center gap-1 ${c.name === d.category ? 'bg-indigo-50 dark:bg-indigo-950/60 border-indigo-500 text-indigo-700 dark:text-indigo-200 ring-1 ring-indigo-500' : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700'}"><span class="text-base leading-none">${c.icon}</span><span class="truncate max-w-full">${esc(c.name)}</span></button>`).join('');
+        cg.querySelectorAll('[data-pc]').forEach((b) => b.addEventListener('click', () => { d.category = b.dataset.pc; renderTxControls(); }));
+      }
+      document.querySelectorAll('.tx-person-toggle').forEach((b) => { const k = b.dataset.txPerson; b.textContent = personName(k); b.className = k === d.person ? 'tx-person-toggle py-2 px-1.5 rounded-lg text-xs font-bold bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm truncate' : 'tx-person-toggle py-2 px-1.5 rounded-lg text-xs font-bold text-slate-500 truncate'; });
+    }
+
+    function openTxModal(tx = null, presetDate = null) {
+      const ws = getWallets(), fId = ws[0]?.id || 'cash', sId = ws[1]?.id || fId;
+      $('tx-form-error').classList.add('hidden'); $('custom-cat-inline').classList.add('hidden'); $('tx-currency-badge').textContent = state.workspace.currency || 'Ks'; $('tx-save-as-template').checked = false;
+      state.txDraft = tx
+        ? { editId: tx.id, type: tx.type || 'expense', wallet: tx.wallet || fId, fromWallet: tx.fromWallet || fId, toWallet: tx.toWallet || sId, category: tx.category || 'Other', person: isValidPerson(tx.loggedBy) ? tx.loggedBy : 'person1' }
+        : { editId: null, type: 'expense', wallet: state.filters.wallet !== 'all' ? state.filters.wallet : fId, fromWallet: fId, toWallet: sId, category: 'Food & Dining', person: state.activePerson };
+      $('tx-modal-title').textContent = tx ? 'Edit Transaction' : 'New Transaction';
+      $('tx-submit-btn').textContent = tx ? 'Update Entry' : 'Save Entry';
+      $('tx-delete-in-modal-btn').classList.toggle('hidden', !tx); $('tx-save-template-wrap').classList.toggle('hidden', Boolean(tx));
+      $('tx-amount').value = tx ? fmtNum(tx.amount) : ''; $('tx-date').value = tx?.date || presetDate || todayISO(); $('tx-note').value = tx?.note || '';
+      renderTxControls(); $('tx-modal').classList.remove('hidden');
+    }
+
+    function renderSettingsWallets(focusId = null) {
+      const box = $('settings-wallets-list'), cur = $('setting-currency').value.trim() || state.workspace.currency || 'Ks', canDel = state.settingsDraftWallets.length > 1;
+      box.innerHTML = state.settingsDraftWallets.map((w, i) => {
+        const col = COLOR_MAP[w.colorKey] || COLORS[0], open = state.openColorPickerWalletId === w.id;
+        return `<div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700/80 space-y-2" data-wrow="${esc(w.id)}">
+          <div class="flex items-center gap-2"><button type="button" data-tp="${esc(w.id)}" class="w-7 h-7 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 flex items-center justify-center shrink-0"><span class="w-4 h-4 rounded-full" style="background:${col.hex}"></span></button><input type="text" maxlength="28" required placeholder="e.g. KPay1, KBZ Bank" value="${esc(w.name)}" data-dn="${i}" class="flex-1 min-w-0 px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm font-bold" /><button type="button" data-dr="${i}" class="p-2 rounded-xl text-slate-400 hover:text-rose-600 ${canDel ? '' : 'opacity-30'}">✕</button></div>
+          <div class="grid grid-cols-12 gap-2 items-center">
+            <select data-di="${i}" class="col-span-4 px-2 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-semibold"><option value="cash" ${w.iconType==='cash'?'selected':''}>Cash</option><option value="bank" ${w.iconType==='bank'?'selected':''}>Bank</option><option value="mobile" ${w.iconType==='mobile'?'selected':''}>Mobile Pay</option><option value="card" ${w.iconType==='card'?'selected':''}>Card / Pay</option></select>
+            <button type="button" data-tp="${esc(w.id)}" class="col-span-3 px-2 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-semibold flex items-center gap-1.5 truncate"><span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:${col.hex}"></span><span class="truncate">${col.label}</span></button>
+            <div class="col-span-5 relative flex items-center"><input type="text" inputmode="decimal" value="${fmtNum(w.openingBalance || 0)}" data-dob="${i}" class="w-full px-2.5 py-2 pr-9 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm font-bold tabular-nums" /><span class="absolute right-2 text-[11px] font-semibold text-slate-400 pointer-events-none">${esc(cur)}</span></div>
+          </div>
+          ${open ? `<div class="pt-2 border-t border-slate-200/70 dark:border-slate-700 flex flex-wrap gap-2">${COLORS.map((c) => `<button type="button" data-pc="${i}:${c.key}" title="${c.label}" class="w-7 h-7 rounded-full flex items-center justify-center ${c.key === w.colorKey ? 'ring-2 ring-offset-2 ring-indigo-600 scale-110' : ''}" style="background:${c.hex}">${c.key === w.colorKey ? '<span class="text-white text-xs font-bold">✓</span>' : ''}</button>`).join('')}</div>` : ''}
+        </div>`;
+      }).join('');
+      box.querySelectorAll('[data-dn]').forEach((el) => el.addEventListener('input', () => (state.settingsDraftWallets[+el.dataset.dn].name = el.value)));
+      box.querySelectorAll('[data-di]').forEach((el) => el.addEventListener('change', () => (state.settingsDraftWallets[+el.dataset.di].iconType = el.value)));
+      box.querySelectorAll('[data-tp]').forEach((b) => b.addEventListener('click', () => { state.openColorPickerWalletId = state.openColorPickerWalletId === b.dataset.tp ? null : b.dataset.tp; renderSettingsWallets(); }));
+      box.querySelectorAll('[data-pc]').forEach((b) => b.addEventListener('click', () => { const [i, k] = b.dataset.pc.split(':'); state.settingsDraftWallets[+i].colorKey = k; state.openColorPickerWalletId = null; renderSettingsWallets(); }));
+      box.querySelectorAll('[data-dob]').forEach((el) => { el.addEventListener('input', () => (state.settingsDraftWallets[+el.dataset.dob].openingBalance = parseSigned(el.value))); el.addEventListener('blur', () => { const v = parseSigned(el.value); state.settingsDraftWallets[+el.dataset.dob].openingBalance = v; el.value = fmtNum(v); }); });
+      box.querySelectorAll('[data-dr]').forEach((b) => b.addEventListener('click', () => { if (state.settingsDraftWallets.length <= 1) return toast('Keep at least 1 wallet', 'info'); state.settingsDraftWallets.splice(+b.dataset.dr, 1); renderSettingsWallets(); }));
+      if (focusId) box.querySelector(`[data-wrow="${focusId}"] input[data-dn]`)?.focus();
+    }
+
+    function openSettingsModal() {
+      state.openColorPickerWalletId = null;
+      $('setting-ws-name').value = state.workspace.name || 'My Ledger'; $('setting-currency').value = state.workspace.currency || 'Ks';
+      $('setting-person1').value = state.workspace.userNames?.person1 || 'Person 1'; $('setting-person2').value = state.workspace.userNames?.person2 || 'Person 2';
+      $('setting-ws-id-display').textContent = state.workspaceId; $('setting-join-pin').value = state.workspace.joinPin || '';
+      $('setting-ws-switcher').innerHTML = state.userWorkspaces.map((w) => `<option value="${esc(w.id)}">${esc(w.name)} (${esc(w.id)})</option>`).join('');
+      $('setting-ws-switcher').value = state.workspaceId;
+      state.settingsDraftWallets = getWallets().map((w) => ({ id: w.id, name: w.name, iconType: w.iconType, colorKey: w.colorKey, openingBalance: Number(state.workspace.openingBalances?.[w.id]) || 0 }));
+      renderSettingsWallets(); $('settings-modal').classList.remove('hidden');
+    }
+
+    const populateTplSelects = () => {
+      const ws = getWallets(), type = $('tpl-type').value, opts = ws.map((w) => `<option value="${esc(w.id)}">${esc(w.name)}</option>`).join('');
+      const pw = $('tpl-wallet').value, pto = $('tpl-to-wallet').value;
+      $('tpl-wallet').innerHTML = opts; $('tpl-to-wallet').innerHTML = opts;
+      if (ws.some((w) => w.id === pw)) $('tpl-wallet').value = pw;
+      if (ws.some((w) => w.id === pto)) $('tpl-to-wallet').value = pto; else if (ws[1]) $('tpl-to-wallet').value = ws[1].id;
+      $('tpl-to-wallet').classList.toggle('hidden', type !== 'transfer'); $('tpl-category').classList.toggle('hidden', type === 'transfer');
+      if (type !== 'transfer') $('tpl-category').innerHTML = getCats(type).map((c) => `<option value="${esc(c.name)}">${c.icon} ${esc(c.name)}</option>`).join('');
+      $('tpl-person').options[0].text = personName('person1'); $('tpl-person').options[1].text = personName('person2');
+    };
+    const resetTplForm = () => { $('tpl-edit-id').value = ''; $('tpl-form-heading').textContent = 'Add Template'; $('tpl-submit-btn').textContent = 'Save Template'; $('tpl-cancel-edit-btn').classList.add('hidden'); $('tpl-title').value = ''; $('tpl-amount').value = ''; $('tpl-type').value = 'expense'; $('tpl-person').value = state.activePerson; $('tpl-note').value = ''; populateTplSelects(); };
+    const renderTplList = () => {
+      const list = state.workspace.quickTemplates || [], box = $('templates-modal-list');
+      if (!list.length) { box.innerHTML = `<p class="text-xs text-slate-400 text-center py-3">No templates yet.</p>`; return; }
+      box.innerHTML = list.map((t) => `<div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 flex items-center justify-between gap-2"><div class="min-w-0"><p class="text-xs font-bold truncate">${catIcon(t.type, t.category)} ${esc(t.title)}</p><p class="text-[11px] text-slate-400">${fmtMoney(t.amount)} · ${esc(personName(t.loggedBy))}</p></div><button type="button" data-dtpl="${esc(t.id)}" class="px-2.5 py-1 rounded-lg text-xs font-bold text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/50">Delete</button></div>`).join('');
+      box.querySelectorAll('[data-dtpl]').forEach((b) => b.addEventListener('click', async () => {
+        try { await patchWs({ quickTemplates: list.filter((t) => t.id !== b.dataset.dtpl) }); renderTplList(); toast('Template removed', 'info'); }
+        catch { toast('Could not remove template', 'error'); }
+      }));
+    };
+    const openTemplatesModal = () => { resetTplForm(); renderTplList(); $('templates-modal').classList.remove('hidden'); };
+    const openConfirm = (title, desc, onOk) => { state.confirmCallback = onOk; $('confirm-modal-title').textContent = title; $('confirm-modal-desc').textContent = desc; $('confirm-modal').classList.remove('hidden'); };
+
+    const downloadBlob = (blob, name) => { const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: name }); a.click(); URL.revokeObjectURL(a.href); };
+    const exportCSV = () => {
+      const rows = getFiltered(); if (!rows.length) return toast('No entries to export', 'info');
+      const q = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+      const lines = [['Date','Scope','Type','Amount','Currency','Wallet/From','To Wallet','Category','Owner','Note'].join(',')];
+      rows.forEach((t) => lines.push([q(t.date), q(t.scope==='shop'?'Shop':'Personal'), q(t.type), Number(t.amount)||0, q(state.workspace.currency), q(t.type==='transfer'?getWallet(t.fromWallet).name:getWallet(t.wallet).name), q(t.type==='transfer'?getWallet(t.toWallet).name:''), q(t.type==='transfer'?'Transfer':t.category), q(personName(getOwner(t))), q(t.note||'')].join(',')));
+      downloadBlob(new Blob(['\uFEFF' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8;' }), `DelightsFlow_${state.filters.month}.csv`);
+      toast(`Exported ${rows.length} rows`, 'success');
+    };
+    const importBackup = (file) => {
+      const r = new FileReader();
+      r.onload = () => {
+        try {
+          const p = JSON.parse(String(r.result || '{}')); if (!p?.settings || !Array.isArray(p.transactions)) return toast('Invalid backup JSON', 'error');
+          openConfirm('Restore Backup?', `Import settings & up to ${p.transactions.length} entries into "${state.workspace.name}"?`, async () => {
+            const patch = {};
+            ['wallets','openingBalances','userNames','currency','quickTemplates','customExpenseCategories','customIncomeCategories','shopCategories'].forEach((k) => { if (p.settings[k]) patch[k] = p.settings[k]; });
+            await patchWs(patch);
+            const sig = (t) => `${t.date}|${t.type}|${Number(t.amount)||0}|${t.wallet||''}|${t.fromWallet||''}|${t.toWallet||''}|${t.category||''}|${t.note||''}`;
+            const seen = new Set(state.transactions.map(sig)); let added = 0;
+            for (const t of p.transactions) {
+              if (!t?.type || !(Number(t.amount) > 0)) continue;
+              const clean = { type: t.type, scope: t.scope==='shop'?'shop':'personal', amount: Number(t.amount), date: t.date||todayISO(), note: t.note||'', loggedBy: t.scope==='shop'?'shop':(isValidPerson(t.loggedBy)?t.loggedBy:'person1'), wallet: t.type==='transfer'?'':(t.wallet||'cash'), fromWallet: t.type==='transfer'?(t.fromWallet||''):'', toWallet: t.type==='transfer'?(t.toWallet||''):'', category: t.type==='transfer'?'Transfer':(t.category||'Other') };
+              if (seen.has(sig(clean))) continue; seen.add(sig(clean)); await saveTx(clean); added++;
+            }
+            $('settings-modal').classList.add('hidden'); toast(`Restored settings & ${added} new entries`, 'success');
+          });
+        } catch { toast('Could not read JSON file', 'error'); }
+      };
+      r.readAsText(file);
+    };
+
+    // --- 7. FAST DIRECT NAVIGATION & SMART BACK GUARD ---
+    function navigateReplace(url, clickedEl = null) {
+      if (!url) return;
+      $('nav-progress')?.classList.remove('hidden');
+      if (clickedEl) clickedEl.classList.add('opacity-75', 'scale-95');
+      detachListeners();
+      window.location.replace(url);
+    }
+
+    function setupBackGuard() {
+      let depth = Number(sessionStorage.getItem('df_nav_depth') || 0);
+      try {
+        history.replaceState({ dfBase: true }, '', location.href);
+        history.pushState({ dfGuard: true }, '', location.href);
+        depth += 1;
+        sessionStorage.setItem('df_nav_depth', String(depth));
+      } catch {}
+
+      const closeModal = () => {
+        for (const id of ['confirm-modal','tx-modal','settings-modal','templates-modal']) {
+          const el = $(id); if (el && !el.classList.contains('hidden')) { el.classList.add('hidden'); return true; }
+        }
+        return false;
+      };
+      window.addEventListener('popstate', () => {
+        const em = $('exit-modal');
+        if (em && !em.classList.contains('hidden')) { em.classList.add('hidden'); doExit(); return; }
+        if (closeModal()) { try { history.pushState({ dfGuard: true }, '', location.href); } catch {} return; }
+        if (!$('app-shell').classList.contains('hidden') && state.currentView !== 'overview') {
+          switchView('overview'); try { history.pushState({ dfGuard: true }, '', location.href); } catch {} return;
+        }
+        em?.classList.remove('hidden');
+      });
+      const doExit = () => {
+        const d = Math.max(1, Number(sessionStorage.getItem('df_nav_depth') || 1));
+        sessionStorage.removeItem('df_nav_depth');
+        try { d > 1 ? history.go(-d) : history.back(); } catch {}
+        setTimeout(() => { try { history.back(); } catch {} try { window.close(); } catch {} }, 80);
+      };
+      const cancelExit = () => { $('exit-modal')?.classList.add('hidden'); try { history.pushState({ dfGuard: true }, '', location.href); } catch {} };
+      $('exit-cancel-btn')?.addEventListener('click', cancelExit);
+      $('exit-modal')?.addEventListener('click', (e) => { if (e.target.id === 'exit-modal') cancelExit(); });
+      $('exit-confirm-btn')?.addEventListener('click', () => { $('exit-modal')?.classList.add('hidden'); doExit(); });
+    }
+
+    // --- 8. EVENT BINDINGS & BOOTSTRAP ---
+    function bindEvents() {
+      const fmtAmt = (el) => { const r = el.value.replace(/,/g,'').replace(/[^\d.]/g,''); if (!r) return (el.value = ''); const [i, d] = r.split('.'); el.value = d !== undefined ? `${Number(i||0).toLocaleString('en-US')}.${d.slice(0,2)}` : Number(i||0).toLocaleString('en-US'); };
+
+      const setAuth = (m) => {
+        state.authMode = m;
+        $('auth-tab-signin').className = m==='signin' ? 'py-2 rounded-xl text-xs font-bold bg-white dark:bg-slate-900 text-indigo-600 shadow-sm' : 'py-2 rounded-xl text-xs font-bold text-slate-500';
+        $('auth-tab-signup').className = m==='signup' ? 'py-2 rounded-xl text-xs font-bold bg-white dark:bg-slate-900 text-indigo-600 shadow-sm' : 'py-2 rounded-xl text-xs font-bold text-slate-500';
+        $('auth-name-wrap').classList.toggle('hidden', m !== 'signup'); $('auth-forgot-btn').classList.toggle('hidden', m !== 'signin');
+        $('auth-submit-btn').textContent = m === 'signup' ? 'Create Account' : 'Sign In'; $('auth-error-box').classList.add('hidden');
+      };
+      $('auth-tab-signin').onclick = () => setAuth('signin'); $('auth-tab-signup').onclick = () => setAuth('signup');
+      $('loading-signin-btn').onclick = () => showScreen('auth');
+      $('google-signin-btn').onclick = async () => { $('auth-error-box').classList.add('hidden'); try { await ensureFirebase(); await fb.signInWithPopup(auth, new fb.GoogleAuthProvider()); } catch (e) { $('auth-error-box').textContent = authErrMsg(e); $('auth-error-box').classList.remove('hidden'); } };
+      $('auth-email-form').onsubmit = async (e) => {
+        e.preventDefault(); const err = $('auth-error-box'), btn = $('auth-submit-btn'); err.classList.add('hidden'); btn.disabled = true; btn.textContent = 'Please wait...';
+        try {
+          await ensureFirebase();
+          const email = $('auth-email').value.trim(), pass = $('auth-password').value, name = $('auth-name').value.trim();
+          if (state.authMode === 'signup') { const c = await fb.createUserWithEmailAndPassword(auth, email, pass); if (name) await fb.updateProfile(c.user, { displayName: name }); }
+          else await fb.signInWithEmailAndPassword(auth, email, pass);
+        } catch (ex) { err.textContent = authErrMsg(ex); err.classList.remove('hidden'); }
+        finally { btn.disabled = false; btn.textContent = state.authMode === 'signup' ? 'Create Account' : 'Sign In'; }
+      };
+      $('auth-forgot-btn').onclick = async () => {
+        const email = $('auth-email').value.trim(); if (!email) { $('auth-error-box').textContent = 'Enter your email first.'; $('auth-error-box').classList.remove('hidden'); return; }
+        try { await ensureFirebase(); await fb.sendPasswordResetEmail(auth, email); toast('Password reset email sent!', 'success'); } catch (e) { $('auth-error-box').textContent = authErrMsg(e); $('auth-error-box').classList.remove('hidden'); }
+      };
+
+      $('ws-tab-create').onclick = () => { $('ws-create-form').classList.remove('hidden'); $('ws-join-form').classList.add('hidden'); $('ws-tab-create').className = 'py-2 rounded-xl text-xs font-bold bg-white dark:bg-slate-900 text-indigo-600 shadow-sm'; $('ws-tab-join').className = 'py-2 rounded-xl text-xs font-bold text-slate-500'; };
+      $('ws-tab-join').onclick = () => { $('ws-join-form').classList.remove('hidden'); $('ws-create-form').classList.add('hidden'); $('ws-tab-join').className = 'py-2 rounded-xl text-xs font-bold bg-white dark:bg-slate-900 text-emerald-600 shadow-sm'; $('ws-tab-create').className = 'py-2 rounded-xl text-xs font-bold text-slate-500'; };
+      $('ws-back-btn').onclick = () => showScreen('app');
+
+      $('ws-create-form').onsubmit = async (e) => {
+        e.preventDefault(); const err = $('ws-create-error'), btn = $('ws-create-btn'); err.classList.add('hidden');
+        const name = $('ws-create-name').value.trim() || 'My Ledger', currency = $('ws-create-currency').value.trim() || 'Ks', pin = $('ws-create-pin').value.trim();
+        if (pin.length < 4) { err.textContent = 'Join PIN must be at least 4 characters.'; err.classList.remove('hidden'); return; }
+        btn.disabled = true; btn.textContent = 'Creating...';
+        try {
+          await ensureFirebase();
+          const wsId = `df-${Math.random().toString(36).slice(2, 10)}`, p1 = state.user.displayName?.split(' ')[0] || 'Person 1';
+          await fb.setDoc(fb.doc(db, 'delights_flow_workspaces', wsId), { ownerUid: state.user.uid, memberUids: [state.user.uid], joinPin: pin, name, currency, wallets: STARTER_WALLETS.map((w) => ({ ...w })), archivedWalletNames: {}, openingBalances: { cash: 0, bank: 0 }, userNames: { person1: p1, person2: 'Person 2' }, customExpenseCategories: [], customIncomeCategories: [], quickTemplates: [], shopCategories: DEFAULT_SHOPS.map((c) => ({ ...c })), shopProfile: { name: '', footer: 'Thank you for your purchase!', logoDataUrl: '' }, createdAt: Date.now(), updatedAt: Date.now() });
+          state.userWorkspaces.push({ id: wsId, name }); state.workspaceId = wsId; await saveUserProfile(); subscribeWs(wsId); toast('Private ledger created!', 'success');
+        } catch (ex) { err.textContent = ex?.message || 'Could not create ledger.'; err.classList.remove('hidden'); }
+        finally { btn.disabled = false; btn.textContent = 'Create Private Ledger'; }
+      };
+
+      $('ws-join-form').onsubmit = async (e) => {
+        e.preventDefault(); const err = $('ws-join-error'), btn = $('ws-join-btn'); err.classList.add('hidden'); btn.disabled = true; btn.textContent = 'Joining...';
+        try {
+          await ensureFirebase();
+          const wsId = $('ws-join-id').value.trim().toLowerCase(), pin = $('ws-join-pin').value.trim();
+          await fb.updateDoc(fb.doc(db, 'delights_flow_workspaces', wsId), { memberUids: fb.arrayUnion(state.user.uid), lastJoinPinAttempt: pin, updatedAt: Date.now() });
+          const snap = await fb.getDoc(fb.doc(db, 'delights_flow_workspaces', wsId)), wn = snap.exists() ? (snap.data().name || 'Shared Ledger') : 'Shared Ledger';
+          if (!state.userWorkspaces.some((w) => w.id === wsId)) state.userWorkspaces.push({ id: wsId, name: wn });
+          state.workspaceId = wsId; await saveUserProfile(); subscribeWs(wsId); toast(`Joined "${wn}"!`, 'success');
+        } catch { err.textContent = 'Invalid Workspace ID or Join PIN.'; err.classList.remove('hidden'); }
+        finally { btn.disabled = false; btn.textContent = 'Join Shared Ledger'; }
+      };
+
+      const doSignOut = async () => { detachListeners(); clearSnaps(); try { window.google?.accounts?.id?.disableAutoSelect?.(); } catch {} if (auth && fb) await fb.signOut(auth); else showScreen('auth'); };
+      $('ws-signout-btn').onclick = doSignOut;
+      $('settings-signout-btn').onclick = () => { $('settings-modal').classList.add('hidden'); doSignOut(); };
+
+      document.querySelectorAll('[data-nav]').forEach((b) => b.addEventListener('click', () => switchView(b.dataset.nav)));
+      $('overview-view-all-btn').onclick = () => switchView('history');
+      ['overview-edit-wallets-btn','desktop-settings-btn','mobile-settings-btn','sidebar-open-sync'].forEach((id) => ($(id).onclick = openSettingsModal));
+
+      const togTheme = () => { state.darkMode = !state.darkMode; applyTheme(); saveUserProfile(); };
+      $('desktop-theme-btn').onclick = togTheme; $('mobile-theme-btn').onclick = togTheme;
+      const togPriv = () => { state.privacyMode = !state.privacyMode; applyPrivacy(); saveUserProfile(); renderAll(); };
+      $('hero-privacy-btn').onclick = togPriv; $('mobile-privacy-btn').onclick = togPriv;
+
+      document.querySelectorAll('.quick-person-btn').forEach((b) => b.addEventListener('click', () => { state.activePerson = b.dataset.quickPerson; renderAll(); saveUserProfile(); }));
+      $('mobile-person-pill').onclick = () => { state.activePerson = state.activePerson === 'person1' ? 'person2' : 'person1'; renderAll(); saveUserProfile(); };
+
+      // Transaction Modal
+      $('desktop-add-btn').onclick = () => openTxModal(null); $('mobile-fab-add').onclick = () => openTxModal(null);
+      $('tx-modal-close').onclick = () => $('tx-modal').classList.add('hidden');
+      $('tx-modal').onclick = (e) => { if (e.target.id === 'tx-modal') $('tx-modal').classList.add('hidden'); };
+      document.querySelectorAll('.tx-type-tab').forEach((b) => b.addEventListener('click', () => { state.txDraft.type = b.dataset.txType; renderTxControls(); }));
+      document.querySelectorAll('.tx-person-toggle').forEach((b) => b.addEventListener('click', () => { state.txDraft.person = b.dataset.txPerson; renderTxControls(); }));
+      $('tx-swap-wallets-btn').onclick = () => { [state.txDraft.fromWallet, state.txDraft.toWallet] = [state.txDraft.toWallet, state.txDraft.fromWallet]; renderTxControls(); };
+      $('tx-amount').oninput = () => fmtAmt($('tx-amount')); $('tpl-amount').oninput = () => fmtAmt($('tpl-amount'));
+      document.querySelectorAll('.quick-amt-btn').forEach((b) => b.addEventListener('click', () => ($('tx-amount').value = fmtNum(parseAmt($('tx-amount').value) + Number(b.dataset.quickAmt)))));
+      $('toggle-add-custom-cat').onclick = () => { $('custom-cat-inline').classList.toggle('hidden'); $('custom-cat-input').focus(); };
+      $('save-custom-cat-btn').onclick = async () => {
+        const name = $('custom-cat-input').value.trim(); if (!name) return;
+        try {
+          const k = state.txDraft.type === 'income' ? 'customIncomeCategories' : 'customExpenseCategories', list = [...(state.workspace[k] || [])];
+          if (!list.some((c) => c.toLowerCase() === name.toLowerCase())) { list.push(name); await patchWs({ [k]: list }); }
+          state.txDraft.category = name; $('custom-cat-input').value = ''; $('custom-cat-inline').classList.add('hidden'); renderTxControls(); toast(`Added "${name}"`, 'success');
+        } catch { toast('Could not save custom category', 'error'); }
+      };
+      $('tx-delete-in-modal-btn').onclick = () => { const id = state.txDraft.editId; if (!id) return; $('tx-modal').classList.add('hidden'); openConfirm('Delete Transaction?', 'Wallet balances will update automatically.', async () => { await delTx(id); toast('Deleted', 'success'); }); };
+      $('tx-form').onsubmit = async (e) => {
+        e.preventDefault(); const err = $('tx-form-error'), btn = $('tx-submit-btn'); err.classList.add('hidden');
+        const amount = parseAmt($('tx-amount').value), date = $('tx-date').value || todayISO(), note = $('tx-note').value.trim(), { type, wallet, fromWallet, toWallet, category, person, editId } = state.txDraft;
+        if (amount <= 0) { err.textContent = 'Enter an amount greater than 0.'; err.classList.remove('hidden'); return; }
+        if (type === 'transfer' && fromWallet === toWallet) { err.textContent = 'Choose two different wallets.'; err.classList.remove('hidden'); return; }
+        const payload = { type, scope: 'personal', amount, date, note, loggedBy: person, wallet: type === 'transfer' ? '' : wallet, fromWallet: type === 'transfer' ? fromWallet : '', toWallet: type === 'transfer' ? toWallet : '', category: type === 'transfer' ? 'Transfer' : category };
+        btn.disabled = true; btn.textContent = 'Saving...';
+        try {
+          await saveTx(payload, editId);
+          if (!editId && $('tx-save-as-template').checked) await patchWs({ quickTemplates: [...(state.workspace.quickTemplates || []), { id: `tpl_${Date.now().toString(36)}`, title: (note || category || 'Quick Entry').slice(0, 28), ...payload }] });
+          $('tx-modal').classList.add('hidden'); toast(editId ? 'Entry updated' : 'Entry saved', 'success');
+        } catch { err.textContent = 'Could not save entry.'; err.classList.remove('hidden'); }
+        finally { btn.disabled = false; btn.textContent = editId ? 'Update Entry' : 'Save Entry'; }
+      };
+
+      // Settings Modal
+      $('settings-modal-close').onclick = () => $('settings-modal').classList.add('hidden');
+      $('settings-modal').onclick = (e) => { if (e.target.id === 'settings-modal') $('settings-modal').classList.add('hidden'); };
+      $('setting-currency').oninput = () => renderSettingsWallets();
+      $('add-wallet-btn').onclick = () => { const id = `acct_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 4)}`; state.settingsDraftWallets.push({ id, name: '', iconType: 'bank', colorKey: COLORS[state.settingsDraftWallets.length % COLORS.length].key, openingBalance: 0 }); renderSettingsWallets(id); };
+      $('copy-ws-id-btn').onclick = () => copyText(state.workspaceId, 'Workspace ID copied!');
+      $('copy-ws-pin-btn').onclick = () => copyText($('setting-join-pin').value.trim(), 'Join PIN copied!');
+      $('setting-ws-switcher').onchange = async (e) => { const id = e.target.value; if (!id || id === state.workspaceId) return; $('settings-modal').classList.add('hidden'); state.workspaceId = id; await saveUserProfile(); subscribeWs(id); };
+      $('open-ws-onboarding-btn').onclick = () => { $('settings-modal').classList.add('hidden'); openOnboarding(true); };
+      $('backup-export-btn').onclick = () => { downloadBlob(new Blob([JSON.stringify({ app: 'Delights Flow', version: 3, exportedAt: new Date().toISOString(), settings: state.workspace, transactions: state.transactions }, null, 2)], { type: 'application/json' }), `DelightsFlow_Backup_${todayISO()}.json`); toast(`Backup downloaded (${state.transactions.length} entries)`, 'success'); };
+      $('backup-import-btn').onclick = () => { $('backup-import-file').value = ''; $('backup-import-file').click(); };
+      $('backup-import-file').onchange = (e) => { if (e.target.files?.[0]) importBackup(e.target.files[0]); };
+      $('settings-form').onsubmit = async (e) => {
+        e.preventDefault(); const btn = $('settings-save-btn'); btn.disabled = true; btn.textContent = 'Saving...';
+        try {
+          const prevW = getWallets(), newW = state.settingsDraftWallets.map((w, i) => ({ id: w.id, name: String(w.name || '').trim() || `Account ${i + 1}`, iconType: W_ICONS[w.iconType] ? w.iconType : 'bank', colorKey: COLOR_MAP[w.colorKey] ? w.colorKey : COLORS[i % COLORS.length].key }));
+          const ob = {}; state.settingsDraftWallets.forEach((w) => (ob[w.id] = Number(w.openingBalance) || 0));
+          const arch = { ...(state.workspace.archivedWalletNames || {}) }, activeIds = new Set(newW.map((w) => w.id));
+          prevW.forEach((pw) => { if (!activeIds.has(pw.id)) arch[pw.id] = pw.name; });
+          await patchWs({ name: $('setting-ws-name').value.trim() || 'My Ledger', currency: $('setting-currency').value.trim() || 'Ks', joinPin: $('setting-join-pin').value.trim(), wallets: newW, archivedWalletNames: arch, openingBalances: ob, userNames: { person1: $('setting-person1').value.trim() || 'Person 1', person2: $('setting-person2').value.trim() || 'Person 2' } });
+          await saveUserProfile(); $('settings-modal').classList.add('hidden'); toast('Settings saved!', 'success');
+        } catch { toast('Could not save settings', 'error'); }
+        finally { btn.disabled = false; btn.textContent = 'Save Settings'; }
+      };
+
+      // Templates, History, Calendar, Analytics & Confirm
+      $('open-templates-modal-btn').onclick = openTemplatesModal;
+      $('templates-modal-close').onclick = () => $('templates-modal').classList.add('hidden');
+      $('tpl-type').onchange = populateTplSelects; $('tpl-cancel-edit-btn').onclick = resetTplForm;
+      $('template-form').onsubmit = async (e) => {
+        e.preventDefault(); const title = $('tpl-title').value.trim(), amount = parseAmt($('tpl-amount').value), type = $('tpl-type').value;
+        if (!title || amount <= 0) return toast('Enter template name & amount', 'error');
+        const entry = { id: $('tpl-edit-id').value || `tpl_${Date.now().toString(36)}`, title, type, amount, wallet: type === 'transfer' ? '' : $('tpl-wallet').value, fromWallet: type === 'transfer' ? $('tpl-wallet').value : '', toWallet: type === 'transfer' ? $('tpl-to-wallet').value : '', category: type === 'transfer' ? 'Transfer' : $('tpl-category').value, loggedBy: $('tpl-person').value, note: $('tpl-note').value.trim() };
+        try {
+          await patchWs({ quickTemplates: [...(state.workspace.quickTemplates || []).filter((t) => t.id !== entry.id), entry] });
+          resetTplForm(); renderTplList(); toast('Template saved', 'success');
+        } catch { toast('Could not save template', 'error'); }
+      };
+
+      $('history-mode-list').onclick = () => { state.historyMode = 'list'; renderHistory(); };
+      $('history-mode-calendar').onclick = () => { state.historyMode = 'calendar'; state.calendarMonth = state.filters.month !== 'all' ? state.filters.month : curMonth(); renderHistory(); };
+      const shiftCal = (d) => { const [y, m] = (state.calendarMonth || curMonth()).split('-').map(Number), nd = new Date(y, m - 1 + d, 1); state.calendarMonth = `${nd.getFullYear()}-${String(nd.getMonth() + 1).padStart(2, '0')}`; renderCalendar(); };
+      $('cal-prev-month').onclick = () => shiftCal(-1); $('cal-next-month').onclick = () => shiftCal(1);
+      $('cal-today-btn').onclick = () => { state.calendarMonth = curMonth(); state.calendarSelectedDate = todayISO(); renderCalendar(); };
+      $('cal-add-for-date-btn').onclick = () => openTxModal(null, state.calendarSelectedDate);
+
+      $('filter-search').oninput = (e) => { state.filters.search = e.target.value; renderHistory(); };
+      $('filter-month').onchange = (e) => { state.filters.month = e.target.value; if (e.target.value !== 'all') state.calendarMonth = e.target.value; renderHistory(); };
+      $('filter-wallet').onchange = (e) => { state.filters.wallet = e.target.value; state.walletFilterActive = e.target.value !== 'all'; renderHistory(); };
+      $('filter-type').onchange = (e) => { state.filters.type = e.target.value; renderHistory(); };
+      $('filter-person').onchange = (e) => { state.filters.person = e.target.value; renderHistory(); };
+      $('filter-scope').onchange = (e) => { state.filters.scope = e.target.value; renderHistory(); };
+      $('clear-filters-btn').onclick = () => { state.walletFilterActive = false; state.filters = { search: '', month: curMonth(), wallet: 'all', type: 'all', person: 'all', scope: 'all' }; $('filter-search').value = ''; renderHistory(); };
+      $('export-csv-btn').onclick = exportCSV;
+
+      $('analytics-scope-select').onchange = (e) => { state.analyticsScope = e.target.value; renderAnalytics(); };
+      $('analytics-month-select').onchange = (e) => { state.analyticsMonth = e.target.value; renderAnalytics(); };
+      const shiftAna = (d) => { const c = state.analyticsMonth === 'all' ? curMonth() : state.analyticsMonth, [y, m] = c.split('-').map(Number), nd = new Date(y, m - 1 + d, 1); state.analyticsMonth = `${nd.getFullYear()}-${String(nd.getMonth() + 1).padStart(2, '0')}`; renderAnalytics(); };
+      $('analytics-prev-month').onclick = () => shiftAna(-1); $('analytics-next-month').onclick = () => shiftAna(1);
+
+      $('confirm-cancel-btn').onclick = () => $('confirm-modal').classList.add('hidden');
+      $('confirm-ok-btn').onclick = async () => { const cb = state.confirmCallback; $('confirm-modal').classList.add('hidden'); if (cb) await cb(); };
+
+      document.querySelectorAll('[data-nav-page]').forEach((a) => a.addEventListener('click', (e) => { e.preventDefault(); navigateReplace(a.dataset.navPage, a); }));
+      window.addEventListener('online', () => updateSyncUI(db && state.user ? 'synced' : 'connecting'));
+      window.addEventListener('offline', () => updateSyncUI('offline'));
+    }
+
+    function startFirebaseBackground() {
+      let authDone = false;
+      const t = setTimeout(() => { if (!authDone && !$('loading-screen').classList.contains('hidden')) window.__dfSetLoadStatus?.('Sign-in check is slow.', 'Tap Retry or Sign In.', true); }, 5000);
+      ensureFirebase().then(() => {
+        fb.onAuthStateChanged(auth, (user) => {
+          authDone = true; clearTimeout(t);
+          if (user) { resolveAuthReady?.(user); bootSignedIn(user); }
+          else { detachListeners(); clearSnaps(); state.user = null; state.workspaceId = ''; state.transactions = []; showScreen('auth'); }
+        });
+      }).catch((err) => {
+        authDone = true; clearTimeout(t);
+        if (!$('loading-screen').classList.contains('hidden')) window.__dfSetLoadStatus?.('Could not connect to Firebase.', err?.message || 'Tap Retry.', true);
+        updateSyncUI('offline');
+      });
+    }
+
+    function bootstrap() {
+      window.__dfBooted = true;
+      document.querySelectorAll('[data-ico]').forEach((el) => { el.innerHTML = UI_ICONS[el.dataset.ico] || ''; });
+      if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) navigator.serviceWorker.register('./sw.js').catch(() => {});
+      window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredInstall = e; $('pwa-install-card')?.classList.remove('hidden'); });
+      $('pwa-install-btn')?.addEventListener('click', async () => { if (!deferredInstall) return; deferredInstall.prompt(); await deferredInstall.userChoice; deferredInstall = null; $('pwa-install-card')?.classList.add('hidden'); });
+
+      let uid = '', ws = '';
+      try {
+        if (localStorage.getItem('df_privacy') === '1') state.privacyMode = true;
+        const sp = localStorage.getItem('df_active_person') || ''; if (isActiveUser(sp)) state.activePerson = sp;
+        uid = localStorage.getItem('df_last_uid') || ''; ws = localStorage.getItem('df_active_ws') || '';
+      } catch {}
+
+      setupBackGuard(); applyTheme(); applyPrivacy(); bindEvents(); switchView('overview');
+
+      if (uid && ws) { loadSnap(ws); state.workspaceId = ws; showScreen('app'); updateSyncUI('connecting'); renderAll(); }
+      else if (!uid) showScreen('auth');
+
+      // Defer Firebase SDK import until right after Frame 1 UI paint (true 0ms switch speed)
+      requestAnimationFrame(() => setTimeout(startFirebaseBackground, 0));
+    }
+    document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', bootstrap) : bootstrap();
   </script>
 </body>
 </html>
