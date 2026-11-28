@@ -1,5 +1,7 @@
 // Delights Flow — Shared Core Engine (Firebase, GIS Auth, Firestore Sync, State, Helpers, Back Navigation, Auto-Update)
 
+export const APP_VERSION = '1.0.0';
+
 export const FIREBASE_CONFIG = window.__firebase_config || {
   apiKey: "AIzaSyAKgqAtXONpTX9h87pm-sUx7MY0JJyEPTE",
   authDomain: "delights-flow.firebaseapp.com",
@@ -72,19 +74,35 @@ export const esc = (s) => String(s || '').replace(/&/g,'&amp;').replace(/</g,'&l
 export const todayISO = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
 export const curMonth = () => todayISO().slice(0, 7);
 
-// --- SHARED STATE ---
-export const state = {
-  user: null, userWorkspaces: [], workspaceId: '', authMode: 'signin',
-  currentView: 'overview', analyticsSub: 'money', historySub: 'money',
-  darkMode: document.documentElement.classList.contains('dark'), privacyMode: false, activePerson: 'person1',
-  workspace: {
-    name: 'My Ledger', joinPin: '', wallets: STARTER_WALLETS.map((w) => ({ ...w })), archivedWalletNames: {},
+function defaultWorkspace(name = 'My Ledger') {
+  return {
+    name, joinPin: '', wallets: STARTER_WALLETS.map((w) => ({ ...w })), archivedWalletNames: {},
     openingBalances: { cash: 0, bank: 0 }, userNames: { person1: 'Person 1', person2: 'Person 2' },
     userColors: { ...DEFAULT_PERSON_COLORS }, currency: 'Ks',
     customExpenseCategories: [], customIncomeCategories: [], quickTemplates: [],
     shopCategories: DEFAULT_SHOPS.map((c) => ({ ...c })),
     shopProfile: { name: '', footer: 'Thank you for your purchase!', logoDataUrl: '' }
-  },
+  };
+}
+
+function genWorkspaceId() {
+  const chars = '0123456789abcdefghijklmnopqrstuvwxyz';
+  if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
+    const bytes = new Uint8Array(8);
+    crypto.getRandomValues(bytes);
+    return `df-${Array.from(bytes, (b) => chars[b % chars.length]).join('')}`;
+  }
+  let out = '';
+  for (let i = 0; i < 8; i++) out += chars[Math.floor(Math.random() * chars.length)];
+  return `df-${out}`;
+}
+
+// --- SHARED STATE ---
+export const state = {
+  user: null, userWorkspaces: [], workspaceId: '', authMode: 'signin',
+  currentView: 'overview', analyticsSub: 'money', historySub: 'money',
+  darkMode: document.documentElement.classList.contains('dark'), privacyMode: false, activePerson: 'person1',
+  workspace: defaultWorkspace(),
   transactions: [],
   // Money view state
   historyMode: 'list', calendarMonth: curMonth(), calendarSelectedDate: todayISO(), walletFilterActive: false,
@@ -117,8 +135,12 @@ export const getPersonColor = (k) => {
     : (state.workspace.userColors?.person1 || DEFAULT_PERSON_COLORS.person1);
   return COLOR_MAP[key] || COLOR_MAP[k === 'person2' ? 'fuchsia' : 'indigo'];
 };
-export const fmtNum = (n) => { const x = Number(n) || 0; return `${x < 0 ? '-' : ''}${Math.abs(x).toLocaleString('en-US', { maximumFractionDigits: 2 })}`; };
-export const fmtMoney = (n, plus = false) => `${plus && Number(n) > 0 ? '+' : ''}${fmtNum(n)} ${state.workspace.currency || 'Ks'}`;
+export const roundMoney = (n) => {
+  const r = Math.round((Number(n) || 0) * 100) / 100;
+  return Object.is(r, -0) ? 0 : r;
+};
+export const fmtNum = (n) => { const x = roundMoney(n); return `${x < 0 ? '-' : ''}${Math.abs(x).toLocaleString('en-US', { maximumFractionDigits: 2 })}`; };
+export const fmtMoney = (n, plus = false) => { const x = roundMoney(n); return `${plus && x > 0 ? '+' : ''}${fmtNum(x)} ${state.workspace.currency || 'Ks'}`; };
 export const fmtDisp = (n, plus = false) => state.privacyMode ? '••••••' : fmtMoney(n, plus);
 export const fmtCompact = (n) => { const x = Math.abs(Number(n) || 0); return x >= 1e6 ? `${(x/1e6).toFixed(x>=1e7?0:1).replace(/\.0$/,'')}M` : x >= 1e3 ? `${(x/1e3).toFixed(x>=1e5?0:1).replace(/\.0$/,'')}k` : String(Math.round(x)); };
 export const parseAmt = (v) => { const n = parseFloat(String(v || '').replace(/,/g, '').replace(/[^\d.]/g, '')); return Number.isFinite(n) ? n : 0; };
@@ -205,6 +227,7 @@ export const computeBalances = () => {
       if (bal[t.toWallet] !== undefined) bal[t.toWallet] += a;
     }
   });
+  Object.keys(bal).forEach((k) => { bal[k] = roundMoney(bal[k]); });
   return bal;
 };
 
@@ -288,9 +311,9 @@ export const hasOpenModal = () => MODAL_IDS.some((id) => { const el = $(id); ret
 export const closeTopModal = () => {
   for (const id of MODAL_IDS) {
     const el = $(id);
-    if (el && !el.classList.contains('hidden')) { el.classList.add('hidden'); return true; }
+    if (el && !el.classList.contains('hidden')) { el.classList.add('hidden'); return id; }
   }
-  return false;
+  return null;
 };
 
 export const killChart = (k) => { if (state.charts[k]) { state.charts[k].destroy(); state.charts[k] = null; } };
@@ -349,8 +372,9 @@ export function renderHeaderShell() {
 }
 
 // --- HISTORY NAVIGATION SYNC (NO EXIT SCREEN; GESTURE-BACKED MODAL & VIEW STACK) ---
-let ignoreNextPop = false;
+let ignorePopCount = 0;
 let isPoppingModal = false;
+const modalHistoryStack = [];
 const cleanUrl = () => `${location.pathname}${location.search}`;
 
 function syncViewHistory(view, opts = {}) {
@@ -359,7 +383,7 @@ function syncViewHistory(view, opts = {}) {
     const cur = history.state || {};
     if (view === 'overview') {
       if (cur.dfView) {
-        ignoreNextPop = true;
+        ignorePopCount++;
         history.back();
       }
     } else if (cur.dfView) {
@@ -442,6 +466,7 @@ export const updateSyncUI = (status) => {
 let snapTimer = 0;
 let activeSubscribedWsId = '';
 let loadedSnapWsId = '';
+let queuedWriteCount = 0;
 
 export function saveSnap(wsId = state.workspaceId) {
   if (!wsId || wsId !== state.workspaceId) return;
@@ -472,7 +497,7 @@ export function loadSnap(wsId) {
     if (!snap?.workspace) return false;
     const w = snap.workspace;
     state.workspace = {
-      ...state.workspace, ...w,
+      ...defaultWorkspace(w.name || 'My Ledger'), ...w,
       wallets: w.wallets?.length ? w.wallets : STARTER_WALLETS.map((x) => ({ ...x })),
       openingBalances: w.openingBalances || {},
       userNames: { person1: w.userNames?.person1 || 'Person 1', person2: w.userNames?.person2 || 'Person 2' },
@@ -495,6 +520,7 @@ export const clearSnaps = () => {
   clearTimeout(snapTimer);
   activeSubscribedWsId = '';
   loadedSnapWsId = '';
+  queuedWriteCount = 0;
   try { Object.keys(localStorage).forEach((k) => { if (k.startsWith('df_snap_') || ['df_active_ws', 'df_last_uid', 'df_user_ws'].includes(k)) localStorage.removeItem(k); }); } catch {}
 };
 
@@ -536,22 +562,29 @@ export const detachListeners = () => {
   unsubUser?.(); unsubWs?.(); unsubTx?.();
   unsubUser = unsubWs = unsubTx = null;
   activeSubscribedWsId = '';
+  queuedWriteCount = 0;
 };
 
 // --- OFFLINE-SAFE WRITE SETTLER ---
-// Firestore persists mutations locally right away, then waits for server ACK before resolving.
-// Racing against a short offline/slow-network window prevents modals from hanging on "Saving...",
-// and restores "Live Synced" status as soon as the delayed server ACK finishes.
+// Clears timeout timers on completion and tracks queued writes so local latency-compensated
+// snapshots never falsely flip "Offline (Queued)" back to "Live Synced" before server ACK.
 function settleWrite(promise, errLabel = 'Could not sync changes') {
   let done = false;
   let timedOut = false;
+  let timer = 0;
   const tracked = promise.then(
     () => {
-      if (timedOut) updateSyncUI('synced');
+      clearTimeout(timer);
+      if (timedOut) {
+        queuedWriteCount = Math.max(0, queuedWriteCount - 1);
+        if (queuedWriteCount === 0) updateSyncUI('synced');
+      }
       done = true;
       return { queued: false };
     },
     (err) => {
+      clearTimeout(timer);
+      if (timedOut) queuedWriteCount = Math.max(0, queuedWriteCount - 1);
       if (done) {
         toast(`${errLabel}: ${err?.code || 'check connection'}`, 'error');
         return { queued: false, error: err };
@@ -563,14 +596,17 @@ function settleWrite(promise, errLabel = 'Could not sync changes') {
   const waitMs = navigator.onLine === false ? 80 : 2500;
   return Promise.race([
     tracked,
-    new Promise((resolve) => setTimeout(() => {
-      if (!done) {
-        done = true;
-        timedOut = true;
-        updateSyncUI('offline');
-        resolve({ queued: true });
-      }
-    }, waitMs))
+    new Promise((resolve) => {
+      timer = setTimeout(() => {
+        if (!done) {
+          done = true;
+          timedOut = true;
+          queuedWriteCount++;
+          updateSyncUI('offline');
+          resolve({ queued: true });
+        }
+      }, waitMs);
+    })
   ]);
 }
 
@@ -614,7 +650,6 @@ export async function saveTx(payload, editId = null) {
     );
     return { id: editId, ...payload };
   }
-  // Pre-generate document ID so receipt modals and local updates work immediately even offline
   const ref = fb.doc(col);
   const fullDoc = { ...payload, createdByUid: state.user.uid, createdAt: Date.now() };
   await settleWrite(fb.setDoc(ref, fullDoc), 'Could not save entry');
@@ -713,26 +748,33 @@ export const doSignOut = async () => {
 
 export function subscribeWs(wsId) {
   if (!wsId || !state.user || !db || !fb) return;
-  const switching = activeSubscribedWsId !== wsId && loadedSnapWsId !== wsId;
+  if (activeSubscribedWsId === wsId && unsubWs && unsubTx) return;
+
+  const isColdAttach = !activeSubscribedWsId && loadedSnapWsId === wsId;
   clearTimeout(snapTimer);
   unsubWs?.(); unsubTx?.();
   state.workspaceId = wsId;
 
-  // Prevent stale rows/filters from a previous workspace leaking into the newly selected ledger
-  if (switching) {
+  // Always isolate state when switching ledgers so previous rows/filters/search never leak
+  if (!isColdAttach) {
+    loadedSnapWsId = '';
     state.transactions = [];
-    state.filters.wallet = 'all';
+    state.filters = { search: '', month: curMonth(), wallet: 'all', type: 'all', person: 'all', scope: 'all' };
     state.walletFilterActive = false;
-    state.shopFilters.category = 'all';
-    state.shopFilters.type = 'all';
+    state.shopFilters = { search: '', month: curMonth(), category: 'all', type: 'all' };
     state.shopFilterActive = false;
     state.shopAnalyticsShopId = 'all';
-    loadSnap(wsId);
+    if ($('filter-search')) $('filter-search').value = '';
+    if ($('shop-search')) $('shop-search').value = '';
+    const knownName = state.userWorkspaces.find((w) => w.id === wsId)?.name || 'My Ledger';
+    if (!loadSnap(wsId)) state.workspace = defaultWorkspace(knownName);
   }
   activeSubscribedWsId = wsId;
 
   try { localStorage.setItem('df_active_ws', wsId); localStorage.setItem('df_last_uid', state.user.uid); } catch {}
-  showScreen('app'); updateSyncUI('connecting'); scheduleRender();
+  showScreen('app');
+  updateSyncUI(queuedWriteCount > 0 ? 'offline' : 'connecting');
+  scheduleRender();
 
   unsubWs = fb.onSnapshot(fb.doc(db, 'delights_flow_workspaces', wsId), (s) => {
     if (state.workspaceId !== wsId) return;
@@ -767,10 +809,12 @@ export function subscribeWs(wsId) {
     };
     const idx = state.userWorkspaces.findIndex((x) => x.id === wsId);
     if (idx >= 0) state.userWorkspaces[idx].name = state.workspace.name; else state.userWorkspaces.push({ id: wsId, name: state.workspace.name });
-    saveSnap(wsId); updateSyncUI('synced'); scheduleRender();
+    saveSnap(wsId);
+    if (!s.metadata.hasPendingWrites && queuedWriteCount === 0) updateSyncUI('synced');
+    else if (queuedWriteCount > 0) updateSyncUI('offline');
+    scheduleRender();
   }, (e) => {
     if (e?.code === 'permission-denied') {
-      // Remove inaccessible workspace from profile so reloads do not loop back into permission-denied
       try { localStorage.removeItem('df_active_ws'); localStorage.removeItem(`df_snap_${wsId}`); } catch {}
       unsubWs?.(); unsubTx?.(); unsubWs = unsubTx = null;
       state.userWorkspaces = state.userWorkspaces.filter((w) => w.id !== wsId);
@@ -794,7 +838,10 @@ export function subscribeWs(wsId) {
     const list = []; qs.forEach((d) => list.push({ id: d.id, ...d.data() }));
     list.sort((a, b) => (b.date || '').localeCompare(a.date || '') || (b.createdAt || 0) - (a.createdAt || 0));
     state.transactions = list;
-    saveSnap(wsId); updateSyncUI('synced'); scheduleRender();
+    saveSnap(wsId);
+    if (!qs.metadata.hasPendingWrites && queuedWriteCount === 0) updateSyncUI('synced');
+    else if (queuedWriteCount > 0) updateSyncUI('offline');
+    scheduleRender();
   }, () => updateSyncUI('offline'));
 }
 
@@ -885,7 +932,6 @@ export function setupBackGuard() {
     }
   } catch {}
 
-  // Track modal visibility changes to keep history entries synchronized with open modals
   const modalVisible = new Map();
   MODAL_IDS.forEach((id) => {
     const el = $(id);
@@ -912,18 +958,40 @@ export function setupBackGuard() {
 
       if (!opened.length && !closed.length) return;
       try {
-        const topId = history.state?.dfModal;
-        if (opened.length && closed.length && closed.includes(topId)) {
-          // Modal swapped directly (e.g. tx-modal -> confirm-modal)
-          history.replaceState({ dfModal: opened[opened.length - 1] }, '', cleanUrl());
+        if (opened.length && closed.length && modalHistoryStack.length && closed.includes(modalHistoryStack[modalHistoryStack.length - 1])) {
+          // Direct modal swap (e.g. tx-modal -> confirm-modal): replace top history entry cleanly
+          const prevTop = modalHistoryStack.pop();
+          closed.forEach((id) => {
+            if (id === prevTop) return;
+            const idx = modalHistoryStack.lastIndexOf(id);
+            if (idx >= 0) modalHistoryStack.splice(idx, 1);
+          });
+          opened.forEach((id, i) => {
+            modalHistoryStack.push(id);
+            if (i === 0) history.replaceState({ dfModal: id }, '', cleanUrl());
+            else history.pushState({ dfModal: id }, '', cleanUrl());
+          });
         } else if (opened.length) {
           opened.forEach((id) => {
-            if (history.state?.dfModal !== id) history.pushState({ dfModal: id }, '', cleanUrl());
+            if (modalHistoryStack[modalHistoryStack.length - 1] !== id) {
+              modalHistoryStack.push(id);
+              history.pushState({ dfModal: id }, '', cleanUrl());
+            }
           });
-        } else if (closed.length && !isPoppingModal && closed.includes(topId)) {
-          // Modal closed via X / Cancel / Save: pop its history entry so Back stays clean
-          ignoreNextPop = true;
-          history.back();
+        } else if (closed.length && !isPoppingModal) {
+          let popSteps = 0;
+          while (modalHistoryStack.length && closed.includes(modalHistoryStack[modalHistoryStack.length - 1])) {
+            modalHistoryStack.pop();
+            popSteps++;
+          }
+          closed.forEach((id) => {
+            const idx = modalHistoryStack.lastIndexOf(id);
+            if (idx >= 0) modalHistoryStack.splice(idx, 1);
+          });
+          if (popSteps > 0) {
+            ignorePopCount++;
+            history.go(-popSteps);
+          }
         }
       } catch {}
     });
@@ -939,13 +1007,17 @@ export function setupBackGuard() {
   });
 
   window.addEventListener('popstate', () => {
-    if (ignoreNextPop) {
-      ignoreNextPop = false;
+    if (ignorePopCount > 0) {
+      ignorePopCount--;
       return;
     }
     if (hasOpenModal()) {
       isPoppingModal = true;
-      closeTopModal();
+      const closedId = closeTopModal();
+      if (closedId) {
+        const idx = modalHistoryStack.lastIndexOf(closedId);
+        if (idx >= 0) modalHistoryStack.splice(idx, 1);
+      }
       setTimeout(() => { isPoppingModal = false; }, 0);
       return;
     }
@@ -959,9 +1031,9 @@ export function setupBackGuard() {
 export function setupServiceWorkerUpdates() {
   if (!('serviceWorker' in navigator) || (location.protocol !== 'https:' && location.hostname !== 'localhost')) return;
   const bootTime = Date.now();
-  // Snapshot controller BEFORE register() so first-ever install never triggers a false update reload/toast
   const hadController = Boolean(navigator.serviceWorker.controller);
   let notified = false;
+  let lastResumeCheckAt = 0;
 
   const triggerUpdate = () => {
     if (notified) return;
@@ -982,7 +1054,13 @@ export function setupServiceWorkerUpdates() {
   navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' }).then((reg) => {
     reg.update().catch(() => {});
     document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible') reg.update().catch(() => {});
+      if (document.visibilityState !== 'visible') return;
+      reg.update().catch(() => {});
+      const now = Date.now();
+      if (now - lastResumeCheckAt > 60000) {
+        lastResumeCheckAt = now;
+        (navigator.serviceWorker.controller || reg.active)?.postMessage({ type: 'DF_CHECK_UPDATES' });
+      }
     });
     reg.addEventListener('updatefound', () => {
       const nw = reg.installing;
@@ -996,12 +1074,16 @@ export function setupServiceWorkerUpdates() {
 
 // --- CORE EVENT BINDINGS ---
 export function bindCoreEvents() {
+  const verEl = $('settings-app-version');
+  if (verEl) verEl.textContent = `v${APP_VERSION}`;
+
   const setAuth = (m) => {
     state.authMode = m;
     $('auth-tab-signin').className = m === 'signin' ? 'py-2 rounded-xl text-xs font-bold bg-white dark:bg-slate-900 text-indigo-600 shadow-sm' : 'py-2 rounded-xl text-xs font-bold text-slate-500';
     $('auth-tab-signup').className = m === 'signup' ? 'py-2 rounded-xl text-xs font-bold bg-white dark:bg-slate-900 text-indigo-600 shadow-sm' : 'py-2 rounded-xl text-xs font-bold text-slate-500';
     $('auth-name-wrap').classList.toggle('hidden', m !== 'signup');
     $('auth-forgot-btn').classList.toggle('hidden', m !== 'signin');
+    $('auth-password').setAttribute('autocomplete', m === 'signup' ? 'new-password' : 'current-password');
     $('auth-submit-btn').textContent = m === 'signup' ? 'Create Account' : 'Sign In';
     $('auth-error-box').classList.add('hidden');
   };
@@ -1041,7 +1123,7 @@ export function bindCoreEvents() {
     btn.disabled = true; btn.textContent = 'Creating...';
     try {
       await ensureFirebase();
-      const wsId = `df-${Math.random().toString(36).slice(2, 10)}`, p1 = state.user.displayName?.split(' ')[0] || 'Person 1';
+      const wsId = genWorkspaceId(), p1 = state.user.displayName?.split(' ')[0] || 'Person 1';
       await fb.setDoc(fb.doc(db, 'delights_flow_workspaces', wsId), {
         ownerUid: state.user.uid, memberUids: [state.user.uid], joinPin: pin, name, currency,
         wallets: STARTER_WALLETS.map((w) => ({ ...w })), archivedWalletNames: {}, openingBalances: { cash: 0, bank: 0 },
@@ -1050,8 +1132,10 @@ export function bindCoreEvents() {
         shopCategories: DEFAULT_SHOPS.map((c) => ({ ...c })), shopProfile: { name: '', footer: 'Thank you for your purchase!', logoDataUrl: '' },
         createdAt: Date.now(), updatedAt: Date.now()
       });
-      state.userWorkspaces.push({ id: wsId, name }); state.workspaceId = wsId;
-      await saveUserProfile(); subscribeWs(wsId); toast('Private ledger created!', 'success');
+      state.userWorkspaces.push({ id: wsId, name });
+      subscribeWs(wsId);
+      saveUserProfile();
+      toast('Private ledger created!', 'success');
     } catch (ex) { err.textContent = ex?.message || 'Could not create ledger.'; err.classList.remove('hidden'); }
     finally { btn.disabled = false; btn.textContent = 'Create Private Ledger'; }
   };
@@ -1064,7 +1148,9 @@ export function bindCoreEvents() {
       await fb.updateDoc(fb.doc(db, 'delights_flow_workspaces', wsId), { memberUids: fb.arrayUnion(state.user.uid), lastJoinPinAttempt: pin, updatedAt: Date.now() });
       const snap = await fb.getDoc(fb.doc(db, 'delights_flow_workspaces', wsId)), wn = snap.exists() ? (snap.data().name || 'Shared Ledger') : 'Shared Ledger';
       if (!state.userWorkspaces.some((w) => w.id === wsId)) state.userWorkspaces.push({ id: wsId, name: wn });
-      state.workspaceId = wsId; await saveUserProfile(); subscribeWs(wsId); toast(`Joined "${wn}"!`, 'success');
+      subscribeWs(wsId);
+      saveUserProfile();
+      toast(`Joined "${wn}"!`, 'success');
     } catch { err.textContent = 'Invalid Workspace ID or Join PIN.'; err.classList.remove('hidden'); }
     finally { btn.disabled = false; btn.textContent = 'Join Shared Ledger'; }
   };
@@ -1086,6 +1172,6 @@ export function bindCoreEvents() {
 
   window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredInstall = e; $('pwa-install-card')?.classList.remove('hidden'); });
   $('pwa-install-btn')?.addEventListener('click', async () => { if (!deferredInstall) return; deferredInstall.prompt(); await deferredInstall.userChoice; deferredInstall = null; $('pwa-install-card')?.classList.add('hidden'); });
-  window.addEventListener('online', () => updateSyncUI(db && state.user ? 'synced' : 'connecting'));
+  window.addEventListener('online', () => updateSyncUI(queuedWriteCount > 0 ? 'offline' : (db && state.user ? 'synced' : 'connecting')));
   window.addEventListener('offline', () => updateSyncUI('offline'));
 }

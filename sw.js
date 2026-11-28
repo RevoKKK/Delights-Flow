@@ -118,7 +118,7 @@ async function notifyClientsUpdateReady() {
  * Only commits to APP_CACHE and notifies clients when EVERY asset succeeds cleanly,
  * ensuring index.html, core.js, money.js, and shop.js are never out of sync.
  */
-function scheduleShellCheck() {
+function scheduleShellCheck(delayMs = SHELL_CHECK_DELAY_MS) {
   const now = Date.now();
   if (activeCheckPromise) return activeCheckPromise;
   if (now - lastShellCheckAt < SHELL_CHECK_COOLDOWN_MS) return Promise.resolve();
@@ -159,7 +159,7 @@ function scheduleShellCheck() {
       } catch {}
       activeCheckPromise = null;
       resolve();
-    }, SHELL_CHECK_DELAY_MS);
+    }, delayMs);
   });
 
   return activeCheckPromise;
@@ -213,6 +213,12 @@ self.addEventListener('activate', (event) => {
       })
       .then(() => self.clients.claim())
   );
+});
+
+self.addEventListener('message', (event) => {
+  if (event.data?.type === 'DF_CHECK_UPDATES') {
+    event.waitUntil(scheduleShellCheck(0));
+  }
 });
 
 self.addEventListener('fetch', (event) => {

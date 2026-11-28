@@ -144,7 +144,7 @@ Tap **Shop** in the navigation bar to open your shop dashboard. Tap **Overview**
 
 * **Privacy Mode:** Tap the **eye icon** inside the **Total Net Balance** card on **Overview** to hide or show your total balance, monthly hero figures, and live wallet balances (`••••••`) when using the app in public.
 * **Dark & Light Mode:** Tap the **moon/sun icon** in the top bar (mobile) or sidebar (desktop) to switch themes anytime.
-* **Offline Ready & Auto-Updates:** Once opened, Delights Flow loads instantly even without internet. Entries recorded offline save immediately without freezing and sync automatically once you reconnect. App updates refresh cleanly in the background and prompt you when ready.
+* **Offline Ready & Auto-Updates:** Once opened, Delights Flow loads instantly even without internet. Entries recorded offline save immediately without freezing and sync automatically once you reconnect. App updates refresh cleanly in the background and prompt you when ready—you can view your installed version at the bottom of **Settings**.
 * **Export CSV:** Export filtered Wallet or Shop records (including Shop order totals and COD status) to Excel-friendly CSV files from **History**.
-* **Backup & Restore (JSON):** Periodically save a full backup of your wallets, shops, templates, and transactions via **Settings → Download Backup**, and restore anytime using **Restore JSON**.
+* **Backup & Restore (JSON):** Periodically save a full backup of your wallets, shops, templates, and transactions via **Settings → Download Backup**, and restore anytime using **Restore Backup**.
 * **Smart Navigation & Back Button:** On mobile, pressing Back closes open popups first, returns to **Overview** from other tabs, and exits natively from **Overview**. On desktop, press **Escape** to close open popups.

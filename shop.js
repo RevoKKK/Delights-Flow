@@ -12,6 +12,7 @@ import {
 
 let shopBound = false;
 let shopChartErrNotified = false;
+let receiptRenderSeq = 0;
 
 // --- HELPERS ---
 const shopTxs = () => state.transactions.filter((t) => t.scope === 'shop');
@@ -206,9 +207,11 @@ export function renderShopHome() {
   }).join('');
   sg.querySelectorAll('[data-sh]').forEach((b) => b.addEventListener('click', () => {
     state.shopFilterActive = true;
+    state.shopFilters.search = '';
     state.shopFilters.category = b.dataset.sh;
     state.shopFilters.month = 'all';
     state.shopFilters.type = 'all';
+    if ($('shop-search')) $('shop-search').value = '';
     switchView('history', { keepShopFilter: true, historySub: 'shop' });
   }));
 
@@ -287,6 +290,10 @@ function renderShopCalendar() {
 
 export function renderShopHistory() {
   populateShopSelectors();
+  const searchEl = $('shop-search');
+  if (searchEl && document.activeElement !== searchEl && searchEl.value !== state.shopFilters.search) {
+    searchEl.value = state.shopFilters.search;
+  }
   const isCal = state.shopHistoryMode === 'calendar';
   $('shop-history-mode-list').className = !isCal ? 'px-3 py-1.5 rounded-lg text-xs font-bold bg-white dark:bg-slate-900 text-amber-600 dark:text-amber-400 shadow-sm' : 'px-3 py-1.5 rounded-lg text-xs font-bold text-slate-500';
   $('shop-history-mode-calendar').className = isCal ? 'px-3 py-1.5 rounded-lg text-xs font-bold bg-white dark:bg-slate-900 text-amber-600 dark:text-amber-400 shadow-sm' : 'px-3 py-1.5 rounded-lg text-xs font-bold text-slate-500';
@@ -318,7 +325,7 @@ export function renderShopHistory() {
   if (flt.length) bindShopRows(hl);
 }
 
-// --- VIEW: SHOP ANALYTICS (PER-SHOP FILTER + OFFLINE CHART RETRY) ---
+// --- VIEW: SHOP ANALYTICS (PER-SHOP FILTER + ORDER-BASIS AOV + OFFLINE CHART RETRY) ---
 export function renderShopAnalytics() {
   populateShopSelectors();
   if (state.currentView !== 'analytics' || state.analyticsSub !== 'shop') return;
@@ -326,7 +333,7 @@ export function renderShopAnalytics() {
   const txs = shopTxs().filter((t) => selShop === 'all' || (t.shopCategoryId || 'general') === selShop);
   const scopeLabel = selShop === 'all' ? 'All Shops' : getShop(selShop).name;
 
-  let pS = 0, pC = 0, paidOrderCount = 0;
+  let pS = 0, pC = 0, periodOrderTotal = 0, periodOrderCount = 0;
   const catMap = {}, costMap = {};
 
   getShops().forEach((s) => {
@@ -340,11 +347,17 @@ export function renderShopAnalytics() {
   txs.forEach((t) => {
     const sId = t.shopCategoryId || 'general';
     if (isSaleTx(t)) {
+      if (sm === 'all' || t.date?.startsWith(sm)) {
+        const ot = orderTot(t);
+        if (ot > 0) {
+          periodOrderTotal += ot;
+          periodOrderCount++;
+        }
+      }
       const col = collectedInPeriod(t, sm);
       if (col > 0) {
         const c = catMap[sId] ||= { ...getShop(sId, t.shopCategoryName || t.category), sales: 0, capital: 0 };
         pS += col;
-        paidOrderCount++;
         c.sales += col;
       }
     } else if (sm === 'all' || t.date?.startsWith(sm)) {
@@ -361,7 +374,7 @@ export function renderShopAnalytics() {
   $('sa-kpi-capital').textContent = fmtMoney(pC);
   $('sa-kpi-net').textContent = fmtMoney(net, true);
   $('sa-kpi-net').className = `text-base sm:text-xl font-extrabold mt-1 tabular-nums break-words ${net >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`;
-  $('sa-kpi-avg').textContent = fmtMoney(paidOrderCount > 0 ? pS / paidOrderCount : 0);
+  $('sa-kpi-avg').textContent = fmtMoney(periodOrderCount > 0 ? periodOrderTotal / periodOrderCount : 0);
 
   const tc = state.darkMode ? '#cbd5e1' : '#475569', gc = state.darkMode ? 'rgba(148,163,184,0.12)' : 'rgba(15,23,42,0.07)', hasC = typeof Chart !== 'undefined';
   if (!hasC) {
@@ -527,17 +540,19 @@ export function openShopTxModal(mode = 'sale', tx = null, presetShop = null, pre
   const ws = getWallets(), shops = getShops();
   if (tx) {
     const m = isSaleTx(tx) ? 'sale' : 'capital', ot = orderTot(tx), pUp = paidUpfront(tx), cA = codAmtOf(tx);
+    const delFee = Number(tx.deliveryFee) || 0, disc = Number(tx.discount) || 0;
+    const fallbackPrice = tx.subtotal !== undefined ? (Number(tx.subtotal) || 0) : Math.max(0, ot - delFee + disc);
     state.shopDraft = {
       editId: tx.id, mode: m, shopCategoryId: tx.shopCategoryId || shops[0]?.id || 'shop1',
       costSubType: tx.costSubType || 'Stock / Capital', wallet: tx.wallet || ws[0]?.id || 'cash',
-      items: tx.items?.length ? tx.items.map((i) => ({ ...i })) : [{ name: tx.note || tx.shopCategoryName || 'Item', qty: 1, price: ot }],
+      items: tx.items?.length ? tx.items.map((i) => ({ ...i })) : [{ name: tx.note || tx.shopCategoryName || 'Item', qty: 1, price: fallbackPrice }],
       splitMode: cA <= 0 ? 'full_paid' : (pUp <= 0 ? 'full_cod' : 'custom'),
       existingCodStatus: codStatusOf(tx), existingCodAmount: cA, existingCodWallet: tx.codWallet || '', existingCodPaidDate: tx.codPaidDate || ''
     };
     $('stx-customer').value = tx.customerName || '';
     $('stx-customer-phone').value = tx.customerPhone || '';
-    $('stx-delivery').value = tx.deliveryFee ? fmtNum(tx.deliveryFee) : '';
-    $('stx-discount').value = tx.discount ? fmtNum(tx.discount) : '';
+    $('stx-delivery').value = delFee ? fmtNum(delFee) : '';
+    $('stx-discount').value = disc ? fmtNum(disc) : '';
     $('stx-paid-amount').value = fmtNum(pUp);
     $('stx-cod-amount').value = fmtNum(cA);
     $('stx-capital-amount').value = m === 'capital' ? fmtNum(tx.amount) : '';
@@ -575,7 +590,7 @@ function openCodModal(tx) {
   $('cod-pay-modal').classList.remove('hidden');
 }
 
-// --- MODAL 3: MANAGE SHOPS (AUTO-SAVES BEFORE "+ ADD COST" SO NEW SHOPS NEVER FALL BACK TO SHOP 1) ---
+// --- MODAL 3: MANAGE SHOPS (AUTO-SAVES BEFORE "+ ADD COST" & CONFIRMS BEFORE REMOVING SHOPS WITH DATA) ---
 async function persistShopsDraft() {
   const clean = state.settingsShopsDraft.map((s, i) => ({
     id: s.id, name: (s.name || '').trim() || `Shop ${i + 1}`,
@@ -638,7 +653,34 @@ function renderShopsEditor(focusId = null) {
       b.disabled = false;
     }
   }));
-  box.querySelectorAll('[data-shd]').forEach((b) => (b.onclick = () => { if (state.settingsShopsDraft.length <= 1) return toast('Keep at least 1 shop', 'info'); state.settingsShopsDraft.splice(+b.dataset.shd, 1); renderShopsEditor(); }));
+  box.querySelectorAll('[data-shd]').forEach((b) => (b.onclick = () => {
+    if (state.settingsShopsDraft.length <= 1) return toast('Keep at least 1 shop', 'info');
+    const idx = +b.dataset.shd;
+    const target = state.settingsShopsDraft[idx];
+    if (!target) return;
+    const txCount = shopTxs().filter((t) => (t.shopCategoryId || 'general') === target.id).length;
+    const parts = [];
+    if (Number(target.startingCapital) > 0) parts.push(`starting capital of ${fmtMoney(target.startingCapital)}`);
+    if (txCount > 0) parts.push(`${txCount} recorded ${txCount === 1 ? 'entry' : 'entries'}`);
+    if (target.logoDataUrl) parts.push('a custom logo');
+    if (parts.length) {
+      openConfirm(
+        `Remove "${target.name || 'Shop'}"?`,
+        `This shop has ${parts.join(', ')}. Past entries will keep its name, but its starting capital, color, and logo will be removed when you save.`,
+        () => {
+          const curIdx = state.settingsShopsDraft.findIndex((x) => x.id === target.id);
+          if (curIdx >= 0 && state.settingsShopsDraft.length > 1) {
+            state.settingsShopsDraft.splice(curIdx, 1);
+            renderShopsEditor();
+          }
+        },
+        'Remove'
+      );
+      return;
+    }
+    state.settingsShopsDraft.splice(idx, 1);
+    renderShopsEditor();
+  }));
   if (focusId) box.querySelector(`[data-shrow="${focusId}"] input[data-shn]`)?.focus();
 }
 
@@ -800,9 +842,20 @@ async function drawReceipt(tx) {
 }
 
 export async function openReceiptModal(tx) {
+  const seq = ++receiptRenderSeq;
   state.activeReceiptTx = tx;
+  const shareBtn = $('receipt-share-btn'), dlBtn = $('receipt-download-btn');
+  if (shareBtn) shareBtn.disabled = true;
+  if (dlBtn) dlBtn.disabled = true;
   $('receipt-modal').classList.remove('hidden');
-  await drawReceipt(tx);
+  try {
+    await drawReceipt(tx);
+  } finally {
+    if (seq === receiptRenderSeq) {
+      if (shareBtn) shareBtn.disabled = false;
+      if (dlBtn) dlBtn.disabled = false;
+    }
+  }
 }
 
 export function openShopEntry(tx) {
@@ -818,10 +871,12 @@ export function initShopModule() {
 
   $('hero-pending-cod-btn').onclick = () => {
     state.shopFilterActive = true;
+    state.shopFilters.search = '';
     state.shopFilters.category = 'all';
     state.shopFilters.type = 'pending_cod';
     state.shopFilters.month = 'all';
     state.shopHistoryMode = 'list';
+    if ($('shop-search')) $('shop-search').value = '';
     switchView('history', { keepShopFilter: true, historySub: 'shop' });
   };
   $('shop-view-all-history-btn').onclick = () => switchView('history', { historySub: 'shop' });
@@ -1006,8 +1061,10 @@ export function initShopModule() {
     const file = e.target.files?.[0], idx = state.logoUploadTargetIdx;
     if (!file || idx < 0 || !state.settingsShopsDraft[idx]) return;
     const r = new FileReader();
+    r.onerror = () => toast('Could not read image file', 'error');
     r.onload = () => {
       const im = new Image();
+      im.onerror = () => toast('Could not load image — choose a valid PNG or JPG', 'error');
       im.onload = () => {
         const sc = Math.min(1, 160 / Math.max(im.width, im.height));
         const c = Object.assign(document.createElement('canvas'), { width: Math.max(1, Math.round(im.width * sc)), height: Math.max(1, Math.round(im.height * sc)) });

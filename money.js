@@ -1,7 +1,7 @@
 // Delights Flow — Money Module (Overview, History/Calendar, Analytics, Split Wallets/Settings Modals, Person Colors, Backup/Restore)
 
 import {
-  COLORS, COLOR_MAP, DEFAULT_PERSON_COLORS, W_ICONS, PALETTE, state,
+  APP_VERSION, COLORS, COLOR_MAP, DEFAULT_PERSON_COLORS, W_ICONS, PALETTE, state,
   $, esc, todayISO, curMonth, isValidPerson, getOwner, personName, getPersonColor,
   fmtNum, fmtMoney, fmtDisp, fmtCompact, parseAmt, parseSigned, fmtAmtInput,
   fmtMonth, fmtDateHead, getWallets, getWallet, getCats, catIcon,
@@ -90,9 +90,11 @@ function rowHTML(t, showDate = false, ctx = null) {
     wHtml = `<span class="px-2 py-0.5 rounded-lg text-[11px] font-bold" style="background:${fw.hex}20;color:${fw.hex}">${esc(fw.name)}</span><span class="text-slate-400 text-[11px] font-bold">→</span><span class="px-2 py-0.5 rounded-lg text-[11px] font-bold" style="background:${tw.hex}20;color:${tw.hex}">${esc(tw.name)}</span>`;
   } else if (sp) {
     const w = getWallet(t.wallet);
-    if (sp.paid > 0 || !sp.codPending) wHtml += `<span class="px-2 py-0.5 rounded-lg text-[11px] font-bold" style="background:${w.hex}20;color:${w.hex}">${esc(w.name)}</span>`;
-    if (sp.codPaid && sp.codWallet && sp.codWallet !== t.wallet) {
-      const cw = getWallet(sp.codWallet);
+    if (sp.paid > 0 || (!sp.codPending && !sp.codPaid)) {
+      wHtml += `<span class="px-2 py-0.5 rounded-lg text-[11px] font-bold" style="background:${w.hex}20;color:${w.hex}">${esc(w.name)}</span>`;
+    }
+    if (sp.codPaid && (sp.paid <= 0 || (sp.codWallet && sp.codWallet !== t.wallet))) {
+      const cw = getWallet(sp.codWallet || t.wallet);
       wHtml += `<span class="px-2 py-0.5 rounded-lg text-[11px] font-bold" style="background:${cw.hex}20;color:${cw.hex}">COD → ${esc(cw.name)}</span>`;
     }
     if (sp.codPending) wHtml += `<span class="px-2 py-0.5 rounded-lg text-[11px] font-bold bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300">⏳ COD: ${fmtMoney(sp.cod)}</span>`;
@@ -176,7 +178,11 @@ export function renderOverview() {
     </button>`;
   }).join('');
   wg.querySelectorAll('[data-wc]').forEach((b) => b.addEventListener('click', () => {
-    state.walletFilterActive = true; state.filters.wallet = b.dataset.wc; state.filters.month = 'all';
+    state.walletFilterActive = true;
+    state.filters.search = '';
+    state.filters.wallet = b.dataset.wc;
+    state.filters.month = 'all';
+    if ($('filter-search')) $('filter-search').value = '';
     switchView('history', { keepWalletFilter: true, historySub: 'money' });
   }));
 
@@ -311,6 +317,10 @@ function renderCalendar() {
 
 export function renderMoneyHistory() {
   populateFilters();
+  const searchEl = $('filter-search');
+  if (searchEl && document.activeElement !== searchEl && searchEl.value !== state.filters.search) {
+    searchEl.value = state.filters.search;
+  }
   $('filter-type').value = state.filters.type;
   $('filter-person').value = state.filters.person;
   $('filter-scope').value = state.filters.scope;
@@ -656,8 +666,14 @@ function renderTplList() {
   }));
 
   box.querySelectorAll('[data-dtpl]').forEach((b) => b.addEventListener('click', async () => {
-    try { await patchWs({ quickTemplates: list.filter((t) => t.id !== b.dataset.dtpl) }); if ($('tpl-edit-id').value === b.dataset.dtpl) resetTplForm(); renderTplList(); toast('Template removed', 'info'); }
-    catch { toast('Could not remove template', 'error'); }
+    try {
+      const next = list.filter((t) => t.id !== b.dataset.dtpl);
+      await patchWs({ quickTemplates: next });
+      state.workspace.quickTemplates = next;
+      if ($('tpl-edit-id').value === b.dataset.dtpl) resetTplForm();
+      renderTplList();
+      toast('Template removed', 'info');
+    } catch { toast('Could not remove template', 'error'); }
   }));
 }
 
@@ -687,28 +703,51 @@ function exportCSV() {
   toast(`Exported ${rows.length} rows`, 'success');
 }
 
-// --- BATCHED, DUPLICATE-SAFE JSON BACKUP/RESTORE ---
+// --- BATCHED, VALIDATED, DUPLICATE-SAFE JSON BACKUP/RESTORE ---
+const isPlainObj = (v) => Boolean(v) && typeof v === 'object' && !Array.isArray(v);
+
+function sanitizeRestoreSettings(s) {
+  const patch = {};
+  if (Array.isArray(s.wallets)) {
+    const validW = s.wallets.filter((w) => isPlainObj(w) && typeof w.id === 'string' && w.id.trim());
+    if (validW.length) patch.wallets = validW;
+  }
+  if (Array.isArray(s.shopCategories)) {
+    const validS = s.shopCategories.filter((c) => isPlainObj(c) && typeof c.id === 'string' && c.id.trim());
+    if (validS.length) patch.shopCategories = validS;
+  }
+  ['archivedWalletNames', 'openingBalances', 'userNames', 'userColors', 'shopProfile'].forEach((k) => {
+    if (isPlainObj(s[k])) patch[k] = s[k];
+  });
+  ['quickTemplates', 'customExpenseCategories', 'customIncomeCategories'].forEach((k) => {
+    if (Array.isArray(s[k])) patch[k] = s[k];
+  });
+  if (typeof s.currency === 'string' && s.currency.trim()) patch.currency = s.currency.trim().slice(0, 8);
+  return patch;
+}
+
 function importBackup(file) {
   if (isRestoringBackup) return;
   const r = new FileReader();
   r.onload = () => {
     try {
       const p = JSON.parse(String(r.result || '{}'));
-      if (!p?.settings || !Array.isArray(p.transactions)) return toast('Invalid backup JSON', 'error');
+      if (!isPlainObj(p?.settings) || !Array.isArray(p.transactions)) return toast('Invalid backup JSON', 'error');
       openConfirm('Restore Backup?', `Import settings & up to ${p.transactions.length} entries (including Shop & COD data) into "${state.workspace.name}"?`, async () => {
         if (isRestoringBackup) return;
         isRestoringBackup = true;
         const btn = $('backup-import-btn');
         if (btn) { btn.disabled = true; btn.textContent = 'Restoring...'; }
         try {
-          const patch = {};
-          ['wallets', 'archivedWalletNames', 'openingBalances', 'userNames', 'userColors', 'currency', 'quickTemplates', 'customExpenseCategories', 'customIncomeCategories', 'shopCategories', 'shopProfile'].forEach((k) => {
-            if (p.settings[k] !== undefined) patch[k] = p.settings[k];
-          });
-          await patchWs(patch);
+          const patch = sanitizeRestoreSettings(p.settings);
+          if (Object.keys(patch).length) await patchWs(patch);
 
           // Count-based signature + ID matching preserves legitimate identical same-day entries
-          const sig = (t) => `${t.date}|${t.scope || 'personal'}|${t.type}|${Number(t.amount) || 0}|${Number(t.orderTotal) || 0}|${t.receiptNo || ''}|${t.wallet || ''}|${t.fromWallet || ''}|${t.toWallet || ''}|${t.category || ''}|${t.note || ''}`;
+          const sig = (t) => [
+            t.date || '', t.scope || 'personal', t.type || '', Number(t.amount) || 0, Number(t.orderTotal) || 0,
+            t.receiptNo || '', t.codStatus || '', t.codPaidDate || '', t.customerName || '',
+            t.wallet || '', t.fromWallet || '', t.toWallet || '', t.category || '', t.note || ''
+          ].join('|');
           const existingIds = new Set(state.transactions.map((t) => t.id).filter(Boolean));
           const existingSigCounts = new Map();
           state.transactions.forEach((t) => {
@@ -755,7 +794,7 @@ function importBackup(file) {
           toast('Could not restore backup', 'error');
         } finally {
           isRestoringBackup = false;
-          if (btn) { btn.disabled = false; btn.textContent = '↑ Restore JSON'; }
+          if (btn) { btn.disabled = false; btn.textContent = '↑ Restore Backup'; }
         }
       }, 'Restore');
     } catch { toast('Could not read JSON file', 'error'); }
@@ -787,7 +826,11 @@ export function bindMoneyEvents({ onOpenShopTx } = {}) {
     const name = $('custom-cat-input').value.trim(); if (!name) return;
     try {
       const k = state.txDraft.type === 'income' ? 'customIncomeCategories' : 'customExpenseCategories', list = [...(state.workspace[k] || [])];
-      if (!list.some((c) => c.toLowerCase() === name.toLowerCase())) { list.push(name); await patchWs({ [k]: list }); }
+      if (!list.some((c) => c.toLowerCase() === name.toLowerCase())) {
+        list.push(name);
+        await patchWs({ [k]: list });
+        state.workspace[k] = list;
+      }
       state.txDraft.category = name; $('custom-cat-input').value = ''; $('custom-cat-inline').classList.add('hidden'); renderTxControls(); toast(`Added "${name}"`, 'success');
     } catch { toast('Could not save custom category', 'error'); }
   };
@@ -812,7 +855,9 @@ export function bindMoneyEvents({ onOpenShopTx } = {}) {
     try {
       await saveTx(payload, editId);
       if (!editId && $('tx-save-as-template').checked) {
-        await patchWs({ quickTemplates: [...(state.workspace.quickTemplates || []), { id: `tpl_${Date.now().toString(36)}`, title: (note || category || 'Quick Entry').slice(0, 28), ...payload }] });
+        const nextTpls = [...(state.workspace.quickTemplates || []), { id: `tpl_${Date.now().toString(36)}`, title: (note || category || 'Quick Entry').slice(0, 28), ...payload }];
+        await patchWs({ quickTemplates: nextTpls });
+        state.workspace.quickTemplates = nextTpls;
       }
       $('tx-modal').classList.add('hidden');
       toast(editId ? 'Entry updated' : 'Entry saved', 'success');
@@ -849,10 +894,16 @@ export function bindMoneyEvents({ onOpenShopTx } = {}) {
   $('setting-p2-color-btn')?.addEventListener('click', () => { state.openPersonColorPicker = state.openPersonColorPicker === 'person2' ? null : 'person2'; renderPersonColorControls(); });
   $('copy-ws-id-btn').onclick = () => copyText(state.workspaceId, 'Workspace ID copied!');
   $('copy-ws-pin-btn').onclick = () => copyText($('setting-join-pin').value.trim(), 'Join PIN copied!');
-  $('setting-ws-switcher').onchange = async (e) => { const id = e.target.value; if (!id || id === state.workspaceId) return; $('settings-modal').classList.add('hidden'); state.workspaceId = id; await saveUserProfile(); subscribeWs(id); };
+  $('setting-ws-switcher').onchange = (e) => {
+    const id = e.target.value;
+    if (!id || id === state.workspaceId) return;
+    $('settings-modal').classList.add('hidden');
+    subscribeWs(id);
+    saveUserProfile();
+  };
   $('open-ws-onboarding-btn').onclick = () => { $('settings-modal').classList.add('hidden'); openOnboarding(true); };
   $('backup-export-btn').onclick = () => {
-    downloadBlob(new Blob([JSON.stringify({ app: 'Delights Flow', exportedAt: new Date().toISOString(), settings: state.workspace, transactions: state.transactions }, null, 2)], { type: 'application/json' }), `DelightsFlow_Backup_${todayISO()}.json`);
+    downloadBlob(new Blob([JSON.stringify({ app: 'Delights Flow', appVersion: APP_VERSION, exportedAt: new Date().toISOString(), settings: state.workspace, transactions: state.transactions }, null, 2)], { type: 'application/json' }), `DelightsFlow_Backup_${todayISO()}.json`);
     toast(`Backup downloaded (${state.transactions.length} entries)`, 'success');
   };
   $('backup-import-btn').onclick = () => { if (isRestoringBackup) return; $('backup-import-file').value = ''; $('backup-import-file').click(); };
@@ -905,6 +956,7 @@ export function bindMoneyEvents({ onOpenShopTx } = {}) {
       const prev = state.workspace.quickTemplates || [];
       const next = editId && prev.some((t) => t.id === editId) ? prev.map((t) => (t.id === editId ? entry : t)) : [...prev, entry];
       await patchWs({ quickTemplates: next });
+      state.workspace.quickTemplates = next;
       resetTplForm(); renderTplList(); toast(editId ? 'Template updated' : 'Template saved', 'success');
     } catch { toast('Could not save template', 'error'); }
   };
