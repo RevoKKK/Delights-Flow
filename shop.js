@@ -34,6 +34,14 @@ function collectedInPeriod(t, mk) {
   return sum;
 }
 
+// Effective sort date inside a specific month so cross-month COD receipts appear near their received date
+function effectiveShopDate(t, mk) {
+  if (mk && mk !== 'all' && isSaleTx(t) && codStatusOf(t) === 'paid' && !t.date?.startsWith(mk) && (t.codPaidDate || '').startsWith(mk)) {
+    return t.codPaidDate;
+  }
+  return t.date || '';
+}
+
 function getFilteredShop(overrideMonth = null) {
   const { search, category, type } = state.shopFilters;
   const month = overrideMonth !== null ? overrideMonth : state.shopFilters.month;
@@ -228,13 +236,11 @@ function renderShopCalendar() {
   txs.forEach((t) => {
     if (isSaleTx(t)) {
       const pUp = paidUpfront(t), pCod = pendingCodOf(t), cSt = codStatusOf(t), cAmt = codAmtOf(t);
-      // Bucket upfront paid and pending COD on order date
       if (t.date?.startsWith(mk) && (pUp > 0 || pCod > 0 || cSt === 'none')) {
         const d = addDayItem(t.date, t);
         if (pUp > 0) d.in += pUp;
         if (pCod > 0) d.cod += pCod;
       }
-      // Bucket paid COD on its actual received date (codPaidDate)
       const cDate = t.codPaidDate || t.date;
       if (cSt === 'paid' && cAmt > 0 && cDate?.startsWith(mk)) {
         const d = addDayItem(cDate, t);
@@ -287,7 +293,13 @@ export function renderShopHistory() {
   $('shop-history-calendar-wrap').classList.toggle('hidden', !isCal);
   $('shop-history-list').classList.toggle('hidden', isCal);
 
-  const flt = getFilteredShop(), mk = state.shopFilters.month;
+  const mk = state.shopFilters.month;
+  const flt = getFilteredShop();
+  // When viewing a specific month, sort cross-month COD receipts by their received date in that month
+  if (mk !== 'all') {
+    flt.sort((a, b) => effectiveShopDate(b, mk).localeCompare(effectiveShopDate(a, mk)) || (b.createdAt || 0) - (a.createdAt || 0));
+  }
+
   let fR = 0, fC = 0, fD = 0;
   flt.forEach((t) => {
     if (isSaleTx(t)) { fR += collectedInPeriod(t, mk); fD += pendingCodOf(t); }
@@ -439,12 +451,37 @@ function renderItemRows() {
   computeSale(true);
 }
 
+function renderCodEditBanner() {
+  const d = state.shopDraft;
+  const isPaidCod = Boolean(d.editId && d.mode === 'sale' && d.existingCodStatus === 'paid');
+  const banner = $('stx-cod-paid-banner');
+  const meta = $('stx-cod-paid-meta');
+  const lbl = $('stx-cod-label');
+  const help = $('stx-cod-help');
+
+  if (banner) banner.classList.toggle('hidden', !isPaidCod);
+  if (isPaidCod && meta) {
+    const cwName = getWallet(d.existingCodWallet || d.wallet).name;
+    meta.textContent = `Deposited to ${cwName}${d.existingCodPaidDate ? ` on ${d.existingCodPaidDate}` : ''}`;
+  }
+  if (lbl) {
+    lbl.textContent = isPaidCod ? 'COD Amount (Received)' : 'COD Amount (Pending)';
+    lbl.className = isPaidCod
+      ? 'text-[11px] font-bold text-emerald-700 dark:text-emerald-400'
+      : 'text-[11px] font-bold text-amber-700 dark:text-amber-400';
+  }
+  if (help) {
+    help.textContent = isPaidCod
+      ? 'COD is already marked received. Tap Undo to Pending to revert it, or increase COD to re-open pending status.'
+      : 'Paid amount enters your wallet immediately. COD stays pending until you tap Mark COD Paid.';
+  }
+}
+
 function renderShopTxControls() {
   const d = state.shopDraft, sale = d.mode === 'sale', shops = getShops(), ws = getWallets();
   const isEditing = Boolean(d.editId);
 
   $('stx-modal-title').textContent = isEditing ? (sale ? 'Edit Shop Sale' : 'Edit Capital / Cost') : (sale ? 'Record Shop Sale' : 'Record Capital / Cost');
-  // Lock Sale/Capital mode switcher when editing an existing record so incompatible fields cannot be orphaned
   $('stx-mode-tabs')?.classList.toggle('hidden', isEditing);
   $('stx-sale-fields').classList.toggle('hidden', !sale);
   $('stx-capital-fields').classList.toggle('hidden', sale);
@@ -468,7 +505,10 @@ function renderShopTxControls() {
     const ct = $('stx-cost-types');
     ct.innerHTML = COST_SUBTYPES.map((x) => `<button type="button" data-ct="${esc(x)}" class="px-3 py-1.5 rounded-xl border text-xs font-bold ${x === d.costSubType ? 'bg-rose-50 dark:bg-rose-950/60 border-rose-500 text-rose-700 dark:text-rose-200' : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700'}">${esc(x)}</button>`).join('');
     ct.querySelectorAll('[data-ct]').forEach((b) => (b.onclick = () => { d.costSubType = b.dataset.ct; renderShopTxControls(); }));
-  } else renderItemRows();
+  } else {
+    renderItemRows();
+    renderCodEditBanner();
+  }
 
   // Preserve archived wallets when editing existing entries so notes/items can be updated safely
   if (!d.wallet || (!isEditing && !ws.some((w) => w.id === d.wallet))) d.wallet = ws[0]?.id || 'cash';
@@ -492,7 +532,7 @@ export function openShopTxModal(mode = 'sale', tx = null, presetShop = null, pre
       costSubType: tx.costSubType || 'Stock / Capital', wallet: tx.wallet || ws[0]?.id || 'cash',
       items: tx.items?.length ? tx.items.map((i) => ({ ...i })) : [{ name: tx.note || tx.shopCategoryName || 'Item', qty: 1, price: ot }],
       splitMode: cA <= 0 ? 'full_paid' : (pUp <= 0 ? 'full_cod' : 'custom'),
-      existingCodStatus: codStatusOf(tx), existingCodWallet: tx.codWallet || '', existingCodPaidDate: tx.codPaidDate || ''
+      existingCodStatus: codStatusOf(tx), existingCodAmount: cA, existingCodWallet: tx.codWallet || '', existingCodPaidDate: tx.codPaidDate || ''
     };
     $('stx-customer').value = tx.customerName || '';
     $('stx-customer-phone').value = tx.customerPhone || '';
@@ -508,7 +548,7 @@ export function openShopTxModal(mode = 'sale', tx = null, presetShop = null, pre
     state.shopDraft = {
       editId: null, mode, shopCategoryId: presetShop || (state.shopFilters.category !== 'all' ? state.shopFilters.category : (shops[0]?.id || 'shop1')),
       costSubType: 'Stock / Capital', wallet: ws[0]?.id || 'cash', items: [{ name: '', qty: 1, price: '' }],
-      splitMode: 'full_paid', existingCodStatus: 'none', existingCodWallet: '', existingCodPaidDate: ''
+      splitMode: 'full_paid', existingCodStatus: 'none', existingCodAmount: 0, existingCodWallet: '', existingCodPaidDate: ''
     };
     ['stx-customer', 'stx-customer-phone', 'stx-delivery', 'stx-discount', 'stx-capital-amount', 'stx-note'].forEach((id) => ($(id).value = ''));
     $('stx-paid-amount').value = '0'; $('stx-cod-amount').value = '0';
@@ -547,7 +587,6 @@ async function persistShopsDraft() {
   const f = clean[0];
   const profile = { name: f?.name || '', footer: f?.footer || 'Thank you for your purchase!', logoDataUrl: f?.logoDataUrl || '' };
   await patchWs({ shopCategories: clean, shopProfile: profile });
-  // Update local workspace state immediately so follow-up modals see new shops right away
   state.workspace.shopCategories = clean;
   state.workspace.shopProfile = profile;
   return clean;
@@ -659,6 +698,13 @@ function buildReceiptText(tx) {
 }
 
 async function drawReceipt(tx) {
+  // Wait briefly for web fonts (Inter) so canvas typography is crisp on first open
+  try {
+    if (document.fonts?.ready) {
+      await Promise.race([document.fonts.ready, new Promise((r) => setTimeout(r, 300))]);
+    }
+  } catch {}
+
   const canvas = $('receipt-canvas'), ctx = canvas.getContext('2d');
   const W = 760, pad = 28, cX = pad, cW = W - pad * 2, lX = cX + 42, rX = cX + cW - 42, cntW = rX - lX;
   const sh = getShop(tx.shopCategoryId, tx.shopCategoryName || tx.category), shopName = sh.name || state.workspace.name || 'Delights Flow';
@@ -673,9 +719,18 @@ async function drawReceipt(tx) {
   const mItems = items.map((it) => { const nl = wrapTxt(ctx, it.name || 'Item', 350), q = Number(it.qty) || 1, u = Number(it.price) || 0; return { nl, q, u, amt: q * u, h: nl.length * step + (q > 1 ? 22 : 0) }; });
   ctx.font = '800 32px Inter, system-ui, sans-serif'; const nameL = wrapTxt(ctx, shopName, cntW - 20);
   ctx.font = '600 18px Inter, system-ui, sans-serif'; const footL = wrapTxt(ctx, sh.footer || 'Thank you for shopping with us!', cntW - 24);
-  const meta = [['Receipt No.', tx.receiptNo || 'DF-RECEIPT', true], ['Date', tx.date || todayISO(), true], ['Customer', tx.customerName || 'Valued Customer', true], ...(tx.customerPhone ? [['Phone', tx.customerPhone, false]] : [])];
 
-  const cH = 40 + (logo ? 120 : 8) + nameL.length * 40 + 48 + meta.length * 32 + 12 + barH + 22 + mItems.reduce((s, m, i) => s + m.h + 18 + (i < mItems.length - 1 ? 20 : 0), 0) + 42 + ((del > 0 || dis > 0) ? 32 : 0) + (del > 0 ? 32 : 0) + (dis > 0 ? 32 : 0) + 94 + (isPart ? 104 : isFullCod ? 70 : 64) + 16 + footL.length * 26 + 26;
+  // Pre-wrap meta values (especially long customer names) so right-aligned text never collides with left labels
+  const rawMeta = [['Receipt No.', tx.receiptNo || 'DF-RECEIPT', true], ['Date', tx.date || todayISO(), true], ['Customer', tx.customerName || 'Valued Customer', true], ...(tx.customerPhone ? [['Phone', tx.customerPhone, false]] : [])];
+  const metaMaxW = cntW - 155;
+  const metaRows = rawMeta.map(([k, v, b]) => {
+    ctx.font = `${b ? '700' : '600'} 18px Inter, system-ui, sans-serif`;
+    const lines = wrapTxt(ctx, v, metaMaxW);
+    return { k, lines, b, h: lines.length * 26 + 6 };
+  });
+  const metaTotalH = metaRows.reduce((s, r) => s + r.h, 0);
+
+  const cH = 40 + (logo ? 120 : 8) + nameL.length * 40 + 48 + metaTotalH + 12 + barH + 22 + mItems.reduce((s, m, i) => s + m.h + 18 + (i < mItems.length - 1 ? 20 : 0), 0) + 42 + ((del > 0 || dis > 0) ? 32 : 0) + (del > 0 ? 32 : 0) + (dis > 0 ? 32 : 0) + 94 + (isPart ? 104 : isFullCod ? 70 : 64) + 16 + footL.length * 26 + 26;
   canvas.width = W; canvas.height = cH + pad * 2;
 
   ctx.fillStyle = '#f1f5f9'; ctx.fillRect(0, 0, W, canvas.height);
@@ -692,7 +747,13 @@ async function drawReceipt(tx) {
 
   const notch = (yy) => { ctx.save(); ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 2; ctx.setLineDash([7, 7]); ctx.beginPath(); ctx.moveTo(lX, yy); ctx.lineTo(rX, yy); ctx.stroke(); ctx.setLineDash([]); ctx.fillStyle = '#f1f5f9'; ctx.beginPath(); ctx.arc(cX, yy, 13, -Math.PI / 2, Math.PI / 2); ctx.fill(); ctx.beginPath(); ctx.arc(cX + cW, yy, 13, Math.PI / 2, Math.PI * 1.5); ctx.fill(); ctx.restore(); };
   const kv = (l, r, b = true, rc = '#0f172a') => { ctx.textAlign = 'left'; ctx.fillStyle = '#64748b'; ctx.font = '600 18px Inter, system-ui, sans-serif'; ctx.fillText(l, lX, y); ctx.textAlign = 'right'; ctx.fillStyle = rc; ctx.font = `${b ? '700' : '600'} 18px Inter, system-ui, sans-serif`; ctx.fillText(r, rX, y); y += 32; };
-  notch(y); y += 30; meta.forEach(([k, v, b]) => kv(k, v, b));
+  notch(y); y += 30;
+  metaRows.forEach(({ k, lines, b }) => {
+    ctx.textAlign = 'left'; ctx.fillStyle = '#64748b'; ctx.font = '600 18px Inter, system-ui, sans-serif'; ctx.fillText(k, lX, y);
+    ctx.textAlign = 'right'; ctx.fillStyle = '#0f172a'; ctx.font = `${b ? '700' : '600'} 18px Inter, system-ui, sans-serif`;
+    lines.forEach((line, idx) => ctx.fillText(line, rX, y + idx * 26));
+    y += lines.length * 26 + 6;
+  });
 
   y += 12; rRect(ctx, lX, y, cntW, barH, 10); ctx.fillStyle = '#f8fafc'; ctx.fill();
   ctx.save(); ctx.textBaseline = 'middle'; ctx.fillStyle = '#64748b'; ctx.font = '700 14px Inter, system-ui, sans-serif';
@@ -795,6 +856,13 @@ export function initShopModule() {
   $('stx-capital-amount').oninput = () => fmtAmtInput($('stx-capital-amount'));
   $('stx-btn-full-paid').onclick = () => { state.shopDraft.splitMode = 'full_paid'; computeSale(true); };
   $('stx-btn-full-cod').onclick = () => { state.shopDraft.splitMode = 'full_cod'; computeSale(true); };
+  $('stx-cod-undo-btn')?.addEventListener('click', () => {
+    state.shopDraft.existingCodStatus = 'pending';
+    state.shopDraft.existingCodWallet = '';
+    state.shopDraft.existingCodPaidDate = '';
+    renderCodEditBanner();
+    toast('COD reset to Pending — tap Update Entry to save', 'info');
+  });
 
   // Clamp both active and opposite Paid/COD fields when input exceeds order grand total
   $('stx-paid-amount').oninput = () => {
@@ -830,17 +898,28 @@ export function initShopModule() {
     const { mode, shopCategoryId, costSubType, wallet, editId } = state.shopDraft, sale = mode === 'sale';
     const date = $('stx-date').value || todayISO(), note = $('stx-note').value.trim(), sh = getShop(shopCategoryId);
     let payload;
+    let reopenedCod = false;
+
     if (sale) {
-      const cleanItems = state.shopDraft.items.map((it) => ({ name: (it.name || '').trim() || sh.name, qty: Math.max(1, Number(it.qty) || 1), price: parseAmt(it.price) })).filter((it) => it.price > 0);
+      // Allow 0 Ks gift/bonus items when named, while still requiring an order total > 0
+      const cleanItems = state.shopDraft.items
+        .map((it) => ({ name: (it.name || '').trim(), qty: Math.max(1, Number(it.qty) || 1), price: parseAmt(it.price) }))
+        .filter((it) => it.price > 0 || it.name.length > 0)
+        .map((it) => ({ ...it, name: it.name || sh.name }));
       const { subtotal, delivery, discount, grand, paid, cod } = computeSale(false);
       if (!cleanItems.length || grand <= 0) { err.textContent = 'Enter at least one item price so total > 0.'; err.classList.remove('hidden'); return; }
+
       const ex = editId ? state.transactions.find((t) => t.id === editId) : null;
-      const wasPaid = Boolean(editId && state.shopDraft.existingCodStatus === 'paid' && cod > 0);
-      const cSt = cod <= 0 ? 'none' : (wasPaid ? 'paid' : 'pending');
+      const prevPaidCod = Boolean(editId && state.shopDraft.existingCodStatus === 'paid' && cod > 0);
+      // Do not silently mark newly added COD balance as paid if the user increased COD during an edit
+      const keepPaid = prevPaidCod && cod <= (Number(state.shopDraft.existingCodAmount) || 0);
+      if (prevPaidCod && !keepPaid) reopenedCod = true;
+      const cSt = cod <= 0 ? 'none' : (keepPaid ? 'paid' : 'pending');
+
       payload = {
         type: 'income', scope: 'shop', shopEntryType: 'sale',
         amount: paid + (cSt === 'paid' ? cod : 0), orderTotal: grand, paidAmount: paid, codAmount: cod,
-        codStatus: cSt, codWallet: wasPaid ? state.shopDraft.existingCodWallet : '', codPaidDate: wasPaid ? state.shopDraft.existingCodPaidDate : '',
+        codStatus: cSt, codWallet: keepPaid ? state.shopDraft.existingCodWallet : '', codPaidDate: keepPaid ? state.shopDraft.existingCodPaidDate : '',
         subtotal, deliveryFee: delivery, discount, items: cleanItems, receiptNo: ex?.receiptNo || genReceiptNo(date),
         customerName: $('stx-customer').value.trim(), customerPhone: $('stx-customer-phone').value.trim(),
         shopCategoryId: sh.id, shopCategoryName: sh.name, category: sh.name,
@@ -859,7 +938,14 @@ export function initShopModule() {
     try {
       const saved = await saveTx(payload, editId);
       $('shop-tx-modal').classList.add('hidden');
-      toast(sale ? (payload.codStatus === 'pending' ? 'Sale saved (Pending COD tracked)!' : 'Sale saved & wallet updated!') : 'Capital saved & wallet updated!', 'success');
+      toast(
+        reopenedCod
+          ? 'Sale updated — increased COD marked Pending until confirmed.'
+          : sale
+            ? (payload.codStatus === 'pending' ? 'Sale saved (Pending COD tracked)!' : 'Sale saved & wallet updated!')
+            : 'Capital saved & wallet updated!',
+        'success'
+      );
       if (sale && !editId && $('stx-open-receipt').checked) openReceiptModal(saved);
     } catch { err.textContent = 'Could not save entry.'; err.classList.remove('hidden'); }
     finally { btn.disabled = false; btn.textContent = editId ? 'Update Entry' : (sale ? 'Save Sale' : 'Save Capital / Cost'); }
@@ -899,7 +985,15 @@ export function initShopModule() {
     $('receipt-canvas').toBlob(async (blob) => {
       if (!blob) return;
       const file = new File([blob], fn, { type: 'image/png' });
-      if (navigator.canShare?.({ files: [file] })) { try { await navigator.share({ files: [file], title: 'Customer Receipt' }); return; } catch {} }
+      if (navigator.canShare?.({ files: [file] })) {
+        try {
+          await navigator.share({ files: [file], title: 'Customer Receipt' });
+          return;
+        } catch (err) {
+          // Do not fall back to downloading when the user intentionally cancelled the Share Sheet
+          if (err?.name === 'AbortError') return;
+        }
+      }
       downloadBlob(blob, fn);
       toast('Saved PNG — ready to send!', 'info');
     }, 'image/png');
@@ -917,7 +1011,11 @@ export function initShopModule() {
       im.onload = () => {
         const sc = Math.min(1, 160 / Math.max(im.width, im.height));
         const c = Object.assign(document.createElement('canvas'), { width: Math.max(1, Math.round(im.width * sc)), height: Math.max(1, Math.round(im.height * sc)) });
-        c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
+        const lctx = c.getContext('2d');
+        // Paint solid white background before drawing so transparent PNG logos never turn black in JPEG
+        lctx.fillStyle = '#ffffff';
+        lctx.fillRect(0, 0, c.width, c.height);
+        lctx.drawImage(im, 0, 0, c.width, c.height);
         state.settingsShopsDraft[idx].logoDataUrl = c.toDataURL('image/jpeg', 0.82);
         renderShopsEditor(); toast('Logo ready — click Save Shops', 'success');
       };

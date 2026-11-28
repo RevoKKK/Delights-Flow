@@ -2,8 +2,9 @@
  * Delights Flow — Offline-First Auto-Update Service Worker
  * - Same-origin App Shell (index.html, core.js, money.js, shop.js, manifest.json, shop.html):
  *   Instant 0ms Cache-First response + atomic background diff check.
- *   Updates are committed ONLY when every shell asset downloads cleanly, preventing mixed
- *   old/new module versions on flaky mobile connections.
+ *   Both initial installs and background updates commit ONLY when every shell asset
+ *   downloads cleanly, preventing mixed old/new module versions on flaky connections.
+ * - Other same-origin assets: Network-First with RUNTIME_CACHE fallback (never polluting APP_CACHE).
  * - Static CDNs (Tailwind, Firebase SDK, Chart.js, Google Fonts): Strict Cache-First.
  * - Firebase Auth, Firestore & Google GIS APIs: Untouched (direct live network).
  */
@@ -20,6 +21,11 @@ const SHELL_ASSETS = [
   './money.js',
   './shop.js'
 ];
+
+// Normalized set of exact App Shell URLs managed by APP_CACHE
+const SHELL_URL_SET = new Set(
+  SHELL_ASSETS.map((asset) => new URL(asset, self.location.href).href)
+);
 
 const SHELL_CHECK_COOLDOWN_MS = 10000;
 const SHELL_CHECK_DELAY_MS = 500;
@@ -78,14 +84,16 @@ async function responsesDiffer(oldRes, newRes) {
 }
 
 /**
- * Matches a same-origin request against the App Shell cache using normalized keys.
+ * Matches a same-origin App Shell request against APP_CACHE using normalized keys.
  */
 async function matchShell(req) {
   try {
     const cache = await caches.open(APP_CACHE);
     const normalized = normalizeShellUrl(req.url);
-    const hit = await cache.match(normalized);
-    if (hit) return hit;
+    if (SHELL_URL_SET.has(normalized)) {
+      const hit = await cache.match(normalized);
+      if (hit) return hit;
+    }
 
     if (req.mode === 'navigate') {
       const indexUrl = new URL('./index.html', self.location.href).href;
@@ -157,19 +165,34 @@ function scheduleShellCheck() {
   return activeCheckPromise;
 }
 
+/**
+ * Atomic install: stage every shell asset in memory first, and only commit to APP_CACHE
+ * and call skipWaiting() if the entire bundle downloads cleanly.
+ */
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(APP_CACHE).then((cache) =>
-      Promise.allSettled(
-        SHELL_ASSETS.map(async (asset) => {
-          const resolved = new URL(asset, self.location.href).href;
-          const res = await fetch(resolved, { cache: 'no-cache' });
-          const clean = await toCacheable(res);
-          if (clean && res.type === 'basic') await cache.put(resolved, clean);
-        })
-      )
-    ).finally(() => self.skipWaiting())
-  );
+  event.waitUntil((async () => {
+    const freshEntries = [];
+
+    await Promise.all(
+      SHELL_ASSETS.map(async (asset) => {
+        const resolved = new URL(asset, self.location.href).href;
+        const res = await fetch(resolved, { cache: 'no-cache' });
+        const clean = await toCacheable(res);
+        if (!clean || res.type !== 'basic') {
+          throw new Error(`Failed to fetch shell asset: ${asset}`);
+        }
+        freshEntries.push([resolved, clean]);
+      })
+    );
+
+    if (freshEntries.length !== SHELL_ASSETS.length) {
+      throw new Error('Incomplete App Shell bundle during install');
+    }
+
+    const cache = await caches.open(APP_CACHE);
+    await Promise.all(freshEntries.map(([url, res]) => cache.put(url, res)));
+    await self.skipWaiting();
+  })());
 });
 
 self.addEventListener('activate', (event) => {
@@ -177,11 +200,15 @@ self.addEventListener('activate', (event) => {
     caches.keys()
       .then((keys) => Promise.all(keys.filter((k) => !ACTIVE_CACHES.includes(k)).map((k) => caches.delete(k))))
       .then(async () => {
-        // Purge any legacy trailing-slash root cache entry so "./index.html" is always authoritative
+        // Purge any legacy or non-shell entries from APP_CACHE so only SHELL_ASSETS remain
         try {
           const cache = await caches.open(APP_CACHE);
-          const rootUrl = new URL('./', self.location.href).href;
-          await cache.delete(rootUrl);
+          const keys = await cache.keys();
+          await Promise.all(
+            keys
+              .filter((req) => !SHELL_URL_SET.has(req.url))
+              .map((req) => cache.delete(req))
+          );
         } catch {}
       })
       .then(() => self.clients.claim())
@@ -193,34 +220,60 @@ self.addEventListener('fetch', (event) => {
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
 
-  // 1. Same-origin App Shell: 0ms Cache Hit + Atomic Background Update Check
+  // 1. Same-origin requests
   if (url.origin === location.origin) {
     const cacheKey = normalizeShellUrl(req.url);
-    let resolveBg;
-    const bgDone = new Promise((r) => { resolveBg = r; });
-    event.waitUntil(bgDone);
+    const isShell = SHELL_URL_SET.has(cacheKey) || req.mode === 'navigate';
 
+    // 1a. App Shell: 0ms Cache Hit + Atomic Background Update Check
+    if (isShell) {
+      let resolveBg;
+      const bgDone = new Promise((r) => { resolveBg = r; });
+      event.waitUntil(bgDone);
+
+      event.respondWith((async () => {
+        try {
+          const cached = await matchShell(req);
+          if (cached) {
+            scheduleShellCheck().finally(resolveBg);
+            return cached;
+          }
+
+          const fetchTarget = SHELL_URL_SET.has(cacheKey)
+            ? cacheKey
+            : new URL('./index.html', self.location.href).href;
+          const res = await fetch(fetchTarget, { cache: 'no-cache' });
+          const clean = await toCacheable(res);
+          if (clean && res.type === 'basic') {
+            const cache = await caches.open(APP_CACHE);
+            await cache.put(fetchTarget, clean.clone());
+            resolveBg();
+            return clean;
+          }
+          resolveBg();
+          return res;
+        } catch {
+          resolveBg();
+          return (await matchShell(req)) || new Response('Offline — reconnect once to load Delights Flow.', { status: 503 });
+        }
+      })());
+      return;
+    }
+
+    // 1b. Non-shell same-origin assets (e.g. icons/images): Network-First with RUNTIME_CACHE fallback
     event.respondWith((async () => {
       try {
-        const cached = await matchShell(req);
-        if (cached) {
-          scheduleShellCheck().finally(resolveBg);
-          return cached;
-        }
-
-        const res = await fetch(cacheKey, { cache: 'no-cache' });
+        const res = await fetch(req);
         const clean = await toCacheable(res);
         if (clean && res.type === 'basic') {
-          const cache = await caches.open(APP_CACHE);
-          await cache.put(cacheKey, clean.clone());
-          resolveBg();
+          const cache = await caches.open(RUNTIME_CACHE);
+          await cache.put(req, clean.clone());
           return clean;
         }
-        resolveBg();
         return res;
       } catch {
-        resolveBg();
-        return (await matchShell(req)) || new Response('Offline — reconnect once to load Delights Flow.', { status: 503 });
+        const cache = await caches.open(RUNTIME_CACHE);
+        return (await cache.match(req)) || new Response('', { status: 504 });
       }
     })());
     return;

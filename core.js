@@ -1,4 +1,4 @@
-// Delights Flow — Shared Core Engine (Firebase, GIS Auth, Firestore Sync, State, Helpers, Back Guard, Auto-Update)
+// Delights Flow — Shared Core Engine (Firebase, GIS Auth, Firestore Sync, State, Helpers, Back Navigation, Auto-Update)
 
 export const FIREBASE_CONFIG = window.__firebase_config || {
   apiKey: "AIzaSyAKgqAtXONpTX9h87pm-sUx7MY0JJyEPTE",
@@ -348,6 +348,28 @@ export function renderHeaderShell() {
   }
 }
 
+// --- HISTORY NAVIGATION SYNC (NO EXIT SCREEN; GESTURE-BACKED MODAL & VIEW STACK) ---
+let ignoreNextPop = false;
+let isPoppingModal = false;
+const cleanUrl = () => `${location.pathname}${location.search}`;
+
+function syncViewHistory(view, opts = {}) {
+  if (opts.fromPopstate || opts.fromInit) return;
+  try {
+    const cur = history.state || {};
+    if (view === 'overview') {
+      if (cur.dfView) {
+        ignoreNextPop = true;
+        history.back();
+      }
+    } else if (cur.dfView) {
+      history.replaceState({ dfView: view }, '', cleanUrl());
+    } else if (!cur.dfModal) {
+      history.pushState({ dfView: view }, '', cleanUrl());
+    }
+  } catch {}
+}
+
 export async function switchView(view, opts = {}) {
   if (view !== 'history' || !opts.keepWalletFilter) {
     state.filters.wallet = 'all';
@@ -362,6 +384,8 @@ export async function switchView(view, opts = {}) {
   if (opts.analyticsSub) state.analyticsSub = opts.analyticsSub;
 
   state.currentView = view;
+  syncViewHistory(view, opts);
+
   ['overview', 'shop', 'history', 'analytics'].forEach((v) => $(`view-${v}`)?.classList.toggle('hidden', v !== view));
 
   document.querySelectorAll('.nav-btn').forEach((b) => {
@@ -516,11 +540,17 @@ export const detachListeners = () => {
 
 // --- OFFLINE-SAFE WRITE SETTLER ---
 // Firestore persists mutations locally right away, then waits for server ACK before resolving.
-// Racing against a short offline/slow-network window prevents modals from hanging on "Saving...".
+// Racing against a short offline/slow-network window prevents modals from hanging on "Saving...",
+// and restores "Live Synced" status as soon as the delayed server ACK finishes.
 function settleWrite(promise, errLabel = 'Could not sync changes') {
   let done = false;
+  let timedOut = false;
   const tracked = promise.then(
-    () => { done = true; return { queued: false }; },
+    () => {
+      if (timedOut) updateSyncUI('synced');
+      done = true;
+      return { queued: false };
+    },
     (err) => {
       if (done) {
         toast(`${errLabel}: ${err?.code || 'check connection'}`, 'error');
@@ -536,6 +566,7 @@ function settleWrite(promise, errLabel = 'Could not sync changes') {
     new Promise((resolve) => setTimeout(() => {
       if (!done) {
         done = true;
+        timedOut = true;
         updateSyncUI('offline');
         resolve({ queued: true });
       }
@@ -550,7 +581,9 @@ export async function saveUserProfile(extra = {}) {
     localStorage.setItem('df_privacy', state.privacyMode ? '1' : '0');
     localStorage.setItem('df_active_person', state.activePerson || 'person1');
     if (state.workspaceId) localStorage.setItem('df_active_ws', state.workspaceId);
+    else localStorage.removeItem('df_active_ws');
     if (state.user?.uid) localStorage.setItem('df_last_uid', state.user.uid);
+    localStorage.setItem('df_user_ws', JSON.stringify(state.userWorkspaces || []));
   } catch {}
   if (!state.user || !db || !fb) return;
   try {
@@ -704,7 +737,16 @@ export function subscribeWs(wsId) {
   unsubWs = fb.onSnapshot(fb.doc(db, 'delights_flow_workspaces', wsId), (s) => {
     if (state.workspaceId !== wsId) return;
     if (!s.exists()) {
-      if (!s.metadata.fromCache) { try { localStorage.removeItem('df_active_ws'); } catch {} state.workspaceId = ''; activeSubscribedWsId = ''; openOnboarding(false); }
+      if (!s.metadata.fromCache) {
+        try { localStorage.removeItem('df_active_ws'); localStorage.removeItem(`df_snap_${wsId}`); } catch {}
+        state.userWorkspaces = state.userWorkspaces.filter((w) => w.id !== wsId);
+        const nextWsId = state.userWorkspaces[0]?.id || '';
+        state.workspaceId = nextWsId;
+        activeSubscribedWsId = '';
+        saveUserProfile({ activeWorkspaceId: nextWsId });
+        if (nextWsId) subscribeWs(nextWsId);
+        else openOnboarding(false);
+      }
       return;
     }
     const d = s.data(), wallets = d.wallets?.length ? d.wallets : STARTER_WALLETS.map((w) => ({ ...w })), ob = { ...(d.openingBalances || {}) };
@@ -728,8 +770,21 @@ export function subscribeWs(wsId) {
     saveSnap(wsId); updateSyncUI('synced'); scheduleRender();
   }, (e) => {
     if (e?.code === 'permission-denied') {
+      // Remove inaccessible workspace from profile so reloads do not loop back into permission-denied
       try { localStorage.removeItem('df_active_ws'); localStorage.removeItem(`df_snap_${wsId}`); } catch {}
-      unsubWs?.(); unsubTx?.(); unsubWs = unsubTx = null; state.workspaceId = ''; activeSubscribedWsId = ''; openOnboarding(false); return;
+      unsubWs?.(); unsubTx?.(); unsubWs = unsubTx = null;
+      state.userWorkspaces = state.userWorkspaces.filter((w) => w.id !== wsId);
+      const nextWsId = state.userWorkspaces[0]?.id || '';
+      state.workspaceId = nextWsId;
+      activeSubscribedWsId = '';
+      saveUserProfile({ activeWorkspaceId: nextWsId });
+      if (nextWsId) {
+        toast('Switched to an available ledger.', 'info');
+        subscribeWs(nextWsId);
+      } else {
+        openOnboarding(false);
+      }
+      return;
     }
     updateSyncUI('offline');
   });
@@ -783,9 +838,20 @@ function bootSignedIn(user) {
       clearTimeout(timer); resolved = true;
       const d = s.data();
       state.userWorkspaces = Array.isArray(d.workspaces) ? d.workspaces : [];
-      if (isActiveUser(d.activePerson)) state.activePerson = d.activePerson;
-      if (typeof d.darkMode === 'boolean' && d.darkMode !== state.darkMode) { state.darkMode = d.darkMode; applyTheme(); }
-      if (typeof d.privacyMode === 'boolean' && d.privacyMode !== state.privacyMode) { state.privacyMode = d.privacyMode; applyPrivacy(); }
+      if (isActiveUser(d.activePerson)) {
+        state.activePerson = d.activePerson;
+        try { localStorage.setItem('df_active_person', d.activePerson); } catch {}
+      }
+      if (typeof d.darkMode === 'boolean' && d.darkMode !== state.darkMode) {
+        state.darkMode = d.darkMode;
+        try { localStorage.setItem('df_dark', d.darkMode ? '1' : '0'); } catch {}
+        applyTheme();
+      }
+      if (typeof d.privacyMode === 'boolean' && d.privacyMode !== state.privacyMode) {
+        state.privacyMode = d.privacyMode;
+        try { localStorage.setItem('df_privacy', d.privacyMode ? '1' : '0'); } catch {}
+        applyPrivacy();
+      }
       const wsId = d.activeWorkspaceId || state.userWorkspaces[0]?.id || '';
       if (wsId) { if (wsId !== state.workspaceId || !unsubWs) subscribeWs(wsId); else scheduleRender(); }
       else if (!state.workspaceId) openOnboarding(false);
@@ -809,79 +875,92 @@ export function startFirebaseBackground() {
   });
 }
 
-// --- RELIABLE SPA BACK-BUTTON EXIT GUARD (NO "YES, EXIT" BUTTON) ---
-// Uses user-activated history.pushState so Chrome's History Manipulation Intervention never skips it.
-// On Overview, the first Back opens the prompt at history index 0; pressing Back again exits natively.
+// --- GESTURE-BACKED SPA BACK NAVIGATION (NO EXIT SCREEN) ---
+// Each modal open and non-overview view pushes a real user-activated history entry.
+// Back closes the top modal first, then returns to Overview; pressing Back on Overview exits natively.
 export function setupBackGuard() {
-  const cleanUrl = () => `${location.pathname}${location.search}`;
-  const isExitOpen = () => {
-    const em = $('exit-modal');
-    return Boolean(em && !em.classList.contains('hidden'));
-  };
-
   try {
-    if (!history.state?.dfBase && !history.state?.dfGuard) {
+    if (!history.state?.dfBase && !history.state?.dfView && !history.state?.dfModal) {
       history.replaceState({ dfBase: true }, '', cleanUrl());
     }
   } catch {}
 
-  const arm = () => {
-    try {
-      if (!history.state?.dfGuard) {
-        history.pushState({ dfGuard: true }, '', cleanUrl());
-      }
-    } catch {}
-  };
+  // Track modal visibility changes to keep history entries synchronized with open modals
+  const modalVisible = new Map();
+  MODAL_IDS.forEach((id) => {
+    const el = $(id);
+    if (el) modalVisible.set(id, !el.classList.contains('hidden'));
+  });
 
-  const cancelExit = () => {
-    $('exit-modal')?.classList.add('hidden');
-    arm();
-  };
+  if (typeof MutationObserver !== 'undefined') {
+    const observer = new MutationObserver((mutations) => {
+      const opened = [];
+      const closed = [];
+      const seen = new Set();
 
-  // Arm the guard on genuine user gestures so Android Chrome always honors popstate
-  const onUserGesture = (e) => {
-    if (isExitOpen()) return;
-    if (e?.type === 'keydown' && e.key === 'Escape') return;
-    arm();
-  };
+      mutations.forEach((m) => {
+        const id = m.target?.id;
+        if (!id || seen.has(id)) return;
+        seen.add(id);
+        const nowOpen = !m.target.classList.contains('hidden');
+        const wasOpen = modalVisible.get(id) || false;
+        if (nowOpen === wasOpen) return;
+        modalVisible.set(id, nowOpen);
+        if (nowOpen) opened.push(id);
+        else closed.push(id);
+      });
 
-  window.addEventListener('pointerdown', onUserGesture, { passive: true });
+      if (!opened.length && !closed.length) return;
+      try {
+        const topId = history.state?.dfModal;
+        if (opened.length && closed.length && closed.includes(topId)) {
+          // Modal swapped directly (e.g. tx-modal -> confirm-modal)
+          history.replaceState({ dfModal: opened[opened.length - 1] }, '', cleanUrl());
+        } else if (opened.length) {
+          opened.forEach((id) => {
+            if (history.state?.dfModal !== id) history.pushState({ dfModal: id }, '', cleanUrl());
+          });
+        } else if (closed.length && !isPoppingModal && closed.includes(topId)) {
+          // Modal closed via X / Cancel / Save: pop its history entry so Back stays clean
+          ignoreNextPop = true;
+          history.back();
+        }
+      } catch {}
+    });
+
+    MODAL_IDS.forEach((id) => {
+      const el = $(id);
+      if (el) observer.observe(el, { attributes: true, attributeFilter: ['class'] });
+    });
+  }
+
   window.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-      if (isExitOpen()) { cancelExit(); return; }
-      closeTopModal();
-      return;
-    }
-    onUserGesture(e);
+    if (e.key === 'Escape') closeTopModal();
   });
 
   window.addEventListener('popstate', () => {
-    // Browser just popped dfGuard -> dfBase (history index 0)
-    if (closeTopModal()) { arm(); return; }
-    if (!$('app-shell')?.classList.contains('hidden') && state.currentView !== 'overview') {
-      switchView('overview');
-      arm();
+    if (ignoreNextPop) {
+      ignoreNextPop = false;
       return;
     }
-    // Leave browser at index 0 while showing prompt so the second hardware/gesture Back exits natively
-    $('exit-modal')?.classList.remove('hidden');
-  });
-
-  // Hide exit modal cleanly if user leaves and returns to the app
-  document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible' && isExitOpen()) {
-      $('exit-modal')?.classList.add('hidden');
+    if (hasOpenModal()) {
+      isPoppingModal = true;
+      closeTopModal();
+      setTimeout(() => { isPoppingModal = false; }, 0);
+      return;
+    }
+    if (!$('app-shell')?.classList.contains('hidden') && state.currentView !== 'overview') {
+      switchView('overview', { fromPopstate: true });
     }
   });
-
-  $('exit-cancel-btn')?.addEventListener('click', cancelExit);
-  $('exit-modal')?.addEventListener('click', (e) => { if (e.target.id === 'exit-modal') cancelExit(); });
 }
 
 // --- AUTO-UPDATE SERVICE WORKER REGISTRATION ---
 export function setupServiceWorkerUpdates() {
   if (!('serviceWorker' in navigator) || (location.protocol !== 'https:' && location.hostname !== 'localhost')) return;
   const bootTime = Date.now();
+  // Snapshot controller BEFORE register() so first-ever install never triggers a false update reload/toast
+  const hadController = Boolean(navigator.serviceWorker.controller);
   let notified = false;
 
   const triggerUpdate = () => {
@@ -909,7 +988,7 @@ export function setupServiceWorkerUpdates() {
       const nw = reg.installing;
       if (!nw) return;
       nw.addEventListener('statechange', () => {
-        if (nw.state === 'activated' && navigator.serviceWorker.controller) triggerUpdate();
+        if (nw.state === 'activated' && hadController) triggerUpdate();
       });
     });
   }).catch(() => {});

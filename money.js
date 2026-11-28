@@ -5,7 +5,7 @@ import {
   $, esc, todayISO, curMonth, isValidPerson, getOwner, personName, getPersonColor,
   fmtNum, fmtMoney, fmtDisp, fmtCompact, parseAmt, parseSigned, fmtAmtInput,
   fmtMonth, fmtDateHead, getWallets, getWallet, getCats, catIcon,
-  getShopSplit, computeBalances, getAvailableMonths, matchesScope,
+  getShopSplit, orderTot, codStatusOf, computeBalances, getAvailableMonths, matchesScope,
   toast, copyText, downloadBlob, openConfirm, killChart, ensureChartJs,
   switchView, openOnboarding, saveUserProfile, subscribeWs,
   patchWs, saveTx, batchSaveTxs, delTx
@@ -13,6 +13,7 @@ import {
 
 let shopTxHandler = null;
 let chartErrNotified = false;
+let isRestoringBackup = false;
 
 // --- PERIOD & WALLET-ACCURATE CASHFLOW HELPERS ---
 // Counts upfront paid on order date/wallet and COD paid on codPaidDate/codWallet.
@@ -79,7 +80,8 @@ function getFiltered(overrideMonth = null) {
 }
 
 // --- SHARED TRANSACTION ROW ---
-function rowHTML(t, showDate = false) {
+// Accepts optional filter context { periodKey, walletFilter } so split COD rows display the exact slice matching the active view.
+function rowHTML(t, showDate = false, ctx = null) {
   const id = esc(t.id), isTr = t.type === 'transfer', isInc = t.type === 'income', isShop = t.scope === 'shop', sp = getShopSplit(t);
   const sub = [t.customerName, t.note].filter(Boolean).join(' · ');
   let wHtml = '';
@@ -101,7 +103,18 @@ function rowHTML(t, showDate = false) {
 
   const pendOnly = Boolean(sp?.codPending && sp.paid <= 0);
   const amtCls = pendOnly ? 'text-amber-600 dark:text-amber-400' : isInc ? 'text-emerald-600 dark:text-emerald-400' : isTr ? 'text-sky-600' : 'text-rose-600 dark:text-rose-400';
-  const amtTxt = pendOnly ? `COD ${fmtMoney(sp.cod)}` : `${isInc ? '+' : isTr ? '' : '-'}${fmtMoney(t.amount)}`;
+
+  let displayAmt = Number(t.amount) || 0;
+  let sliceSubHtml = '';
+  if (sp && ctx && !pendOnly) {
+    const slice = incomeInPeriod(t, ctx.periodKey ?? 'all', ctx.walletFilter ?? 'all');
+    if (slice > 0 && slice !== displayAmt) {
+      displayAmt = slice;
+      sliceSubHtml = `<div class="text-[10px] font-semibold text-slate-400 text-right tabular-nums">of ${fmtMoney(t.amount)}</div>`;
+    }
+  }
+
+  const amtTxt = pendOnly ? `COD ${fmtMoney(sp.cod)}` : `${isInc ? '+' : isTr ? '' : '-'}${fmtMoney(displayAmt)}`;
   const ok = getOwner(t), pn = personName(ok), pc = getPersonColor(ok);
   const pTxt = ok === 'shop' ? '🛍️ Shop ↗' : ok === 'shared' ? `👥 ${esc(pn)}` : esc(pn);
   const codDateHint = sp?.codPaid && t.codPaidDate && t.codPaidDate !== t.date ? `<span class="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">COD ${esc(t.codPaidDate)}</span>` : '';
@@ -114,7 +127,7 @@ function rowHTML(t, showDate = false) {
         <div class="flex items-center gap-1.5 flex-wrap mt-1">${wHtml}<span class="px-2 py-0.5 rounded-lg text-[11px] font-bold" style="background:${pc.hex}20;color:${pc.hex}">${pTxt}</span>${codDateHint}${showDate ? `<span class="text-[11px] text-slate-400 font-medium">${esc(t.date || '')}</span>` : ''}</div>
       </div>
     </div>
-    <div class="flex items-center gap-2 shrink-0"><div class="text-sm sm:text-base font-extrabold tabular-nums cursor-pointer ${amtCls}" data-edit-tx="${id}">${amtTxt}</div><button type="button" aria-label="Delete transaction" data-del-tx="${id}" class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/50">✕</button></div>
+    <div class="flex items-center gap-2 shrink-0"><div class="cursor-pointer text-right" data-edit-tx="${id}"><div class="text-sm sm:text-base font-extrabold tabular-nums ${amtCls}">${amtTxt}</div>${sliceSubHtml}</div><button type="button" aria-label="Delete transaction" data-del-tx="${id}" class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/50">✕</button></div>
   </div>`;
 }
 
@@ -288,10 +301,11 @@ function renderCalendar() {
   cg.querySelectorAll('[data-cd]').forEach((b) => b.addEventListener('click', () => { state.calendarSelectedDate = b.dataset.cd; renderCalendar(); }));
 
   const si = byDay[state.calendarSelectedDate] || { in: 0, out: 0, items: [] };
+  const dayCtx = { periodKey: state.calendarSelectedDate, walletFilter: wf };
   $('cal-selected-date-title').textContent = fmtDateHead(state.calendarSelectedDate);
   $('cal-selected-date-summary').textContent = si.items.length ? `${si.items.length} entries · In ${fmtMoney(si.in)} · Out ${fmtMoney(si.out)}` : 'No entries recorded';
   const dl = $('cal-selected-day-list');
-  dl.innerHTML = si.items.length ? si.items.map((t) => rowHTML(t, false)).join('') : `<div class="p-6 text-center text-xs text-slate-400">No entries on this date.</div>`;
+  dl.innerHTML = si.items.length ? si.items.map((t) => rowHTML(t, false, dayCtx)).join('') : `<div class="p-6 text-center text-xs text-slate-400">No entries on this date.</div>`;
   if (si.items.length) bindRows(dl);
 }
 
@@ -316,17 +330,22 @@ export function renderMoneyHistory() {
   const box = $('history-grouped-list');
   if (!rows.length) { box.innerHTML = `<div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-10 text-center text-xs text-slate-400">No matching transactions.</div>`; return; }
 
-  // Group cross-month COD receipts under codPaidDate when the original order date is outside the selected month
+  // Group under codPaidDate whenever only the COD slice matches the active month or wallet filter
   const groups = new Map();
   rows.forEach((t) => {
     const sp = getShopSplit(t);
     let k = t.date || 'Unknown';
-    if (mk !== 'all' && sp?.codPaid && !t.date?.startsWith(mk) && (t.codPaidDate || '').startsWith(mk)) {
-      k = t.codPaidDate;
+    if (sp?.codPaid) {
+      const upfrontMatches = (sp.paid > 0 || sp.codPending) && (mk === 'all' || t.date?.startsWith(mk)) && (wf === 'all' || t.wallet === wf);
+      const codMatches = (mk === 'all' || (t.codPaidDate || t.date || '').startsWith(mk)) && (wf === 'all' || sp.codWallet === wf);
+      if (!upfrontMatches && codMatches && t.codPaidDate) {
+        k = t.codPaidDate;
+      }
     }
     (groups.get(k) || groups.set(k, []).get(k)).push(t);
   });
 
+  const listCtx = { periodKey: mk, walletFilter: wf };
   const sortedGroups = Array.from(groups.entries()).sort((a, b) => b[0].localeCompare(a[0]));
   box.innerHTML = sortedGroups.map(([dk, items]) => {
     let dIn = 0, dOut = 0;
@@ -335,7 +354,7 @@ export function renderMoneyHistory() {
       dOut += expenseInPeriod(t, mk, wf);
     });
     const net = dIn - dOut;
-    return `<div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden"><div class="px-4 sm:px-5 py-2.5 bg-slate-50/90 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 flex justify-between text-xs font-bold"><span>${esc(fmtDateHead(dk))}</span><span class="tabular-nums ${net > 0 ? 'text-emerald-600' : net < 0 ? 'text-rose-600' : 'text-slate-400'}">${dIn === 0 && dOut === 0 ? 'Transfer / COD' : fmtMoney(net, true)}</span></div><div class="divide-y divide-slate-100 dark:divide-slate-800/70">${items.map((t) => rowHTML(t, false)).join('')}</div></div>`;
+    return `<div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden"><div class="px-4 sm:px-5 py-2.5 bg-slate-50/90 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 flex justify-between text-xs font-bold"><span>${esc(fmtDateHead(dk))}</span><span class="tabular-nums ${net > 0 ? 'text-emerald-600' : net < 0 ? 'text-rose-600' : 'text-slate-400'}">${dIn === 0 && dOut === 0 ? 'Transfer / COD' : fmtMoney(net, true)}</span></div><div class="divide-y divide-slate-100 dark:divide-slate-800/70">${items.map((t) => rowHTML(t, false, listCtx)).join('')}</div></div>`;
   }).join('');
   bindRows(box);
 }
@@ -433,7 +452,6 @@ const renderWPills = (id, sel, cb) => {
 
 function renderTxControls() {
   const ws = getWallets(), fId = ws[0]?.id || 'cash', sId = ws[1]?.id || fId, d = state.txDraft;
-  // Only fall back to default active wallets for new entries or empty IDs; keep archived wallets intact while editing
   if (!d.wallet || (!d.editId && !ws.some((w) => w.id === d.wallet))) d.wallet = fId;
   if (!d.fromWallet || (!d.editId && !ws.some((w) => w.id === d.fromWallet))) d.fromWallet = fId;
   if (!d.toWallet || (!d.editId && !ws.some((w) => w.id === d.toWallet))) d.toWallet = sId;
@@ -485,7 +503,7 @@ export function openTxModal(tx = null, presetDate = null) {
   $('tx-modal').classList.remove('hidden');
 }
 
-// --- MODAL 2A: DEDICATED MANAGE WALLETS (SUPPORTS TYPING NEGATIVE OPENING BALANCES ON MOBILE) ---
+// --- MODAL 2A: DEDICATED MANAGE WALLETS (WARNS BEFORE REMOVING ACTIVE/NON-ZERO WALLETS) ---
 function renderManageWalletsList(focusId = null) {
   const box = $('settings-wallets-list'), cur = state.workspace.currency || 'Ks', canDel = state.settingsDraftWallets.length > 1;
   box.innerHTML = state.settingsDraftWallets.map((w, i) => {
@@ -505,7 +523,34 @@ function renderManageWalletsList(focusId = null) {
   box.querySelectorAll('[data-tp]').forEach((b) => b.addEventListener('click', () => { state.openColorPickerWalletId = state.openColorPickerWalletId === b.dataset.tp ? null : b.dataset.tp; renderManageWalletsList(); }));
   box.querySelectorAll('[data-pc]').forEach((b) => b.addEventListener('click', () => { const [i, k] = b.dataset.pc.split(':'); state.settingsDraftWallets[+i].colorKey = k; state.openColorPickerWalletId = null; renderManageWalletsList(); }));
   box.querySelectorAll('[data-dob]').forEach((el) => { el.addEventListener('input', () => (state.settingsDraftWallets[+el.dataset.dob].openingBalance = parseSigned(el.value))); el.addEventListener('blur', () => { const v = parseSigned(el.value); state.settingsDraftWallets[+el.dataset.dob].openingBalance = v; el.value = fmtNum(v); }); });
-  box.querySelectorAll('[data-dr]').forEach((b) => b.addEventListener('click', () => { if (state.settingsDraftWallets.length <= 1) return toast('Keep at least 1 wallet', 'info'); state.settingsDraftWallets.splice(+b.dataset.dr, 1); renderManageWalletsList(); }));
+  box.querySelectorAll('[data-dr]').forEach((b) => b.addEventListener('click', () => {
+    if (state.settingsDraftWallets.length <= 1) return toast('Keep at least 1 wallet', 'info');
+    const idx = +b.dataset.dr;
+    const target = state.settingsDraftWallets[idx];
+    if (!target) return;
+    const liveBal = computeBalances()[target.id] || 0;
+    const txCount = state.transactions.filter((t) => t.wallet === target.id || t.fromWallet === target.id || t.toWallet === target.id || t.codWallet === target.id).length;
+    if (liveBal !== 0 || txCount > 0) {
+      const parts = [];
+      if (liveBal !== 0) parts.push(`a live balance of ${fmtMoney(liveBal)}`);
+      if (txCount > 0) parts.push(`${txCount} recorded ${txCount === 1 ? 'entry' : 'entries'}`);
+      openConfirm(
+        `Remove "${target.name || 'Wallet'}"?`,
+        `This wallet has ${parts.join(' and ')}. Removing it will exclude its balance from Total Net Balance (past history will keep its archived name).`,
+        () => {
+          const curIdx = state.settingsDraftWallets.findIndex((x) => x.id === target.id);
+          if (curIdx >= 0 && state.settingsDraftWallets.length > 1) {
+            state.settingsDraftWallets.splice(curIdx, 1);
+            renderManageWalletsList();
+          }
+        },
+        'Remove'
+      );
+      return;
+    }
+    state.settingsDraftWallets.splice(idx, 1);
+    renderManageWalletsList();
+  }));
   if (focusId) box.querySelector(`[data-wrow="${focusId}"] input[data-dn]`)?.focus();
 }
 
@@ -621,28 +666,40 @@ export function openTemplatesModal() {
   $('templates-modal').classList.remove('hidden');
 }
 
-// --- CSV EXPORT & BATCHED, DUPLICATE-SAFE JSON BACKUP/RESTORE ---
+// --- CSV EXPORT (INCLUDES ORDER TOTAL & COD STATUS FOR SHOP SALES) ---
 function exportCSV() {
   const rows = getFiltered(); if (!rows.length) return toast('No entries to export', 'info');
   const q = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
-  const lines = [['Date','Scope','Type','Amount','Currency','Wallet/From','To Wallet','Category','Owner','Note'].join(',')];
-  rows.forEach((t) => lines.push([
-    q(t.date), q(t.scope === 'shop' ? 'Shop' : 'Personal'), q(t.type), Number(t.amount) || 0, q(state.workspace.currency),
-    q(t.type === 'transfer' ? getWallet(t.fromWallet).name : getWallet(t.wallet).name),
-    q(t.type === 'transfer' ? getWallet(t.toWallet).name : ''),
-    q(t.type === 'transfer' ? 'Transfer' : t.category), q(personName(getOwner(t))), q(t.note || '')
-  ].join(',')));
+  const lines = [['Date','Scope','Type','Amount','Order Total','COD Status','Currency','Wallet/From','To Wallet','Category','Owner','Note'].join(',')];
+  rows.forEach((t) => {
+    const isShopSale = t.scope === 'shop' && t.type === 'income';
+    const cStatus = isShopSale ? codStatusOf(t) : '';
+    const codLabel = cStatus === 'pending' ? 'Pending COD' : cStatus === 'paid' ? 'COD Paid' : '';
+    lines.push([
+      q(t.date), q(t.scope === 'shop' ? 'Shop' : 'Personal'), q(t.type), Number(t.amount) || 0,
+      isShopSale ? orderTot(t) : '', q(codLabel), q(state.workspace.currency),
+      q(t.type === 'transfer' ? getWallet(t.fromWallet).name : getWallet(t.wallet).name),
+      q(t.type === 'transfer' ? getWallet(t.toWallet).name : ''),
+      q(t.type === 'transfer' ? 'Transfer' : t.category), q(personName(getOwner(t))), q(t.note || '')
+    ].join(','));
+  });
   downloadBlob(new Blob(['\uFEFF' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8;' }), `DelightsFlow_${state.filters.month}.csv`);
   toast(`Exported ${rows.length} rows`, 'success');
 }
 
+// --- BATCHED, DUPLICATE-SAFE JSON BACKUP/RESTORE ---
 function importBackup(file) {
+  if (isRestoringBackup) return;
   const r = new FileReader();
   r.onload = () => {
     try {
       const p = JSON.parse(String(r.result || '{}'));
       if (!p?.settings || !Array.isArray(p.transactions)) return toast('Invalid backup JSON', 'error');
       openConfirm('Restore Backup?', `Import settings & up to ${p.transactions.length} entries (including Shop & COD data) into "${state.workspace.name}"?`, async () => {
+        if (isRestoringBackup) return;
+        isRestoringBackup = true;
+        const btn = $('backup-import-btn');
+        if (btn) { btn.disabled = true; btn.textContent = 'Restoring...'; }
         try {
           const patch = {};
           ['wallets', 'archivedWalletNames', 'openingBalances', 'userNames', 'userColors', 'currency', 'quickTemplates', 'customExpenseCategories', 'customIncomeCategories', 'shopCategories', 'shopProfile'].forEach((k) => {
@@ -696,6 +753,9 @@ function importBackup(file) {
           toast(`Restored settings & ${added} new entries`, 'success');
         } catch {
           toast('Could not restore backup', 'error');
+        } finally {
+          isRestoringBackup = false;
+          if (btn) { btn.disabled = false; btn.textContent = '↑ Restore JSON'; }
         }
       }, 'Restore');
     } catch { toast('Could not read JSON file', 'error'); }
@@ -795,7 +855,7 @@ export function bindMoneyEvents({ onOpenShopTx } = {}) {
     downloadBlob(new Blob([JSON.stringify({ app: 'Delights Flow', exportedAt: new Date().toISOString(), settings: state.workspace, transactions: state.transactions }, null, 2)], { type: 'application/json' }), `DelightsFlow_Backup_${todayISO()}.json`);
     toast(`Backup downloaded (${state.transactions.length} entries)`, 'success');
   };
-  $('backup-import-btn').onclick = () => { $('backup-import-file').value = ''; $('backup-import-file').click(); };
+  $('backup-import-btn').onclick = () => { if (isRestoringBackup) return; $('backup-import-file').value = ''; $('backup-import-file').click(); };
   $('backup-import-file').onchange = (e) => { if (e.target.files?.[0]) importBackup(e.target.files[0]); };
 
   $('settings-form').onsubmit = async (e) => {
@@ -812,7 +872,6 @@ export function bindMoneyEvents({ onOpenShopTx } = {}) {
           person2: COLOR_MAP[state.settingsPersonColorsDraft.person2] ? state.settingsPersonColorsDraft.person2 : DEFAULT_PERSON_COLORS.person2
         }
       });
-      // Sync renamed workspace into state.userWorkspaces immediately before saving user profile
       state.workspace.name = nextName;
       const wsEntry = state.userWorkspaces.find((w) => w.id === state.workspaceId);
       if (wsEntry) wsEntry.name = nextName;

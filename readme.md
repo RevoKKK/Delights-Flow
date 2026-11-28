@@ -108,17 +108,18 @@ Tap **Shop** in the navigation bar to open your shop dashboard. Tap **Overview**
 
 ### Record a Shop Sale (Full Paid, Full COD, or Partial)
 1. Tap **+** (mobile while on Shop, Shop History, or Shop Analytics) or **+ Record Shop Sale** (desktop sidebar).
-2. Select the **Shop**, enter optional **Customer Name** and **Phone**, and add one or more items (**Item name**, **Qty**, **Price**). Add **Delivery Fee** or **Discount** if needed.
+2. Select the **Shop**, enter optional **Customer Name** and **Phone**, and add one or more items (**Item name**, **Qty**, **Price** — named `0 Ks` free/gift items are also supported). Add **Delivery Fee** or **Discount** if needed.
 3. Choose how the customer is paying under **Payment (Paid / COD)**:
    * **Full Paid:** The full amount is added to your selected wallet right away.
    * **Full COD:** Nothing is added to your wallet yet; the full amount is tracked under **Pending COD**.
    * **Partial Paid + COD:** Enter the **Paid Now** deposit (added to your wallet immediately) and the remaining **COD Amount** stays pending until delivery payment arrives.
 4. Choose the deposit wallet, check **Open Customer Receipt immediately after saving** if desired, and tap **Save Sale**.
 
-### Mark COD Orders as Paid
+### Mark COD Orders as Paid (or Undo to Pending)
 1. Find any pending COD order in **Recent Shop Activity**, **Shop History**, or by tapping the **⏳ Pending COD** bar on Shop Home.
 2. Tap **✓ Mark COD Paid**.
 3. Select the wallet where the delivery cash/transfer was received and the received date, then tap **✓ Confirm Paid**. Your wallet balance, daily/monthly totals, and calendar views update automatically on the received date.
+4. *Marked paid by mistake?* Tap the order to edit it, tap **Undo to Pending** in the received-COD banner, and tap **Update Entry**.
 
 ### Generate & Share Customer Receipts
 * Tap **🧾 Receipt** on any sale (or let it open right after saving a sale).
@@ -144,6 +145,6 @@ Tap **Shop** in the navigation bar to open your shop dashboard. Tap **Overview**
 * **Privacy Mode:** Tap the **eye icon** inside the **Total Net Balance** card on **Overview** to hide or show your total balance, monthly hero figures, and live wallet balances (`••••••`) when using the app in public.
 * **Dark & Light Mode:** Tap the **moon/sun icon** in the top bar (mobile) or sidebar (desktop) to switch themes anytime.
 * **Offline Ready & Auto-Updates:** Once opened, Delights Flow loads instantly even without internet. Entries recorded offline save immediately without freezing and sync automatically once you reconnect. App updates refresh cleanly in the background and prompt you when ready.
-* **Export CSV:** Export filtered Wallet or Shop records to Excel-friendly CSV files from **History**.
+* **Export CSV:** Export filtered Wallet or Shop records (including Shop order totals and COD status) to Excel-friendly CSV files from **History**.
 * **Backup & Restore (JSON):** Periodically save a full backup of your wallets, shops, templates, and transactions via **Settings → Download Backup**, and restore anytime using **Restore JSON**.
-* **Smart Navigation & Back Button:** On mobile, pressing Back closes open popups first, returns to **Overview** from other tabs, and displays an **Exit Delights Flow?** prompt on Overview—press Back a second time to exit natively, or tap **Stay in App** to continue. On desktop, press **Escape** to close open popups.
+* **Smart Navigation & Back Button:** On mobile, pressing Back closes open popups first, returns to **Overview** from other tabs, and exits natively from **Overview**. On desktop, press **Escape** to close open popups.
