@@ -140,7 +140,7 @@ export const fmtDateHead = (ds) => {
 
 export const getWallets = () => (Array.isArray(state.workspace.wallets) && state.workspace.wallets.length ? state.workspace.wallets : STARTER_WALLETS)
   .map((w) => { const c = COLOR_MAP[w.colorKey] || COLORS[0], it = W_ICONS[w.iconType] ? w.iconType : 'bank'; return { ...w, iconType: it, colorKey: c.key, colorLabel: c.label, hex: c.hex, icon: W_ICONS[it] }; });
-export const getWallet = (id) => getWallets().find((w) => w.id === id) || { id: id || 'removed', name: state.workspace.archivedWalletNames?.[id] || id || 'Account', hex: '#64748b', icon: W_ICONS.bank };
+export const getWallet = (id) => getWallets().find((w) => w.id === id) || { id: id || 'removed', name: state.workspace.archivedWalletNames?.[id] || id || 'Account', hex: '#64748b', icon: W_ICONS.bank, archived: true };
 
 export const getCats = (type) => {
   const base = type === 'income' ? INC_CATS : EXP_CATS;
@@ -211,7 +211,10 @@ export const computeBalances = () => {
 export const getAvailableMonths = () => {
   const s = new Set([curMonth()]);
   [state.analyticsMonth, state.filters.month, state.shopAnalyticsMonth, state.shopFilters.month, state.calendarMonth, state.shopCalendarMonth].forEach((m) => { if (m && m !== 'all') s.add(m); });
-  state.transactions.forEach((t) => { if (t.date?.length >= 7) s.add(t.date.slice(0, 7)); });
+  state.transactions.forEach((t) => {
+    if (t.date?.length >= 7) s.add(t.date.slice(0, 7));
+    if (t.codPaidDate?.length >= 7) s.add(t.codPaidDate.slice(0, 7));
+  });
   const now = new Date();
   for (let i = 0; i < 6; i++) { const d = new Date(now.getFullYear(), now.getMonth() - i, 1); s.add(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`); }
   return Array.from(s).sort((a, b) => b.localeCompare(a));
@@ -235,18 +238,42 @@ export const toast = (msg, v = 'info', action = null) => {
   if (!action?.sticky) setTimeout(() => { el.classList.add('opacity-0', '-translate-y-2'); setTimeout(() => el.remove(), 300); }, action ? 7000 : 2600);
 };
 
-export const copyText = (text, msg = 'Copied!') => {
+// Modern Clipboard API with verified execCommand fallback (no false "Copied!" toast)
+export const copyText = async (text, msg = 'Copied!') => {
+  try {
+    if (navigator.clipboard?.writeText && window.isSecureContext) {
+      await navigator.clipboard.writeText(text);
+      toast(msg, 'success');
+      return true;
+    }
+  } catch {}
   try {
     const ta = Object.assign(document.createElement('textarea'), { value: text });
-    ta.style.cssText = 'position:fixed;opacity:0'; document.body.appendChild(ta);
-    ta.focus(); ta.select(); document.execCommand('copy'); ta.remove();
+    ta.setAttribute('readonly', '');
+    ta.style.cssText = 'position:fixed;top:-9999px;opacity:0';
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    const ok = document.execCommand('copy');
+    ta.remove();
+    if (!ok) throw new Error('Copy command rejected');
     toast(msg, 'success');
-  } catch { toast('Could not copy', 'error'); }
+    return true;
+  } catch {
+    toast('Could not copy', 'error');
+    return false;
+  }
 };
 
+// Defer object URL revocation so iOS Safari and slower mobile browsers finish downloading
 export const downloadBlob = (blob, name) => {
-  const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: name });
-  a.click(); URL.revokeObjectURL(a.href);
+  const url = URL.createObjectURL(blob);
+  const a = Object.assign(document.createElement('a'), { href: url, download: name });
+  a.style.display = 'none';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1500);
 };
 
 export const openConfirm = (title, desc, onOk, okText = 'Confirm') => {
@@ -387,14 +414,19 @@ export const updateSyncUI = (status) => {
   document.querySelectorAll('.sync-text').forEach((el) => (el.textContent = eff === 'synced' ? 'Live Synced' : eff === 'offline' ? 'Offline (Queued)' : 'Connecting...'));
 };
 
-// --- SNAPSHOT CACHE (DEBOUNCED) ---
+// --- SNAPSHOT CACHE (DEBOUNCED & WORKSPACE-ISOLATED) ---
 let snapTimer = 0;
+let activeSubscribedWsId = '';
+let loadedSnapWsId = '';
+
 export function saveSnap(wsId = state.workspaceId) {
-  if (!wsId) return;
+  if (!wsId || wsId !== state.workspaceId) return;
   clearTimeout(snapTimer);
+  const targetWsId = wsId;
   snapTimer = setTimeout(() => {
+    if (targetWsId !== state.workspaceId) return;
     const write = (ws, txs) => {
-      localStorage.setItem(`df_snap_${wsId}`, JSON.stringify({ workspace: ws, transactions: txs, userWorkspaces: state.userWorkspaces, savedAt: Date.now() }));
+      localStorage.setItem(`df_snap_${targetWsId}`, JSON.stringify({ workspace: ws, transactions: txs, userWorkspaces: state.userWorkspaces, savedAt: Date.now() }));
       localStorage.setItem('df_user_ws', JSON.stringify(state.userWorkspaces || []));
     };
     try { write(state.workspace, state.transactions.slice(0, 600)); }
@@ -428,13 +460,17 @@ export function loadSnap(wsId) {
       shopCategories: w.shopCategories?.length ? w.shopCategories : DEFAULT_SHOPS.map((c) => ({ ...c })),
       shopProfile: { name: w.shopProfile?.name || '', footer: w.shopProfile?.footer || 'Thank you for your purchase!', logoDataUrl: w.shopProfile?.logoDataUrl || '' }
     };
-    if (Array.isArray(snap.transactions)) state.transactions = snap.transactions;
+    state.transactions = Array.isArray(snap.transactions) ? snap.transactions : [];
     if (Array.isArray(snap.userWorkspaces) && snap.userWorkspaces.length) state.userWorkspaces = snap.userWorkspaces;
+    loadedSnapWsId = wsId;
     return true;
   } catch { return false; }
 }
 
 export const clearSnaps = () => {
+  clearTimeout(snapTimer);
+  activeSubscribedWsId = '';
+  loadedSnapWsId = '';
   try { Object.keys(localStorage).forEach((k) => { if (k.startsWith('df_snap_') || ['df_active_ws', 'df_last_uid', 'df_user_ws'].includes(k)) localStorage.removeItem(k); }); } catch {}
 };
 
@@ -471,7 +507,41 @@ export async function requireAuth() {
   return true;
 }
 
-export const detachListeners = () => { unsubUser?.(); unsubWs?.(); unsubTx?.(); unsubUser = unsubWs = unsubTx = null; };
+export const detachListeners = () => {
+  clearTimeout(snapTimer);
+  unsubUser?.(); unsubWs?.(); unsubTx?.();
+  unsubUser = unsubWs = unsubTx = null;
+  activeSubscribedWsId = '';
+};
+
+// --- OFFLINE-SAFE WRITE SETTLER ---
+// Firestore persists mutations locally right away, then waits for server ACK before resolving.
+// Racing against a short offline/slow-network window prevents modals from hanging on "Saving...".
+function settleWrite(promise, errLabel = 'Could not sync changes') {
+  let done = false;
+  const tracked = promise.then(
+    () => { done = true; return { queued: false }; },
+    (err) => {
+      if (done) {
+        toast(`${errLabel}: ${err?.code || 'check connection'}`, 'error');
+        return { queued: false, error: err };
+      }
+      done = true;
+      throw err;
+    }
+  );
+  const waitMs = navigator.onLine === false ? 80 : 2500;
+  return Promise.race([
+    tracked,
+    new Promise((resolve) => setTimeout(() => {
+      if (!done) {
+        done = true;
+        updateSyncUI('offline');
+        resolve({ queued: true });
+      }
+    }, waitMs))
+  ]);
+}
 
 // --- CRUD ---
 export async function saveUserProfile(extra = {}) {
@@ -484,34 +554,66 @@ export async function saveUserProfile(extra = {}) {
   } catch {}
   if (!state.user || !db || !fb) return;
   try {
-    await fb.setDoc(fb.doc(db, 'delights_flow_users', state.user.uid), {
+    await settleWrite(fb.setDoc(fb.doc(db, 'delights_flow_users', state.user.uid), {
       email: state.user.email || '', displayName: state.user.displayName || '',
       activeWorkspaceId: state.workspaceId, workspaces: state.userWorkspaces,
       activePerson: state.activePerson, darkMode: state.darkMode, privacyMode: state.privacyMode,
       updatedAt: Date.now(), ...extra
-    }, { merge: true });
+    }, { merge: true }), 'Could not save profile');
   } catch {}
 }
 
 export async function patchWs(patch) {
   await requireAuth();
-  await fb.updateDoc(fb.doc(db, 'delights_flow_workspaces', state.workspaceId), { ...patch, updatedAt: Date.now() });
+  await settleWrite(
+    fb.updateDoc(fb.doc(db, 'delights_flow_workspaces', state.workspaceId), { ...patch, updatedAt: Date.now() }),
+    'Could not save workspace settings'
+  );
 }
 
 export async function saveTx(payload, editId = null) {
   await requireAuth();
   const col = fb.collection(db, 'delights_flow_workspaces', state.workspaceId, 'transactions');
   if (editId) {
-    await fb.updateDoc(fb.doc(col, editId), { ...payload, updatedAt: Date.now() });
+    await settleWrite(
+      fb.updateDoc(fb.doc(col, editId), { ...payload, updatedAt: Date.now() }),
+      'Could not update entry'
+    );
     return { id: editId, ...payload };
   }
-  const ref = await fb.addDoc(col, { ...payload, createdByUid: state.user.uid, createdAt: Date.now() });
-  return { id: ref.id, ...payload };
+  // Pre-generate document ID so receipt modals and local updates work immediately even offline
+  const ref = fb.doc(col);
+  const fullDoc = { ...payload, createdByUid: state.user.uid, createdAt: Date.now() };
+  await settleWrite(fb.setDoc(ref, fullDoc), 'Could not save entry');
+  return { id: ref.id, ...fullDoc };
+}
+
+export async function batchSaveTxs(items) {
+  await requireAuth();
+  if (!Array.isArray(items) || !items.length) return 0;
+  const col = fb.collection(db, 'delights_flow_workspaces', state.workspaceId, 'transactions');
+  const CHUNK = 450;
+  let saved = 0;
+  for (let i = 0; i < items.length; i += CHUNK) {
+    const batch = fb.writeBatch(db);
+    const slice = items.slice(i, i + CHUNK);
+    const now = Date.now();
+    slice.forEach((item, idx) => {
+      const ref = fb.doc(col);
+      batch.set(ref, { ...item, createdByUid: state.user.uid, createdAt: item.createdAt || (now + idx) });
+    });
+    await settleWrite(batch.commit(), 'Could not restore backup entries');
+    saved += slice.length;
+  }
+  return saved;
 }
 
 export async function delTx(id) {
   await requireAuth();
-  await fb.deleteDoc(fb.doc(db, 'delights_flow_workspaces', state.workspaceId, 'transactions', id));
+  await settleWrite(
+    fb.deleteDoc(fb.doc(db, 'delights_flow_workspaces', state.workspaceId, 'transactions', id)),
+    'Could not delete entry'
+  );
 }
 
 // --- AUTH (DIRECT GIS + EMAIL/PASSWORD) & WORKSPACE SYNC ---
@@ -578,14 +680,31 @@ export const doSignOut = async () => {
 
 export function subscribeWs(wsId) {
   if (!wsId || !state.user || !db || !fb) return;
+  const switching = activeSubscribedWsId !== wsId && loadedSnapWsId !== wsId;
+  clearTimeout(snapTimer);
   unsubWs?.(); unsubTx?.();
   state.workspaceId = wsId;
+
+  // Prevent stale rows/filters from a previous workspace leaking into the newly selected ledger
+  if (switching) {
+    state.transactions = [];
+    state.filters.wallet = 'all';
+    state.walletFilterActive = false;
+    state.shopFilters.category = 'all';
+    state.shopFilters.type = 'all';
+    state.shopFilterActive = false;
+    state.shopAnalyticsShopId = 'all';
+    loadSnap(wsId);
+  }
+  activeSubscribedWsId = wsId;
+
   try { localStorage.setItem('df_active_ws', wsId); localStorage.setItem('df_last_uid', state.user.uid); } catch {}
   showScreen('app'); updateSyncUI('connecting'); scheduleRender();
 
   unsubWs = fb.onSnapshot(fb.doc(db, 'delights_flow_workspaces', wsId), (s) => {
+    if (state.workspaceId !== wsId) return;
     if (!s.exists()) {
-      if (!s.metadata.fromCache) { try { localStorage.removeItem('df_active_ws'); } catch {} state.workspaceId = ''; openOnboarding(false); }
+      if (!s.metadata.fromCache) { try { localStorage.removeItem('df_active_ws'); } catch {} state.workspaceId = ''; activeSubscribedWsId = ''; openOnboarding(false); }
       return;
     }
     const d = s.data(), wallets = d.wallets?.length ? d.wallets : STARTER_WALLETS.map((w) => ({ ...w })), ob = { ...(d.openingBalances || {}) };
@@ -610,12 +729,13 @@ export function subscribeWs(wsId) {
   }, (e) => {
     if (e?.code === 'permission-denied') {
       try { localStorage.removeItem('df_active_ws'); localStorage.removeItem(`df_snap_${wsId}`); } catch {}
-      unsubWs?.(); unsubTx?.(); unsubWs = unsubTx = null; state.workspaceId = ''; openOnboarding(false); return;
+      unsubWs?.(); unsubTx?.(); unsubWs = unsubTx = null; state.workspaceId = ''; activeSubscribedWsId = ''; openOnboarding(false); return;
     }
     updateSyncUI('offline');
   });
 
   unsubTx = fb.onSnapshot(fb.collection(db, 'delights_flow_workspaces', wsId, 'transactions'), (qs) => {
+    if (state.workspaceId !== wsId) return;
     const list = []; qs.forEach((d) => list.push({ id: d.id, ...d.data() }));
     list.sort((a, b) => (b.date || '').localeCompare(a.date || '') || (b.createdAt || 0) - (a.createdAt || 0));
     state.transactions = list;
@@ -689,38 +809,73 @@ export function startFirebaseBackground() {
   });
 }
 
-// --- CLEAN SPA BACK-BUTTON EXIT GUARD ---
+// --- RELIABLE SPA BACK-BUTTON EXIT GUARD (NO "YES, EXIT" BUTTON) ---
+// Uses user-activated history.pushState so Chrome's History Manipulation Intervention never skips it.
+// On Overview, the first Back opens the prompt at history index 0; pressing Back again exits natively.
 export function setupBackGuard() {
-  let exiting = false;
-  const cleanUrl = `${location.pathname}${location.search}`;
-  try {
-    history.replaceState({ dfBase: true }, '', cleanUrl);
-    history.pushState({ dfGuard: true }, '', cleanUrl);
-  } catch {}
-
-  const rearm = () => { try { history.pushState({ dfGuard: true }, '', cleanUrl); } catch {} };
-  const doExit = () => {
-    exiting = true;
-    $('exit-modal')?.classList.add('hidden');
-    try { history.back(); } catch {}
-    setTimeout(() => { try { window.close(); } catch {} }, 120);
+  const cleanUrl = () => `${location.pathname}${location.search}`;
+  const isExitOpen = () => {
+    const em = $('exit-modal');
+    return Boolean(em && !em.classList.contains('hidden'));
   };
 
-  window.addEventListener('popstate', () => {
-    if (exiting) return;
-    const em = $('exit-modal');
-    if (em && !em.classList.contains('hidden')) { doExit(); return; }
-    if (closeTopModal()) { rearm(); return; }
-    if (!$('app-shell')?.classList.contains('hidden') && state.currentView !== 'overview') {
-      switchView('overview'); rearm(); return;
+  try {
+    if (!history.state?.dfBase && !history.state?.dfGuard) {
+      history.replaceState({ dfBase: true }, '', cleanUrl());
     }
-    em?.classList.remove('hidden');
+  } catch {}
+
+  const arm = () => {
+    try {
+      if (!history.state?.dfGuard) {
+        history.pushState({ dfGuard: true }, '', cleanUrl());
+      }
+    } catch {}
+  };
+
+  const cancelExit = () => {
+    $('exit-modal')?.classList.add('hidden');
+    arm();
+  };
+
+  // Arm the guard on genuine user gestures so Android Chrome always honors popstate
+  const onUserGesture = (e) => {
+    if (isExitOpen()) return;
+    if (e?.type === 'keydown' && e.key === 'Escape') return;
+    arm();
+  };
+
+  window.addEventListener('pointerdown', onUserGesture, { passive: true });
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      if (isExitOpen()) { cancelExit(); return; }
+      closeTopModal();
+      return;
+    }
+    onUserGesture(e);
   });
 
-  const cancelExit = () => { $('exit-modal')?.classList.add('hidden'); rearm(); };
+  window.addEventListener('popstate', () => {
+    // Browser just popped dfGuard -> dfBase (history index 0)
+    if (closeTopModal()) { arm(); return; }
+    if (!$('app-shell')?.classList.contains('hidden') && state.currentView !== 'overview') {
+      switchView('overview');
+      arm();
+      return;
+    }
+    // Leave browser at index 0 while showing prompt so the second hardware/gesture Back exits natively
+    $('exit-modal')?.classList.remove('hidden');
+  });
+
+  // Hide exit modal cleanly if user leaves and returns to the app
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && isExitOpen()) {
+      $('exit-modal')?.classList.add('hidden');
+    }
+  });
+
   $('exit-cancel-btn')?.addEventListener('click', cancelExit);
   $('exit-modal')?.addEventListener('click', (e) => { if (e.target.id === 'exit-modal') cancelExit(); });
-  $('exit-confirm-btn')?.addEventListener('click', doExit);
 }
 
 // --- AUTO-UPDATE SERVICE WORKER REGISTRATION ---

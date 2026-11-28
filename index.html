@@ -141,7 +141,7 @@
           <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-indigo-600 to-sky-500 flex items-center justify-center text-white shadow-lg shadow-indigo-500/25 shrink-0" data-ico="brand"></div>
           <div class="min-w-0"><h1 class="text-base font-extrabold tracking-tight leading-none truncate">Delights Flow</h1><p id="sidebar-workspace-label" class="text-xs text-slate-500 mt-1 font-medium truncate">My Ledger</p></div>
         </div>
-        <button id="desktop-theme-btn" type="button" title="Toggle dark mode" class="p-2 rounded-xl text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 shrink-0"><span class="theme-icon-slot"></span></button>
+        <button id="desktop-theme-btn" type="button" title="Toggle dark mode" aria-label="Toggle dark mode" class="p-2 rounded-xl text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 shrink-0"><span class="theme-icon-slot"></span></button>
       </div>
       <div class="p-4 space-y-2">
         <button id="desktop-add-btn" type="button" class="w-full py-3 px-4 rounded-2xl bg-indigo-600 hover:bg-indigo-700 active:scale-[0.98] text-white font-bold text-sm shadow-lg shadow-indigo-600/25">+ New Money Entry</button>
@@ -166,7 +166,7 @@
       </div>
     </aside>
 
-    <!-- MOBILE HEADER (NO HIDE/SHOW BUTTON HERE) -->
+    <!-- MOBILE HEADER -->
     <header class="md:hidden sticky top-0 z-30 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800 px-4 py-3">
       <div class="flex items-center justify-between gap-2">
         <div class="flex items-center gap-2.5 min-w-0">
@@ -178,8 +178,8 @@
         </div>
         <div class="flex items-center gap-1 shrink-0">
           <button id="mobile-person-pill" type="button" class="px-2.5 py-1.5 rounded-xl text-xs font-bold border">P1</button>
-          <button id="mobile-theme-btn" type="button" title="Dark Mode" class="p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"><span class="theme-icon-slot"></span></button>
-          <button id="mobile-settings-btn" type="button" title="Settings" class="p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800" data-ico="sliders"></button>
+          <button id="mobile-theme-btn" type="button" title="Dark Mode" aria-label="Toggle dark mode" class="p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"><span class="theme-icon-slot"></span></button>
+          <button id="mobile-settings-btn" type="button" title="Settings" aria-label="Settings" class="p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800" data-ico="sliders"></button>
         </div>
       </div>
     </header>
@@ -198,7 +198,7 @@
                 <div class="flex items-center gap-2 flex-wrap">
                   <span id="hero-wallet-count-label" class="text-xs sm:text-sm font-medium uppercase tracking-wider text-indigo-200/90">Total Net Balance</span>
                   <span id="overview-month-pill" class="px-2.5 py-0.5 rounded-full bg-white/10 text-[11px] font-semibold text-indigo-100">Month</span>
-                  <button id="hero-privacy-btn" type="button" title="Hide / Show Balances" class="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-indigo-100"><span class="privacy-icon-slot"></span></button>
+                  <button id="hero-privacy-btn" type="button" title="Hide / Show Balances" aria-label="Hide or show balances" class="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-indigo-100"><span class="privacy-icon-slot"></span></button>
                 </div>
                 <div id="hero-total-balance" class="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight tabular-nums break-words">0 Ks</div>
               </div>
@@ -235,7 +235,7 @@
           </div>
         </section>
 
-        <!-- VIEW 2: SHOP HOME (NO HIDE BUTTON & NO RECORD/CAPITAL BUTTONS UNDER TODAY'S SALES) -->
+        <!-- VIEW 2: SHOP HOME -->
         <section id="view-shop" class="hidden space-y-6">
           <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-amber-950/90 to-slate-900 text-white p-5 sm:p-7 shadow-xl border border-white/10">
             <div class="pointer-events-none absolute -top-20 -right-20 w-64 h-64 rounded-full bg-amber-500/20 blur-3xl"></div>
@@ -312,9 +312,9 @@
             <div id="history-calendar-wrap" class="hidden space-y-4">
               <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-4 sm:p-5 shadow-sm space-y-4">
                 <div class="flex items-center justify-between gap-2">
-                  <button id="cal-prev-month" type="button" class="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 font-bold">‹</button>
+                  <button id="cal-prev-month" type="button" aria-label="Previous month" class="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 font-bold">‹</button>
                   <div class="flex items-center gap-2"><h3 id="cal-month-title" class="text-sm sm:text-base font-extrabold">Month</h3><button id="cal-today-btn" type="button" class="px-2.5 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-300 text-[11px] font-bold">Today</button></div>
-                  <button id="cal-next-month" type="button" class="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 font-bold">›</button>
+                  <button id="cal-next-month" type="button" aria-label="Next month" class="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 font-bold">›</button>
                 </div>
                 <div class="grid grid-cols-7 gap-1 text-center text-[11px] font-bold uppercase text-slate-400"><div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div></div>
                 <div id="calendar-days-grid" class="grid grid-cols-7 gap-1 sm:gap-1.5"></div>
@@ -331,7 +331,7 @@
             <div id="history-grouped-list" class="space-y-4"></div>
           </div>
 
-          <!-- Shop History Panel (WITH LIST | CALENDAR VIEW) -->
+          <!-- Shop History Panel (LIST | CALENDAR) -->
           <div id="history-panel-shop" class="hidden space-y-5">
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div><h2 class="text-xl sm:text-2xl font-extrabold tracking-tight">Shop History</h2><p class="text-xs sm:text-sm text-slate-500">Filter by shop, month, or COD · View calendar or receipts</p></div>
@@ -359,9 +359,9 @@
             <div id="shop-history-calendar-wrap" class="hidden space-y-4">
               <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-4 sm:p-5 shadow-sm space-y-4">
                 <div class="flex items-center justify-between gap-2">
-                  <button id="shop-cal-prev-month" type="button" class="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 font-bold">‹</button>
+                  <button id="shop-cal-prev-month" type="button" aria-label="Previous month" class="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 font-bold">‹</button>
                   <div class="flex items-center gap-2"><h3 id="shop-cal-month-title" class="text-sm sm:text-base font-extrabold">Month</h3><button id="shop-cal-today-btn" type="button" class="px-2.5 py-1 rounded-lg bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 text-[11px] font-bold">Today</button></div>
-                  <button id="shop-cal-next-month" type="button" class="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 font-bold">›</button>
+                  <button id="shop-cal-next-month" type="button" aria-label="Next month" class="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 font-bold">›</button>
                 </div>
                 <div class="grid grid-cols-7 gap-1 text-center text-[11px] font-bold uppercase text-slate-400"><div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div></div>
                 <div id="shop-calendar-days-grid" class="grid grid-cols-7 gap-1 sm:gap-1.5"></div>
@@ -393,9 +393,9 @@
               <div class="flex items-center gap-2 flex-wrap">
                 <select id="analytics-scope-select" class="px-3 py-2 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs sm:text-sm font-bold shadow-sm"><option value="all">Personal + Shop</option><option value="personal">Personal Only</option><option value="shop">Shop Only</option></select>
                 <div class="flex items-center gap-1 bg-white dark:bg-slate-900 p-1 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
-                  <button id="analytics-prev-month" type="button" class="px-2.5 py-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 font-bold">‹</button>
+                  <button id="analytics-prev-month" type="button" aria-label="Previous month" class="px-2.5 py-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 font-bold">‹</button>
                   <select id="analytics-month-select" class="bg-transparent text-xs sm:text-sm font-bold px-1 py-1 focus:outline-none"></select>
-                  <button id="analytics-next-month" type="button" class="px-2.5 py-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 font-bold">›</button>
+                  <button id="analytics-next-month" type="button" aria-label="Next month" class="px-2.5 py-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 font-bold">›</button>
                 </div>
               </div>
             </div>
@@ -429,16 +429,16 @@
             </div>
           </div>
 
-          <!-- Shop Analytics Panel (WITH PER-SHOP SELECTOR) -->
+          <!-- Shop Analytics Panel (PER-SHOP SELECTOR) -->
           <div id="analytics-panel-shop" class="hidden space-y-5">
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div><h2 class="text-xl sm:text-2xl font-extrabold tracking-tight">Shop Analytics</h2><p class="text-xs sm:text-sm text-slate-500">Filter by individual shop or view all shops together</p></div>
               <div class="flex items-center gap-2 flex-wrap">
                 <select id="sa-shop-select" class="px-3 py-2 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs sm:text-sm font-bold shadow-sm"></select>
                 <div class="flex items-center gap-1 bg-white dark:bg-slate-900 p-1 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
-                  <button id="sa-prev-month" type="button" class="px-2.5 py-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 font-bold">‹</button>
+                  <button id="sa-prev-month" type="button" aria-label="Previous month" class="px-2.5 py-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 font-bold">‹</button>
                   <select id="sa-month-select" class="bg-transparent text-xs sm:text-sm font-bold px-1 py-1 focus:outline-none"></select>
-                  <button id="sa-next-month" type="button" class="px-2.5 py-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 font-bold">›</button>
+                  <button id="sa-next-month" type="button" aria-label="Next month" class="px-2.5 py-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 font-bold">›</button>
                 </div>
               </div>
             </div>
@@ -486,7 +486,7 @@
     <div class="bg-white dark:bg-slate-900 w-full sm:max-w-lg rounded-t-3xl sm:rounded-3xl shadow-2xl border border-slate-200/80 dark:border-slate-800 max-h-[92vh] flex flex-col overflow-hidden">
       <div class="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
         <h3 id="tx-modal-title" class="text-lg font-extrabold">New Transaction</h3>
-        <button id="tx-modal-close" type="button" class="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white">✕</button>
+        <button id="tx-modal-close" type="button" aria-label="Close" class="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white">✕</button>
       </div>
       <form id="tx-form" class="p-5 space-y-5 overflow-y-auto flex-1">
         <div class="grid grid-cols-3 gap-1.5 p-1.5 rounded-2xl bg-slate-100 dark:bg-slate-800/90">
@@ -539,10 +539,10 @@
     <div class="bg-white dark:bg-slate-900 w-full sm:max-w-lg rounded-t-3xl sm:rounded-3xl shadow-2xl border border-slate-200/80 dark:border-slate-800 max-h-[92vh] flex flex-col overflow-hidden">
       <div class="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
         <h3 id="stx-modal-title" class="text-lg font-extrabold">Record Shop Sale</h3>
-        <button id="stx-modal-close" type="button" class="p-2 rounded-xl text-slate-400">✕</button>
+        <button id="stx-modal-close" type="button" aria-label="Close" class="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white">✕</button>
       </div>
       <form id="stx-form" class="p-5 space-y-5 overflow-y-auto flex-1">
-        <div class="grid grid-cols-2 gap-1.5 p-1.5 rounded-2xl bg-slate-100 dark:bg-slate-800/90">
+        <div id="stx-mode-tabs" class="grid grid-cols-2 gap-1.5 p-1.5 rounded-2xl bg-slate-100 dark:bg-slate-800/90">
           <button type="button" data-stx-mode="sale" class="stx-mode-btn py-2.5 rounded-xl text-sm font-bold">🛍️ Shop Sale</button>
           <button type="button" data-stx-mode="capital" class="stx-mode-btn py-2.5 rounded-xl text-sm font-bold">📦 Capital / Cost</button>
         </div>
@@ -595,7 +595,7 @@
   <!-- MODAL 3: MARK COD PAID -->
   <div id="cod-pay-modal" class="hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-950/60 backdrop-blur-sm p-0 sm:p-4">
     <div class="bg-white dark:bg-slate-900 w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 p-5 sm:p-6 space-y-4">
-      <div class="flex items-center justify-between"><div><h3 class="text-lg font-extrabold">Mark COD Received</h3><p id="cod-pay-info" class="text-xs text-slate-500 mt-0.5"></p></div><button id="cod-pay-close" type="button" class="p-2 rounded-xl text-slate-400">✕</button></div>
+      <div class="flex items-center justify-between"><div><h3 class="text-lg font-extrabold">Mark COD Received</h3><p id="cod-pay-info" class="text-xs text-slate-500 mt-0.5"></p></div><button id="cod-pay-close" type="button" aria-label="Close" class="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white">✕</button></div>
       <div class="p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/50 border border-amber-200/80 dark:border-amber-800/70 flex items-center justify-between"><span class="text-xs font-bold text-amber-800 dark:text-amber-300">COD Amount to Receive</span><span id="cod-pay-amount" class="text-lg font-extrabold text-amber-800 dark:text-amber-300 tabular-nums">0 Ks</span></div>
       <div class="space-y-2"><label class="text-xs font-bold uppercase tracking-wider text-slate-500">Deposit Into Wallet</label><div id="cod-pay-wallet-pills" class="grid grid-cols-2 sm:grid-cols-3 gap-2"></div></div>
       <div class="space-y-1"><label for="cod-pay-date" class="text-xs font-bold uppercase tracking-wider text-slate-500">Received Date</label><input id="cod-pay-date" type="date" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-medium" /></div>
@@ -608,7 +608,7 @@
     <div class="bg-white dark:bg-slate-900 w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl shadow-2xl border border-slate-200/80 dark:border-slate-800 max-h-[94vh] flex flex-col overflow-hidden">
       <div class="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2 shrink-0">
         <div class="min-w-0"><h3 class="text-base font-extrabold">Customer Receipt</h3><p class="text-[11px] text-slate-500 truncate">Save PNG image or copy text slip</p></div>
-        <div class="flex items-center gap-1.5 shrink-0"><button id="receipt-edit-sale-btn" type="button" class="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-bold">✎ Edit</button><button id="receipt-modal-close" type="button" class="p-2 rounded-xl text-slate-400">✕</button></div>
+        <div class="flex items-center gap-1.5 shrink-0"><button id="receipt-edit-sale-btn" type="button" class="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-bold">✎ Edit</button><button id="receipt-modal-close" type="button" aria-label="Close" class="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white">✕</button></div>
       </div>
       <div class="p-4 bg-slate-100 dark:bg-slate-950/80 overflow-y-auto flex-1 flex justify-center"><canvas id="receipt-canvas" class="w-full max-w-[360px] h-auto rounded-2xl shadow-lg border border-slate-200 dark:border-slate-800 bg-white"></canvas></div>
       <div class="p-4 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 space-y-2.5 shrink-0">
@@ -618,12 +618,12 @@
     </div>
   </div>
 
-  <!-- MODAL 5: MANAGE SHOPS (CLEAN — NO TOP ADD CAPITAL BANNER) -->
+  <!-- MODAL 5: MANAGE SHOPS -->
   <div id="shop-settings-modal" class="hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-950/60 backdrop-blur-sm p-0 sm:p-4">
     <div class="bg-white dark:bg-slate-900 w-full sm:max-w-xl rounded-t-3xl sm:rounded-3xl shadow-2xl border border-slate-200/80 dark:border-slate-800 max-h-[92vh] flex flex-col overflow-hidden">
       <div class="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
         <div><h3 class="text-lg font-extrabold">Manage Shops</h3><p class="text-xs text-slate-500">Customize each shop's name, color, logo, footer &amp; capital</p></div>
-        <button id="shop-settings-close" type="button" class="p-2 rounded-xl text-slate-400">✕</button>
+        <button id="shop-settings-close" type="button" aria-label="Close" class="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white">✕</button>
       </div>
       <form id="shop-settings-form" class="p-5 space-y-5 overflow-y-auto flex-1">
         <div class="space-y-3">
@@ -641,7 +641,7 @@
     <div class="bg-white dark:bg-slate-900 w-full sm:max-w-xl rounded-t-3xl sm:rounded-3xl shadow-2xl border border-slate-200/80 dark:border-slate-800 max-h-[92vh] flex flex-col overflow-hidden">
       <div class="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
         <div><h3 class="text-lg font-extrabold">Manage Wallets</h3><p class="text-xs text-slate-500">Add accounts, pick colors &amp; set opening balances</p></div>
-        <button id="wallets-modal-close" type="button" class="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white">✕</button>
+        <button id="wallets-modal-close" type="button" aria-label="Close" class="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white">✕</button>
       </div>
       <form id="wallets-form" class="p-5 space-y-5 overflow-y-auto flex-1">
         <div class="space-y-3">
@@ -653,12 +653,12 @@
     </div>
   </div>
 
-  <!-- MODAL 6B: DEDICATED SETTINGS (NO WALLETS + PERSON 1 & 2 TAG COLORS) -->
+  <!-- MODAL 6B: DEDICATED SETTINGS (PROFILE, PERSON TAG COLORS, INVITE, BACKUP) -->
   <div id="settings-modal" class="hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-950/60 backdrop-blur-sm p-0 sm:p-4">
     <div class="bg-white dark:bg-slate-900 w-full sm:max-w-xl rounded-t-3xl sm:rounded-3xl shadow-2xl border border-slate-200/80 dark:border-slate-800 max-h-[92vh] flex flex-col overflow-hidden">
       <div class="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
         <div><h3 class="text-lg font-extrabold">Settings</h3><p id="settings-account-email" class="text-xs text-slate-500">Signed in</p></div>
-        <button id="settings-modal-close" type="button" class="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white">✕</button>
+        <button id="settings-modal-close" type="button" aria-label="Close" class="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white">✕</button>
       </div>
       <form id="settings-form" class="p-5 space-y-6 overflow-y-auto flex-1">
         <div class="space-y-3">
@@ -705,7 +705,7 @@
   <!-- MODAL 7: QUICK TEMPLATES -->
   <div id="templates-modal" class="hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-950/60 backdrop-blur-sm p-0 sm:p-4">
     <div class="bg-white dark:bg-slate-900 w-full sm:max-w-lg rounded-t-3xl sm:rounded-3xl shadow-2xl border border-slate-200/80 dark:border-slate-800 max-h-[92vh] flex flex-col overflow-hidden">
-      <div class="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0"><h3 class="text-lg font-extrabold">Quick Templates</h3><button id="templates-modal-close" type="button" class="p-2 rounded-xl text-slate-400">✕</button></div>
+      <div class="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0"><h3 class="text-lg font-extrabold">Quick Templates</h3><button id="templates-modal-close" type="button" aria-label="Close" class="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white">✕</button></div>
       <div class="p-5 space-y-5 overflow-y-auto flex-1">
         <form id="template-form" class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700/80 space-y-3">
           <input type="hidden" id="tpl-edit-id" value="" />
@@ -728,8 +728,8 @@
     </div>
   </div>
 
-  <!-- MODAL 8: CONFIRM & MODAL 9: EXIT -->
-  <div id="confirm-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-sm p-4">
+  <!-- MODAL 8: CONFIRM (HIGHER Z-INDEX SO IT STACKS ABOVE OTHER MODALS) -->
+  <div id="confirm-modal" class="hidden fixed inset-0 z-[52] flex items-center justify-center bg-slate-950/60 backdrop-blur-sm p-4">
     <div class="bg-white dark:bg-slate-900 w-full max-w-sm rounded-3xl p-6 shadow-2xl border border-slate-200 dark:border-slate-800 space-y-4">
       <h3 id="confirm-modal-title" class="text-lg font-extrabold">Confirm Action</h3>
       <p id="confirm-modal-desc" class="text-sm text-slate-500 dark:text-slate-400"></p>
@@ -737,187 +737,228 @@
     </div>
   </div>
 
+  <!-- MODAL 9: EXIT PROMPT (NATIVE SECOND-BACK TO EXIT; NO "YES, EXIT" BUTTON) -->
   <div id="exit-modal" class="hidden fixed inset-0 z-[55] flex items-center justify-center bg-slate-950/60 backdrop-blur-sm p-4">
     <div class="bg-white dark:bg-slate-900 w-full max-w-xs rounded-3xl p-6 shadow-2xl border border-slate-200 dark:border-slate-800 space-y-4 text-center">
       <div class="w-12 h-12 mx-auto rounded-2xl bg-indigo-50 dark:bg-indigo-950/70 flex items-center justify-center text-xl">👋</div>
-      <div class="space-y-1"><h3 class="text-lg font-extrabold">Exit Delights Flow?</h3><p class="text-xs text-slate-500">Are you sure you want to close the app?</p></div>
-      <div class="grid grid-cols-2 gap-2.5 pt-1"><button id="exit-cancel-btn" type="button" class="py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 font-bold text-sm">Cancel</button><button id="exit-confirm-btn" type="button" class="py-2.5 rounded-xl bg-indigo-600 text-white font-bold text-sm">Yes, Exit</button></div>
+      <div class="space-y-1">
+        <h3 class="text-lg font-extrabold">Exit Delights Flow?</h3>
+        <p class="text-xs text-slate-500 dark:text-slate-400">Press your Back button again to exit the app.</p>
+      </div>
+      <div class="pt-1">
+        <button id="exit-cancel-btn" type="button" class="w-full py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold text-sm">Stay in App</button>
+      </div>
     </div>
   </div>
 
   <div id="toast-container" class="fixed top-4 right-4 left-4 sm:left-auto sm:w-80 z-[60] flex flex-col gap-2 pointer-events-none"></div>
 
-  <script>
-    window.__firebase_config = {
-      apiKey: "AIzaSyAKgqAtXONpTX9h87pm-sUx7MY0JJyEPTE",
-      authDomain: "delights-flow.firebaseapp.com",
-      projectId: "delights-flow",
-      storageBucket: "delights-flow.firebasestorage.app",
-      messagingSenderId: "967458395131",
-      appId: "1:967458395131:web:9cafabf5ed0a6c3bc0b15e"
-    };
-    window.__google_web_client_id = "967458395131-ahj573n9ea4artc7l3dj25gv4k26l92p.apps.googleusercontent.com";
-  </script>
-
   <script type="module">
-    import {
-      UI_ICONS, state, $, isActiveUser,
-      showScreen, applyTheme, applyPrivacy, updateSyncUI, loadSnap,
-      switchView, scheduleRender, registerHooks, bindCoreEvents,
-      startFirebaseBackground, setupBackGuard, setupServiceWorkerUpdates, toast
-    } from './core.js';
-
-    import {
-      renderOverview, renderMoneyHistory, renderMoneyAnalytics,
-      openTxModal, bindMoneyEvents
-    } from './money.js';
-
-    let shopMod = null, shopPromise = null, pendingDeepLinkTxId = '';
-
-    async function ensureShopLoaded() {
-      if (shopMod) return shopMod;
-      if (!shopPromise) {
-        shopPromise = import('./shop.js').then((m) => {
-          shopMod = m;
-          m.initShopModule();
-          return m;
-        }).catch((err) => {
-          shopPromise = null;
-          toast('Could not load Shop module', 'error');
-          throw err;
-        });
-      }
-      return shopPromise;
-    }
-
-    function syncSubTabs() {
-      const hShop = state.historySub === 'shop';
-      $('history-sub-money').className = !hShop
-        ? 'flex-1 py-2 px-3 rounded-xl text-xs font-bold bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm'
-        : 'flex-1 py-2 px-3 rounded-xl text-xs font-bold text-slate-500';
-      $('history-sub-shop').className = hShop
-        ? 'flex-1 py-2 px-3 rounded-xl text-xs font-bold bg-white dark:bg-slate-900 text-amber-600 dark:text-amber-400 shadow-sm'
-        : 'flex-1 py-2 px-3 rounded-xl text-xs font-bold text-slate-500';
-      $('history-panel-money').classList.toggle('hidden', hShop);
-      $('history-panel-shop').classList.toggle('hidden', !hShop);
-
-      const aShop = state.analyticsSub === 'shop';
-      $('analytics-sub-money').className = !aShop
-        ? 'flex-1 py-2 px-3 rounded-xl text-xs font-bold bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm'
-        : 'flex-1 py-2 px-3 rounded-xl text-xs font-bold text-slate-500';
-      $('analytics-sub-shop').className = aShop
-        ? 'flex-1 py-2 px-3 rounded-xl text-xs font-bold bg-white dark:bg-slate-900 text-amber-600 dark:text-amber-400 shadow-sm'
-        : 'flex-1 py-2 px-3 rounded-xl text-xs font-bold text-slate-500';
-      $('analytics-panel-money').classList.toggle('hidden', aShop);
-      $('analytics-panel-shop').classList.toggle('hidden', !aShop);
-    }
-
-    async function checkPendingDeepLink() {
-      if (!pendingDeepLinkTxId) return;
-      const tx = state.transactions.find((t) => t.id === pendingDeepLinkTxId);
-      if (!tx) return;
-      pendingDeepLinkTxId = '';
-      try { history.replaceState(history.state || { dfGuard: true }, '', location.pathname); } catch {}
-      if (tx.scope === 'shop') {
-        const m = await ensureShopLoaded();
-        m.openShopEntry(tx);
-      } else {
-        openTxModal(tx);
+    /**
+     * Checks whether the current document has a hierarchical HTTP(S)/app base URL
+     * capable of resolving sibling ES module files (./core.js, ./money.js, ./shop.js).
+     * Isolated previews (about:srcdoc, blob:, data:) and file:// cannot resolve relative imports.
+     */
+    function canResolveRelativeModules() {
+      const allowedProtocols = ['http:', 'https:', 'capacitor:'];
+      if (!allowedProtocols.includes(location.protocol)) return false;
+      try {
+        const resolved = new URL('./core.js', document.baseURI);
+        return allowedProtocols.includes(resolved.protocol);
+      } catch {
+        return false;
       }
     }
 
-    function onRender() {
-      syncSubTabs();
-      if (state.currentView === 'overview') renderOverview();
-      else if (state.currentView === 'shop') shopMod?.renderShopHome();
-      else if (state.currentView === 'history') {
-        if (state.historySub === 'shop') shopMod?.renderShopHistory();
-        else renderMoneyHistory();
-      } else if (state.currentView === 'analytics') {
-        if (state.analyticsSub === 'shop') shopMod?.renderShopAnalytics();
-        else renderMoneyAnalytics();
+    async function startApp() {
+      if (!canResolveRelativeModules()) {
+        window.__dfBooted = true;
+        window.__dfSetLoadStatus(
+          'Multi-file preview requires a web server.',
+          'This isolated preview cannot load sibling ES modules (core.js, money.js, shop.js). Open via GitHub Pages or a local HTTP server to run the full app.',
+          true
+        );
+        return;
       }
-      checkPendingDeepLink();
-    }
 
-    function bindShellEvents() {
-      $('history-sub-money').onclick = () => { state.historySub = 'money'; scheduleRender(); };
-      $('history-sub-shop').onclick = async () => { state.historySub = 'shop'; await ensureShopLoaded(); scheduleRender(); };
-      $('analytics-sub-money').onclick = () => { state.analyticsSub = 'money'; scheduleRender(); };
-      $('analytics-sub-shop').onclick = async () => { state.analyticsSub = 'shop'; await ensureShopLoaded(); scheduleRender(); };
+      let core, money;
+      try {
+        const coreUrl = new URL('./core.js', document.baseURI).href;
+        const moneyUrl = new URL('./money.js', document.baseURI).href;
+        [core, money] = await Promise.all([import(coreUrl), import(moneyUrl)]);
+      } catch (err) {
+        window.__dfBooted = true;
+        window.__dfSetLoadStatus(
+          'Could not load app modules.',
+          err?.message || 'Check that core.js and money.js are deployed alongside index.html, then tap Retry.',
+          true
+        );
+        return;
+      }
 
-      $('desktop-shop-sale-btn').onclick = async () => {
-        const m = await ensureShopLoaded();
-        m.openShopTxModal('sale');
-      };
+      const {
+        UI_ICONS, state, $, isActiveUser,
+        showScreen, applyTheme, applyPrivacy, updateSyncUI, loadSnap,
+        switchView, scheduleRender, registerHooks, bindCoreEvents,
+        startFirebaseBackground, setupBackGuard, setupServiceWorkerUpdates, toast
+      } = core;
 
-      $('mobile-fab-add').onclick = async () => {
-        const isShopContext =
-          state.currentView === 'shop' ||
-          (state.currentView === 'history' && state.historySub === 'shop') ||
-          (state.currentView === 'analytics' && state.analyticsSub === 'shop');
-        if (isShopContext) {
-          const m = await ensureShopLoaded();
-          m.openShopTxModal('sale');
-        } else {
-          openTxModal(null);
+      const {
+        renderOverview, renderMoneyHistory, renderMoneyAnalytics,
+        openTxModal, bindMoneyEvents
+      } = money;
+
+      let shopMod = null, shopPromise = null, pendingDeepLinkTxId = '';
+
+      async function ensureShopLoaded() {
+        if (shopMod) return shopMod;
+        if (!shopPromise) {
+          const shopUrl = new URL('./shop.js', document.baseURI).href;
+          shopPromise = import(shopUrl).then((m) => {
+            shopMod = m;
+            m.initShopModule();
+            return m;
+          }).catch((err) => {
+            shopPromise = null;
+            toast('Could not load Shop module', 'error');
+            throw err;
+          });
         }
-      };
-    }
+        return shopPromise;
+      }
 
-    function bootstrap() {
-      window.__dfBooted = true;
-      document.querySelectorAll('[data-ico]').forEach((el) => { el.innerHTML = UI_ICONS[el.dataset.ico] || ''; });
+      function syncSubTabs() {
+        const hShop = state.historySub === 'shop';
+        $('history-sub-money').className = !hShop
+          ? 'flex-1 py-2 px-3 rounded-xl text-xs font-bold bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm'
+          : 'flex-1 py-2 px-3 rounded-xl text-xs font-bold text-slate-500';
+        $('history-sub-shop').className = hShop
+          ? 'flex-1 py-2 px-3 rounded-xl text-xs font-bold bg-white dark:bg-slate-900 text-amber-600 dark:text-amber-400 shadow-sm'
+          : 'flex-1 py-2 px-3 rounded-xl text-xs font-bold text-slate-500';
+        $('history-panel-money').classList.toggle('hidden', hShop);
+        $('history-panel-shop').classList.toggle('hidden', !hShop);
 
-      let initialView = 'overview';
-      try {
-        const params = new URLSearchParams(location.search);
-        pendingDeepLinkTxId = params.get('tx') || '';
-        if (location.hash.startsWith('#shop') || params.get('view') === 'shop' || pendingDeepLinkTxId) initialView = 'shop';
-      } catch {}
+        const aShop = state.analyticsSub === 'shop';
+        $('analytics-sub-money').className = !aShop
+          ? 'flex-1 py-2 px-3 rounded-xl text-xs font-bold bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm'
+          : 'flex-1 py-2 px-3 rounded-xl text-xs font-bold text-slate-500';
+        $('analytics-sub-shop').className = aShop
+          ? 'flex-1 py-2 px-3 rounded-xl text-xs font-bold bg-white dark:bg-slate-900 text-amber-600 dark:text-amber-400 shadow-sm'
+          : 'flex-1 py-2 px-3 rounded-xl text-xs font-bold text-slate-500';
+        $('analytics-panel-money').classList.toggle('hidden', aShop);
+        $('analytics-panel-shop').classList.toggle('hidden', !aShop);
+      }
 
-      let uid = '', ws = '';
-      try {
-        if (localStorage.getItem('df_privacy') === '1') state.privacyMode = true;
-        const sp = localStorage.getItem('df_active_person') || '';
-        if (isActiveUser(sp)) state.activePerson = sp;
-        uid = localStorage.getItem('df_last_uid') || '';
-        ws = localStorage.getItem('df_active_ws') || '';
-      } catch {}
-
-      registerHooks({ onRender, ensureShopLoaded });
-      setupServiceWorkerUpdates();
-      setupBackGuard();
-      applyTheme();
-      applyPrivacy();
-      bindCoreEvents();
-      bindMoneyEvents({
-        onOpenShopTx: async (tx) => {
+      async function checkPendingDeepLink() {
+        if (!pendingDeepLinkTxId) return;
+        const tx = state.transactions.find((t) => t.id === pendingDeepLinkTxId);
+        if (!tx) return;
+        pendingDeepLinkTxId = '';
+        // Keep history state on dfBase if not yet armed by a user gesture
+        try { history.replaceState(history.state || { dfBase: true }, '', location.pathname); } catch {}
+        if (tx.scope === 'shop') {
           const m = await ensureShopLoaded();
           m.openShopEntry(tx);
+        } else {
+          openTxModal(tx);
         }
-      });
-      bindShellEvents();
-      switchView(initialView);
-
-      if (uid && ws) {
-        loadSnap(ws);
-        state.workspaceId = ws;
-        showScreen('app');
-        updateSyncUI('connecting');
-        scheduleRender();
-      } else if (!uid) {
-        showScreen('auth');
       }
 
-      requestAnimationFrame(() => setTimeout(startFirebaseBackground, 0));
+      function onRender() {
+        syncSubTabs();
+        if (state.currentView === 'overview') renderOverview();
+        else if (state.currentView === 'shop') shopMod?.renderShopHome();
+        else if (state.currentView === 'history') {
+          if (state.historySub === 'shop') shopMod?.renderShopHistory();
+          else renderMoneyHistory();
+        } else if (state.currentView === 'analytics') {
+          if (state.analyticsSub === 'shop') shopMod?.renderShopAnalytics();
+          else renderMoneyAnalytics();
+        }
+        checkPendingDeepLink();
+      }
 
-      const warmShop = () => { if (!shopMod && !shopPromise) ensureShopLoaded().catch(() => {}); };
-      if ('requestIdleCallback' in window) requestIdleCallback(warmShop, { timeout: 2500 });
-      else setTimeout(warmShop, 1800);
+      function bindShellEvents() {
+        $('history-sub-money').onclick = () => { state.historySub = 'money'; scheduleRender(); };
+        $('history-sub-shop').onclick = async () => { state.historySub = 'shop'; await ensureShopLoaded(); scheduleRender(); };
+        $('analytics-sub-money').onclick = () => { state.analyticsSub = 'money'; scheduleRender(); };
+        $('analytics-sub-shop').onclick = async () => { state.analyticsSub = 'shop'; await ensureShopLoaded(); scheduleRender(); };
+
+        $('desktop-shop-sale-btn').onclick = async () => {
+          const m = await ensureShopLoaded();
+          m.openShopTxModal('sale');
+        };
+
+        $('mobile-fab-add').onclick = async () => {
+          const isShopContext =
+            state.currentView === 'shop' ||
+            (state.currentView === 'history' && state.historySub === 'shop') ||
+            (state.currentView === 'analytics' && state.analyticsSub === 'shop');
+          if (isShopContext) {
+            const m = await ensureShopLoaded();
+            m.openShopTxModal('sale');
+          } else {
+            openTxModal(null);
+          }
+        };
+      }
+
+      function bootstrap() {
+        window.__dfBooted = true;
+        document.querySelectorAll('[data-ico]').forEach((el) => { el.innerHTML = UI_ICONS[el.dataset.ico] || ''; });
+
+        let initialView = 'overview';
+        try {
+          const params = new URLSearchParams(location.search);
+          pendingDeepLinkTxId = params.get('tx') || '';
+          if (location.hash.startsWith('#shop') || params.get('view') === 'shop' || pendingDeepLinkTxId) initialView = 'shop';
+        } catch {}
+
+        let uid = '', ws = '';
+        try {
+          if (localStorage.getItem('df_privacy') === '1') state.privacyMode = true;
+          const sp = localStorage.getItem('df_active_person') || '';
+          if (isActiveUser(sp)) state.activePerson = sp;
+          uid = localStorage.getItem('df_last_uid') || '';
+          ws = localStorage.getItem('df_active_ws') || '';
+        } catch {}
+
+        registerHooks({ onRender, ensureShopLoaded });
+        setupServiceWorkerUpdates();
+        setupBackGuard();
+        applyTheme();
+        applyPrivacy();
+        bindCoreEvents();
+        bindMoneyEvents({
+          onOpenShopTx: async (tx) => {
+            const m = await ensureShopLoaded();
+            m.openShopEntry(tx);
+          }
+        });
+        bindShellEvents();
+        switchView(initialView);
+
+        if (uid && ws) {
+          loadSnap(ws);
+          state.workspaceId = ws;
+          showScreen('app');
+          updateSyncUI('connecting');
+          scheduleRender();
+        } else if (!uid) {
+          showScreen('auth');
+        }
+
+        requestAnimationFrame(() => setTimeout(startFirebaseBackground, 0));
+
+        const warmShop = () => { if (!shopMod && !shopPromise) ensureShopLoaded().catch(() => {}); };
+        if ('requestIdleCallback' in window) requestIdleCallback(warmShop, { timeout: 2500 });
+        else setTimeout(warmShop, 1800);
+      }
+
+      bootstrap();
     }
 
-    document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', bootstrap) : bootstrap();
+    document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', startApp) : startApp();
   </script>
 </body>
 </html>

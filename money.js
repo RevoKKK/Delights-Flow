@@ -8,51 +8,70 @@ import {
   getShopSplit, computeBalances, getAvailableMonths, matchesScope,
   toast, copyText, downloadBlob, openConfirm, killChart, ensureChartJs,
   switchView, openOnboarding, saveUserProfile, subscribeWs,
-  patchWs, saveTx, delTx
+  patchWs, saveTx, batchSaveTxs, delTx
 } from './core.js';
 
 let shopTxHandler = null;
+let chartErrNotified = false;
 
-// --- INCOME HELPER (ACCURATE FOR SPLIT PAID + COD RECEIVED DATES) ---
-function incomeInPeriod(t, mk) {
+// --- PERIOD & WALLET-ACCURATE CASHFLOW HELPERS ---
+// Counts upfront paid on order date/wallet and COD paid on codPaidDate/codWallet.
+// Works for both YYYY-MM months and YYYY-MM-DD exact dates (via startsWith).
+function incomeInPeriod(t, periodKey, walletFilter = 'all') {
   if (t.type !== 'income') return 0;
   const sp = getShopSplit(t);
-  if (!sp) return (mk === 'all' || t.date?.startsWith(mk)) ? (Number(t.amount) || 0) : 0;
-  if (mk === 'all') return sp.paid + (sp.codPaid ? sp.cod : 0);
+  if (!sp) {
+    if (walletFilter !== 'all' && t.wallet !== walletFilter) return 0;
+    return (periodKey === 'all' || t.date?.startsWith(periodKey)) ? (Number(t.amount) || 0) : 0;
+  }
   let sum = 0;
-  if (sp.paid > 0 && t.date?.startsWith(mk)) sum += sp.paid;
-  if (sp.codPaid && (t.codPaidDate || t.date || '').startsWith(mk)) sum += sp.cod;
+  if (sp.paid > 0 && (periodKey === 'all' || t.date?.startsWith(periodKey)) && (walletFilter === 'all' || t.wallet === walletFilter)) {
+    sum += sp.paid;
+  }
+  if (sp.codPaid && (periodKey === 'all' || (t.codPaidDate || t.date || '').startsWith(periodKey)) && (walletFilter === 'all' || sp.codWallet === walletFilter)) {
+    sum += sp.cod;
+  }
   return sum;
 }
 
-function expenseInPeriod(t, mk) {
+function expenseInPeriod(t, periodKey, walletFilter = 'all') {
   if (t.type !== 'expense') return 0;
-  return (mk === 'all' || t.date?.startsWith(mk)) ? (Number(t.amount) || 0) : 0;
+  if (walletFilter !== 'all' && t.wallet !== walletFilter) return 0;
+  return (periodKey === 'all' || t.date?.startsWith(periodKey)) ? (Number(t.amount) || 0) : 0;
 }
 
 // --- FILTERED MONEY LIST ---
-function getFiltered() {
-  const { search, month, wallet, type, person, scope } = state.filters;
+function getFiltered(overrideMonth = null) {
+  const { search, wallet, type, person, scope } = state.filters;
+  const month = overrideMonth !== null ? overrideMonth : state.filters.month;
   const q = search.trim().toLowerCase();
+
   return state.transactions.filter((t) => {
-    if (month !== 'all') {
-      const sp = getShopSplit(t);
-      const matchDate = t.date?.startsWith(month) || Boolean(sp?.codPaid && (t.codPaidDate || '').startsWith(month));
-      if (!matchDate) return false;
-    }
     if (type !== 'all' && t.type !== type) return false;
     if (person !== 'all' && getOwner(t) !== person) return false;
     if (!matchesScope(t, scope)) return false;
-    if (wallet !== 'all') {
-      if (t.type === 'transfer') {
-        if (t.fromWallet !== wallet && t.toWallet !== wallet) return false;
-      } else {
-        const sp = getShopSplit(t);
-        if (t.wallet !== wallet && !(sp?.codPaid && sp.codWallet === wallet)) return false;
+
+    const sp = getShopSplit(t);
+    if (sp) {
+      // Evaluate date + wallet together so cross-month/split-wallet COD only matches relevant slices
+      const upfrontMatch = (month === 'all' || t.date?.startsWith(month)) && (wallet === 'all' || t.wallet === wallet) && (sp.paid > 0 || sp.codPending);
+      const codMatch = sp.codPaid && (month === 'all' || (t.codPaidDate || t.date || '').startsWith(month)) && (wallet === 'all' || sp.codWallet === wallet);
+      if (!upfrontMatch && !codMatch) return false;
+    } else {
+      if (month !== 'all' && !t.date?.startsWith(month)) return false;
+      if (wallet !== 'all') {
+        if (t.type === 'transfer') {
+          if (t.fromWallet !== wallet && t.toWallet !== wallet) return false;
+        } else if (t.wallet !== wallet) {
+          return false;
+        }
       }
     }
+
     if (q) {
-      const wn = t.type === 'transfer' ? `${getWallet(t.fromWallet).name} ${getWallet(t.toWallet).name}` : getWallet(t.wallet).name;
+      const wn = t.type === 'transfer'
+        ? `${getWallet(t.fromWallet).name} ${getWallet(t.toWallet).name}`
+        : `${getWallet(t.wallet).name}${sp?.codPaid && sp.codWallet !== t.wallet ? ` ${getWallet(sp.codWallet).name}` : ''}`;
       if (![t.note, t.category, t.customerName, t.receiptNo, wn, personName(getOwner(t)), t.amount].join(' ').toLowerCase().includes(q)) return false;
     }
     return true;
@@ -85,16 +104,17 @@ function rowHTML(t, showDate = false) {
   const amtTxt = pendOnly ? `COD ${fmtMoney(sp.cod)}` : `${isInc ? '+' : isTr ? '' : '-'}${fmtMoney(t.amount)}`;
   const ok = getOwner(t), pn = personName(ok), pc = getPersonColor(ok);
   const pTxt = ok === 'shop' ? '🛍️ Shop ↗' : ok === 'shared' ? `👥 ${esc(pn)}` : esc(pn);
+  const codDateHint = sp?.codPaid && t.codPaidDate && t.codPaidDate !== t.date ? `<span class="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">COD ${esc(t.codPaidDate)}</span>` : '';
 
   return `<div class="px-4 sm:px-5 py-3.5 hover:bg-slate-50/90 dark:hover:bg-slate-800/40 flex items-center justify-between gap-3">
     <div class="flex items-center gap-3 min-w-0 flex-1 cursor-pointer" data-edit-tx="${id}" title="${isShop ? 'Open Receipt / Edit Shop Entry' : 'Edit'}">
       <div class="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-lg shrink-0">${catIcon(t)}</div>
       <div class="min-w-0 flex-1">
         <div class="flex items-center gap-1.5 flex-wrap"><span class="text-sm font-bold truncate">${isTr ? 'Transfer' : esc(t.category || (isInc ? 'Income' : 'Expense'))}</span>${sub ? `<span class="text-xs text-slate-500 truncate max-w-[180px] sm:max-w-xs">· ${esc(sub)}</span>` : ''}</div>
-        <div class="flex items-center gap-1.5 flex-wrap mt-1">${wHtml}<span class="px-2 py-0.5 rounded-lg text-[11px] font-bold" style="background:${pc.hex}20;color:${pc.hex}">${pTxt}</span>${showDate ? `<span class="text-[11px] text-slate-400 font-medium">${esc(t.date || '')}</span>` : ''}</div>
+        <div class="flex items-center gap-1.5 flex-wrap mt-1">${wHtml}<span class="px-2 py-0.5 rounded-lg text-[11px] font-bold" style="background:${pc.hex}20;color:${pc.hex}">${pTxt}</span>${codDateHint}${showDate ? `<span class="text-[11px] text-slate-400 font-medium">${esc(t.date || '')}</span>` : ''}</div>
       </div>
     </div>
-    <div class="flex items-center gap-2 shrink-0"><div class="text-sm sm:text-base font-extrabold tabular-nums cursor-pointer ${amtCls}" data-edit-tx="${id}">${amtTxt}</div><button type="button" data-del-tx="${id}" class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/50">✕</button></div>
+    <div class="flex items-center gap-2 shrink-0"><div class="text-sm sm:text-base font-extrabold tabular-nums cursor-pointer ${amtCls}" data-edit-tx="${id}">${amtTxt}</div><button type="button" aria-label="Delete transaction" data-del-tx="${id}" class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/50">✕</button></div>
   </div>`;
 }
 
@@ -108,13 +128,17 @@ function bindRows(el) {
   el.querySelectorAll('[data-del-tx]').forEach((n) => n.addEventListener('click', (e) => {
     e.stopPropagation();
     openConfirm('Delete Transaction?', 'Wallet balances will update automatically.', async () => {
-      await delTx(n.dataset.delTx);
-      toast('Transaction deleted', 'success');
+      try {
+        await delTx(n.dataset.delTx);
+        toast('Transaction deleted', 'success');
+      } catch {
+        toast('Could not delete transaction', 'error');
+      }
     }, 'Delete');
   }));
 }
 
-// --- VIEW 1: OVERVIEW (HIDE/SHOW APPLIES ONLY TO HERO SECTION + WALLET LIVE BALANCES) ---
+// --- VIEW 1: OVERVIEW ---
 export function renderOverview() {
   const ws = getWallets(), bal = computeBalances(), total = Object.values(bal).reduce((a, b) => a + b, 0), cm = curMonth();
   let mIn = 0, mOut = 0;
@@ -143,31 +167,44 @@ export function renderOverview() {
     switchView('history', { keepWalletFilter: true, historySub: 'money' });
   }));
 
-  // Quick Templates
+  // Quick Templates (validates active wallets before 1-tap logging)
   const tg = $('quick-templates-grid'), tpls = state.workspace.quickTemplates || [];
+  const activeWalletIds = new Set(ws.map((w) => w.id));
   if (!tpls.length) {
     tg.innerHTML = `<button type="button" id="empty-tpl-btn" class="col-span-2 sm:col-span-3 lg:col-span-4 p-4 rounded-2xl border border-dashed border-slate-300 dark:border-slate-700 bg-white/60 dark:bg-slate-900/60 hover:border-indigo-400 text-center"><p class="text-xs sm:text-sm font-bold">⚡ Create a Quick Template</p><p class="text-[11px] text-slate-400 mt-0.5">Save frequent entries for 1-tap logging</p></button>`;
     $('empty-tpl-btn')?.addEventListener('click', openTemplatesModal);
   } else {
     tg.innerHTML = tpls.map((tpl) => {
       const wt = tpl.type === 'transfer' ? `${getWallet(tpl.fromWallet).name} → ${getWallet(tpl.toWallet).name}` : getWallet(tpl.wallet).name;
+      const missingW = tpl.type === 'transfer'
+        ? (!activeWalletIds.has(tpl.fromWallet) || !activeWalletIds.has(tpl.toWallet))
+        : !activeWalletIds.has(tpl.wallet);
       const cls = tpl.type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : tpl.type === 'transfer' ? 'text-sky-600' : 'text-rose-600 dark:text-rose-400';
       const pc = getPersonColor(tpl.loggedBy);
-      return `<button type="button" data-rtpl="${esc(tpl.id)}" class="text-left p-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 hover:border-indigo-400 shadow-sm active:scale-[0.97] flex flex-col justify-between gap-2">
+      return `<button type="button" data-rtpl="${esc(tpl.id)}" class="text-left p-3.5 rounded-2xl bg-white dark:bg-slate-900 border ${missingW ? 'border-amber-300 dark:border-amber-700' : 'border-slate-200/80 dark:border-slate-800'} hover:border-indigo-400 shadow-sm active:scale-[0.97] flex flex-col justify-between gap-2">
         <div class="flex items-center justify-between gap-1.5 w-full"><span class="text-base leading-none">${catIcon(tpl.type, tpl.category)}</span><span class="text-[10px] font-bold px-2 py-0.5 rounded-full truncate max-w-[85px]" style="background:${pc.hex}20;color:${pc.hex}">${esc(personName(tpl.loggedBy))}</span></div>
-        <div class="min-w-0"><p class="text-xs sm:text-sm font-bold truncate">${esc(tpl.title)}</p><p class="text-[11px] text-slate-400 truncate">${esc(wt)}</p></div>
+        <div class="min-w-0"><p class="text-xs sm:text-sm font-bold truncate">${esc(tpl.title)}</p><p class="text-[11px] ${missingW ? 'text-amber-600 dark:text-amber-400 font-semibold' : 'text-slate-400'} truncate">${missingW ? '⚠ Update wallet' : esc(wt)}</p></div>
         <div class="text-xs sm:text-sm font-extrabold tabular-nums ${cls} truncate">${tpl.type === 'income' ? '+' : tpl.type === 'transfer' ? '' : '-'}${fmtMoney(tpl.amount)}</div>
       </button>`;
     }).join('');
     tg.querySelectorAll('[data-rtpl]').forEach((b) => b.addEventListener('click', async () => {
       const tpl = tpls.find((t) => t.id === b.dataset.rtpl); if (!tpl) return;
+      const isTr = tpl.type === 'transfer';
+      const missingW = isTr
+        ? (!activeWalletIds.has(tpl.fromWallet) || !activeWalletIds.has(tpl.toWallet))
+        : !activeWalletIds.has(tpl.wallet);
+      if (missingW) {
+        toast('Wallet in this template was removed — please update it.', 'info');
+        openTemplatesModal();
+        return;
+      }
       try {
         await saveTx({
           type: tpl.type || 'expense', scope: 'personal', amount: Number(tpl.amount) || 0, date: todayISO(),
           note: tpl.note || tpl.title || '', loggedBy: isValidPerson(tpl.loggedBy) ? tpl.loggedBy : state.activePerson,
-          wallet: tpl.type === 'transfer' ? '' : (tpl.wallet || ws[0]?.id || 'cash'),
-          fromWallet: tpl.type === 'transfer' ? tpl.fromWallet : '', toWallet: tpl.type === 'transfer' ? tpl.toWallet : '',
-          category: tpl.type === 'transfer' ? 'Transfer' : (tpl.category || 'Other')
+          wallet: isTr ? '' : tpl.wallet,
+          fromWallet: isTr ? tpl.fromWallet : '', toWallet: isTr ? tpl.toWallet : '',
+          category: isTr ? 'Transfer' : (tpl.category || 'Other')
         });
         toast(`Logged "${tpl.title}"`, 'success');
       } catch { toast('Could not log template', 'error'); }
@@ -193,17 +230,42 @@ function populateFilters() {
   if (fp?.options?.[2]) { fp.options[1].text = personName('person1'); fp.options[2].text = personName('person2'); }
 }
 
-// --- VIEW 2: MONEY HISTORY & CALENDAR ---
+// --- VIEW 2: MONEY HISTORY & CALENDAR (CROSS-MONTH & SPLIT-WALLET COD ACCURATE) ---
 function renderCalendar() {
-  const mk = state.calendarMonth || curMonth(), [y, m] = mk.split('-').map(Number), prevM = state.filters.month;
+  const mk = state.calendarMonth || curMonth(), [y, m] = mk.split('-').map(Number);
+  const wf = state.filters.wallet;
   $('cal-month-title').textContent = fmtMonth(mk);
-  state.filters.month = mk; const txs = getFiltered(); state.filters.month = prevM;
+  const txs = getFiltered(mk);
 
   const byDay = {};
+  const addDayItem = (iso, t) => {
+    const bucket = byDay[iso] ||= { in: 0, out: 0, tr: 0, items: [], seen: new Set() };
+    if (!bucket.seen.has(t.id)) {
+      bucket.seen.add(t.id);
+      bucket.items.push(t);
+    }
+    return bucket;
+  };
+
   txs.forEach((t) => {
-    if (!t.date) return;
-    const d = byDay[t.date] ||= { in: 0, out: 0, tr: 0, items: [] };
-    d.items.push(t);
+    const sp = getShopSplit(t);
+    if (sp) {
+      // Bucket upfront payment (or pending-only COD order) on order date
+      if (t.date?.startsWith(mk) && (wf === 'all' || t.wallet === wf) && (sp.paid > 0 || sp.codPending)) {
+        const d = addDayItem(t.date, t);
+        if (sp.paid > 0) d.in += sp.paid;
+      }
+      // Bucket paid COD on its actual received date (codPaidDate)
+      const cDate = t.codPaidDate || t.date;
+      if (sp.codPaid && cDate?.startsWith(mk) && (wf === 'all' || sp.codWallet === wf)) {
+        const d = addDayItem(cDate, t);
+        d.in += sp.cod;
+      }
+      return;
+    }
+
+    if (!t.date?.startsWith(mk)) return;
+    const d = addDayItem(t.date, t);
     if (t.type === 'income') d.in += Number(t.amount) || 0;
     else if (t.type === 'expense') d.out += Number(t.amount) || 0;
     else d.tr++;
@@ -244,23 +306,36 @@ export function renderMoneyHistory() {
   $('history-calendar-wrap').classList.toggle('hidden', !isCal);
   $('history-grouped-list').classList.toggle('hidden', isCal);
 
-  const rows = getFiltered(), mk = state.filters.month;
+  const f = state.filters, rows = getFiltered(), mk = f.month, wf = f.wallet;
   let sIn = 0, sOut = 0;
-  rows.forEach((t) => { sIn += incomeInPeriod(t, mk); sOut += expenseInPeriod(t, mk); });
+  rows.forEach((t) => { sIn += incomeInPeriod(t, mk, wf); sOut += expenseInPeriod(t, mk, wf); });
   $('history-summary-stats').innerHTML = `<span class="text-slate-600 dark:text-slate-300">${rows.length} entries</span><span class="text-emerald-600 dark:text-emerald-400">+${fmtMoney(sIn)}</span><span class="text-rose-600 dark:text-rose-400">-${fmtMoney(sOut)}</span>`;
-  const f = state.filters;
   $('clear-filters-btn').classList.toggle('hidden', !(f.search || f.wallet !== 'all' || f.type !== 'all' || f.person !== 'all' || f.scope !== 'all' || f.month !== curMonth()));
   if (isCal) return renderCalendar();
 
   const box = $('history-grouped-list');
   if (!rows.length) { box.innerHTML = `<div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-10 text-center text-xs text-slate-400">No matching transactions.</div>`; return; }
+
+  // Group cross-month COD receipts under codPaidDate when the original order date is outside the selected month
   const groups = new Map();
-  rows.forEach((t) => { const k = t.date || 'Unknown'; (groups.get(k) || groups.set(k, []).get(k)).push(t); });
-  box.innerHTML = Array.from(groups.entries()).map(([dk, items]) => {
+  rows.forEach((t) => {
+    const sp = getShopSplit(t);
+    let k = t.date || 'Unknown';
+    if (mk !== 'all' && sp?.codPaid && !t.date?.startsWith(mk) && (t.codPaidDate || '').startsWith(mk)) {
+      k = t.codPaidDate;
+    }
+    (groups.get(k) || groups.set(k, []).get(k)).push(t);
+  });
+
+  const sortedGroups = Array.from(groups.entries()).sort((a, b) => b[0].localeCompare(a[0]));
+  box.innerHTML = sortedGroups.map(([dk, items]) => {
     let dIn = 0, dOut = 0;
-    items.forEach((t) => { if (t.type === 'income') dIn += Number(t.amount) || 0; else if (t.type === 'expense') dOut += Number(t.amount) || 0; });
+    items.forEach((t) => {
+      dIn += incomeInPeriod(t, mk, wf);
+      dOut += expenseInPeriod(t, mk, wf);
+    });
     const net = dIn - dOut;
-    return `<div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden"><div class="px-4 sm:px-5 py-2.5 bg-slate-50/90 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 flex justify-between text-xs font-bold"><span>${esc(fmtDateHead(dk))}</span><span class="tabular-nums ${net > 0 ? 'text-emerald-600' : net < 0 ? 'text-rose-600' : 'text-slate-400'}">${dIn === 0 && dOut === 0 ? 'Transfer' : fmtMoney(net, true)}</span></div><div class="divide-y divide-slate-100 dark:divide-slate-800/70">${items.map((t) => rowHTML(t, false)).join('')}</div></div>`;
+    return `<div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden"><div class="px-4 sm:px-5 py-2.5 bg-slate-50/90 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 flex justify-between text-xs font-bold"><span>${esc(fmtDateHead(dk))}</span><span class="tabular-nums ${net > 0 ? 'text-emerald-600' : net < 0 ? 'text-rose-600' : 'text-slate-400'}">${dIn === 0 && dOut === 0 ? 'Transfer / COD' : fmtMoney(net, true)}</span></div><div class="divide-y divide-slate-100 dark:divide-slate-800/70">${items.map((t) => rowHTML(t, false)).join('')}</div></div>`;
   }).join('');
   bindRows(box);
 }
@@ -289,7 +364,17 @@ export function renderMoneyAnalytics() {
   $('kpi-rate').textContent = `${inc > 0 ? Math.round((net / inc) * 100) : 0}%`;
 
   const tc = state.darkMode ? '#cbd5e1' : '#475569', gc = state.darkMode ? 'rgba(148,163,184,0.12)' : 'rgba(15,23,42,0.07)', hasC = typeof Chart !== 'undefined';
-  if (!hasC) ensureChartJs().then((ok) => { if (ok && state.currentView === 'analytics' && state.analyticsSub === 'money') renderMoneyAnalytics(); });
+  if (!hasC) {
+    ensureChartJs().then((ok) => {
+      if (ok) {
+        chartErrNotified = false;
+        if (state.currentView === 'analytics' && state.analyticsSub === 'money') renderMoneyAnalytics();
+      } else if (!chartErrNotified) {
+        chartErrNotified = true;
+        toast('Charts need internet once to cache.', 'info', { label: 'Retry', onClick: () => { chartErrNotified = false; renderMoneyAnalytics(); } });
+      }
+    });
+  }
 
   killChart('expenseCategory');
   const cats = Object.entries(catMap).sort((a, b) => b[1] - a[1]);
@@ -333,18 +418,26 @@ export function renderMoneyAnalytics() {
   ce.innerHTML = groups.map((p) => `<div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/70 space-y-1 text-xs"><div class="flex justify-between font-bold"><span class="flex items-center gap-1.5 truncate"><span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:${p.d}"></span>${esc(p.n)}</span><span class="text-slate-400">${totOut > 0 ? Math.round((p.st.out / totOut) * 100) : 0}%</span></div><div class="font-semibold text-rose-600 dark:text-rose-400 tabular-nums">Out: ${fmtMoney(p.st.out)}</div><div class="font-semibold text-emerald-600 dark:text-emerald-400 tabular-nums">In: ${fmtMoney(p.st.in)}</div></div>`).join('');
 }
 
-// --- MODAL 1: TRANSACTION ENTRY / EDIT ---
+// --- MODAL 1: TRANSACTION ENTRY / EDIT (PRESERVES ARCHIVED WALLETS ON EDIT) ---
 const renderWPills = (id, sel, cb) => {
   const box = $(id);
-  box.innerHTML = getWallets().map((w) => `<button type="button" data-pw="${esc(w.id)}" class="px-3 py-2.5 rounded-xl border text-xs font-bold flex items-center gap-2 ${w.id === sel ? 'bg-indigo-50 dark:bg-indigo-950/60 border-indigo-500 text-indigo-700 dark:text-indigo-200 ring-1 ring-indigo-500' : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700'}"><span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:${w.hex}"></span><span class="truncate">${esc(w.name)}</span></button>`).join('');
+  const ws = getWallets();
+  const list = [...ws];
+  if (sel && !ws.some((w) => w.id === sel)) {
+    const aw = getWallet(sel);
+    list.push({ id: sel, name: `${aw.name} (Archived)`, hex: aw.hex });
+  }
+  box.innerHTML = list.map((w) => `<button type="button" data-pw="${esc(w.id)}" class="px-3 py-2.5 rounded-xl border text-xs font-bold flex items-center gap-2 ${w.id === sel ? 'bg-indigo-50 dark:bg-indigo-950/60 border-indigo-500 text-indigo-700 dark:text-indigo-200 ring-1 ring-indigo-500' : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700'}"><span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:${w.hex}"></span><span class="truncate">${esc(w.name)}</span></button>`).join('');
   box.querySelectorAll('[data-pw]').forEach((b) => b.addEventListener('click', () => cb(b.dataset.pw)));
 };
 
 function renderTxControls() {
   const ws = getWallets(), fId = ws[0]?.id || 'cash', sId = ws[1]?.id || fId, d = state.txDraft;
-  if (!ws.some((w) => w.id === d.wallet)) d.wallet = fId;
-  if (!ws.some((w) => w.id === d.fromWallet)) d.fromWallet = fId;
-  if (!ws.some((w) => w.id === d.toWallet)) d.toWallet = sId;
+  // Only fall back to default active wallets for new entries or empty IDs; keep archived wallets intact while editing
+  if (!d.wallet || (!d.editId && !ws.some((w) => w.id === d.wallet))) d.wallet = fId;
+  if (!d.fromWallet || (!d.editId && !ws.some((w) => w.id === d.fromWallet))) d.fromWallet = fId;
+  if (!d.toWallet || (!d.editId && !ws.some((w) => w.id === d.toWallet))) d.toWallet = sId;
+
   document.querySelectorAll('.tx-type-tab').forEach((b) => {
     const t = b.dataset.txType;
     b.className = t === d.type ? `tx-type-tab py-2.5 rounded-xl text-sm font-bold text-white shadow-sm ${t === 'income' ? 'bg-emerald-600' : t === 'transfer' ? 'bg-sky-600' : 'bg-rose-600'}` : 'tx-type-tab py-2.5 rounded-xl text-sm font-bold text-slate-500';
@@ -392,17 +485,17 @@ export function openTxModal(tx = null, presetDate = null) {
   $('tx-modal').classList.remove('hidden');
 }
 
-// --- MODAL 2A: DEDICATED MANAGE WALLETS ---
+// --- MODAL 2A: DEDICATED MANAGE WALLETS (SUPPORTS TYPING NEGATIVE OPENING BALANCES ON MOBILE) ---
 function renderManageWalletsList(focusId = null) {
   const box = $('settings-wallets-list'), cur = state.workspace.currency || 'Ks', canDel = state.settingsDraftWallets.length > 1;
   box.innerHTML = state.settingsDraftWallets.map((w, i) => {
     const col = COLOR_MAP[w.colorKey] || COLORS[0], open = state.openColorPickerWalletId === w.id;
     return `<div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700/80 space-y-2" data-wrow="${esc(w.id)}">
-      <div class="flex items-center gap-2"><button type="button" data-tp="${esc(w.id)}" class="w-7 h-7 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 flex items-center justify-center shrink-0"><span class="w-4 h-4 rounded-full" style="background:${col.hex}"></span></button><input type="text" maxlength="28" required placeholder="e.g. KPay1, KBZ Bank" value="${esc(w.name)}" data-dn="${i}" class="flex-1 min-w-0 px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm font-bold" /><button type="button" data-dr="${i}" class="p-2 rounded-xl text-slate-400 hover:text-rose-600 ${canDel ? '' : 'opacity-30'}">✕</button></div>
+      <div class="flex items-center gap-2"><button type="button" data-tp="${esc(w.id)}" aria-label="Pick wallet color" class="w-7 h-7 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 flex items-center justify-center shrink-0"><span class="w-4 h-4 rounded-full" style="background:${col.hex}"></span></button><input type="text" maxlength="28" required placeholder="e.g. KPay1, KBZ Bank" value="${esc(w.name)}" data-dn="${i}" class="flex-1 min-w-0 px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm font-bold" /><button type="button" aria-label="Remove wallet" data-dr="${i}" class="p-2 rounded-xl text-slate-400 hover:text-rose-600 ${canDel ? '' : 'opacity-30'}">✕</button></div>
       <div class="grid grid-cols-12 gap-2 items-center">
         <select data-di="${i}" class="col-span-4 px-2 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-semibold"><option value="cash" ${w.iconType==='cash'?'selected':''}>Cash</option><option value="bank" ${w.iconType==='bank'?'selected':''}>Bank</option><option value="mobile" ${w.iconType==='mobile'?'selected':''}>Mobile Pay</option><option value="card" ${w.iconType==='card'?'selected':''}>Card / Pay</option></select>
         <button type="button" data-tp="${esc(w.id)}" class="col-span-3 px-2 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-semibold flex items-center gap-1.5 truncate"><span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:${col.hex}"></span><span class="truncate">${col.label}</span></button>
-        <div class="col-span-5 relative flex items-center"><input type="text" inputmode="decimal" value="${fmtNum(w.openingBalance || 0)}" data-dob="${i}" class="w-full px-2.5 py-2 pr-9 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm font-bold tabular-nums" /><span class="absolute right-2 text-[11px] font-semibold text-slate-400 pointer-events-none">${esc(cur)}</span></div>
+        <div class="col-span-5 relative flex items-center"><input type="text" inputmode="text" placeholder="0 or -5,000" value="${fmtNum(w.openingBalance || 0)}" data-dob="${i}" class="w-full px-2.5 py-2 pr-9 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm font-bold tabular-nums" /><span class="absolute right-2 text-[11px] font-semibold text-slate-400 pointer-events-none">${esc(cur)}</span></div>
       </div>
       ${open ? `<div class="pt-2 border-t border-slate-200/70 dark:border-slate-700 flex flex-wrap gap-2">${COLORS.map((c) => `<button type="button" data-pc="${i}:${c.key}" title="${c.label}" class="w-7 h-7 rounded-full flex items-center justify-center ${c.key === w.colorKey ? 'ring-2 ring-offset-2 ring-indigo-600 scale-110' : ''}" style="background:${c.hex}">${c.key === w.colorKey ? '<span class="text-white text-xs font-bold">✓</span>' : ''}</button>`).join('')}</div>` : ''}
     </div>`;
@@ -423,7 +516,7 @@ export function openWalletsModal() {
   $('wallets-modal').classList.remove('hidden');
 }
 
-// --- MODAL 2B: DEDICATED SETTINGS (WITH PERSON 1 & PERSON 2 TAG COLOR PICKER) ---
+// --- MODAL 2B: DEDICATED SETTINGS (PERSON 1 & PERSON 2 TAG COLOR PICKER) ---
 function renderPersonColorControls() {
   const c1 = COLOR_MAP[state.settingsPersonColorsDraft.person1] || COLOR_MAP.indigo;
   const c2 = COLOR_MAP[state.settingsPersonColorsDraft.person2] || COLOR_MAP.fuchsia;
@@ -507,8 +600,10 @@ function renderTplList() {
     $('tpl-amount').value = fmtNum(t.amount || 0);
     $('tpl-type').value = t.type || 'expense';
     populateTplSelects();
-    $('tpl-wallet').value = t.type === 'transfer' ? (t.fromWallet || $('tpl-wallet').value) : (t.wallet || $('tpl-wallet').value);
-    if (t.type === 'transfer' && t.toWallet) $('tpl-to-wallet').value = t.toWallet;
+    const wsIds = new Set(getWallets().map((w) => w.id));
+    const targetFrom = t.type === 'transfer' ? t.fromWallet : t.wallet;
+    if (wsIds.has(targetFrom)) $('tpl-wallet').value = targetFrom;
+    if (t.type === 'transfer' && wsIds.has(t.toWallet)) $('tpl-to-wallet').value = t.toWallet;
     if (t.type !== 'transfer' && t.category) $('tpl-category').value = t.category;
     $('tpl-person').value = isValidPerson(t.loggedBy) ? t.loggedBy : 'person1';
     $('tpl-note').value = t.note || '';
@@ -526,7 +621,7 @@ export function openTemplatesModal() {
   $('templates-modal').classList.remove('hidden');
 }
 
-// --- CSV EXPORT & FULL-FIDELITY JSON BACKUP/RESTORE ---
+// --- CSV EXPORT & BATCHED, DUPLICATE-SAFE JSON BACKUP/RESTORE ---
 function exportCSV() {
   const rows = getFiltered(); if (!rows.length) return toast('No entries to export', 'info');
   const q = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
@@ -548,41 +643,60 @@ function importBackup(file) {
       const p = JSON.parse(String(r.result || '{}'));
       if (!p?.settings || !Array.isArray(p.transactions)) return toast('Invalid backup JSON', 'error');
       openConfirm('Restore Backup?', `Import settings & up to ${p.transactions.length} entries (including Shop & COD data) into "${state.workspace.name}"?`, async () => {
-        const patch = {};
-        ['wallets', 'archivedWalletNames', 'openingBalances', 'userNames', 'userColors', 'currency', 'quickTemplates', 'customExpenseCategories', 'customIncomeCategories', 'shopCategories', 'shopProfile'].forEach((k) => {
-          if (p.settings[k] !== undefined) patch[k] = p.settings[k];
-        });
-        await patchWs(patch);
+        try {
+          const patch = {};
+          ['wallets', 'archivedWalletNames', 'openingBalances', 'userNames', 'userColors', 'currency', 'quickTemplates', 'customExpenseCategories', 'customIncomeCategories', 'shopCategories', 'shopProfile'].forEach((k) => {
+            if (p.settings[k] !== undefined) patch[k] = p.settings[k];
+          });
+          await patchWs(patch);
 
-        const sig = (t) => `${t.date}|${t.scope || 'personal'}|${t.type}|${Number(t.amount) || 0}|${Number(t.orderTotal) || 0}|${t.receiptNo || ''}|${t.wallet || ''}|${t.fromWallet || ''}|${t.toWallet || ''}|${t.category || ''}|${t.note || ''}`;
-        const seen = new Set(state.transactions.map(sig));
-        let added = 0;
+          // Count-based signature + ID matching preserves legitimate identical same-day entries
+          const sig = (t) => `${t.date}|${t.scope || 'personal'}|${t.type}|${Number(t.amount) || 0}|${Number(t.orderTotal) || 0}|${t.receiptNo || ''}|${t.wallet || ''}|${t.fromWallet || ''}|${t.toWallet || ''}|${t.category || ''}|${t.note || ''}`;
+          const existingIds = new Set(state.transactions.map((t) => t.id).filter(Boolean));
+          const existingSigCounts = new Map();
+          state.transactions.forEach((t) => {
+            const k = sig(t);
+            existingSigCounts.set(k, (existingSigCounts.get(k) || 0) + 1);
+          });
 
-        for (const t of p.transactions) {
-          const isShop = t?.scope === 'shop';
-          const hasVal = Number(t?.amount) > 0 || (isShop && Number(t?.orderTotal) > 0);
-          if (!t?.type || !hasVal) continue;
-          const clean = {
-            type: t.type, scope: isShop ? 'shop' : 'personal',
-            amount: Number(t.amount) || 0, date: t.date || todayISO(), note: t.note || '',
-            loggedBy: isShop ? 'shop' : (isValidPerson(t.loggedBy) ? t.loggedBy : 'person1'),
-            wallet: t.type === 'transfer' ? '' : (t.wallet || 'cash'),
-            fromWallet: t.type === 'transfer' ? (t.fromWallet || '') : '',
-            toWallet: t.type === 'transfer' ? (t.toWallet || '') : '',
-            category: t.type === 'transfer' ? 'Transfer' : (t.category || 'Other')
-          };
-          if (isShop) {
-            ['shopEntryType', 'orderTotal', 'paidAmount', 'codAmount', 'codStatus', 'codWallet', 'codPaidDate', 'subtotal', 'deliveryFee', 'discount', 'items', 'receiptNo', 'customerName', 'customerPhone', 'shopCategoryId', 'shopCategoryName', 'costSubType'].forEach((k) => {
-              if (t[k] !== undefined) clean[k] = t[k];
-            });
+          const toAdd = [];
+          for (const t of p.transactions) {
+            const isShop = t?.scope === 'shop';
+            const hasVal = Number(t?.amount) > 0 || (isShop && Number(t?.orderTotal) > 0);
+            if (!t?.type || !hasVal) continue;
+            if (t.id && existingIds.has(t.id)) continue;
+
+            const clean = {
+              type: t.type, scope: isShop ? 'shop' : 'personal',
+              amount: Number(t.amount) || 0, date: t.date || todayISO(), note: t.note || '',
+              loggedBy: isShop ? 'shop' : (isValidPerson(t.loggedBy) ? t.loggedBy : 'person1'),
+              wallet: t.type === 'transfer' ? '' : (t.wallet || 'cash'),
+              fromWallet: t.type === 'transfer' ? (t.fromWallet || '') : '',
+              toWallet: t.type === 'transfer' ? (t.toWallet || '') : '',
+              category: t.type === 'transfer' ? 'Transfer' : (t.category || 'Other')
+            };
+            if (Number.isFinite(Number(t.createdAt))) clean.createdAt = Number(t.createdAt);
+            if (isShop) {
+              ['shopEntryType', 'orderTotal', 'paidAmount', 'codAmount', 'codStatus', 'codWallet', 'codPaidDate', 'subtotal', 'deliveryFee', 'discount', 'items', 'receiptNo', 'customerName', 'customerPhone', 'shopCategoryId', 'shopCategoryName', 'costSubType'].forEach((k) => {
+                if (t[k] !== undefined) clean[k] = t[k];
+              });
+            }
+
+            const k = sig(clean);
+            const rem = existingSigCounts.get(k) || 0;
+            if (rem > 0) {
+              existingSigCounts.set(k, rem - 1);
+              continue;
+            }
+            toAdd.push(clean);
           }
-          if (seen.has(sig(clean))) continue;
-          seen.add(sig(clean));
-          await saveTx(clean);
-          added++;
+
+          const added = await batchSaveTxs(toAdd);
+          $('settings-modal').classList.add('hidden');
+          toast(`Restored settings & ${added} new entries`, 'success');
+        } catch {
+          toast('Could not restore backup', 'error');
         }
-        $('settings-modal').classList.add('hidden');
-        toast(`Restored settings & ${added} new entries`, 'success');
       }, 'Restore');
     } catch { toast('Could not read JSON file', 'error'); }
   };
@@ -621,7 +735,10 @@ export function bindMoneyEvents({ onOpenShopTx } = {}) {
   $('tx-delete-in-modal-btn').onclick = () => {
     const id = state.txDraft.editId; if (!id) return;
     $('tx-modal').classList.add('hidden');
-    openConfirm('Delete Transaction?', 'Wallet balances will update automatically.', async () => { await delTx(id); toast('Deleted', 'success'); }, 'Delete');
+    openConfirm('Delete Transaction?', 'Wallet balances will update automatically.', async () => {
+      try { await delTx(id); toast('Deleted', 'success'); }
+      catch { toast('Could not delete entry', 'error'); }
+    }, 'Delete');
   };
 
   $('tx-form').onsubmit = async (e) => {
@@ -665,7 +782,7 @@ export function bindMoneyEvents({ onOpenShopTx } = {}) {
     finally { btn.disabled = false; btn.textContent = 'Save Wallets'; }
   };
 
-  // Dedicated Settings Modal (Profile, Person Tag Colors, Invite, Backup, Sign Out)
+  // Dedicated Settings Modal
   $('settings-modal-close').onclick = () => $('settings-modal').classList.add('hidden');
   $('settings-modal').onclick = (e) => { if (e.target.id === 'settings-modal') $('settings-modal').classList.add('hidden'); };
   $('setting-p1-color-btn')?.addEventListener('click', () => { state.openPersonColorPicker = state.openPersonColorPicker === 'person1' ? null : 'person1'; renderPersonColorControls(); });
@@ -684,8 +801,9 @@ export function bindMoneyEvents({ onOpenShopTx } = {}) {
   $('settings-form').onsubmit = async (e) => {
     e.preventDefault(); const btn = $('settings-save-btn'); btn.disabled = true; btn.textContent = 'Saving...';
     try {
+      const nextName = $('setting-ws-name').value.trim() || 'My Ledger';
       await patchWs({
-        name: $('setting-ws-name').value.trim() || 'My Ledger',
+        name: nextName,
         currency: $('setting-currency').value.trim() || 'Ks',
         joinPin: $('setting-join-pin').value.trim(),
         userNames: { person1: $('setting-person1').value.trim() || 'Person 1', person2: $('setting-person2').value.trim() || 'Person 2' },
@@ -694,7 +812,12 @@ export function bindMoneyEvents({ onOpenShopTx } = {}) {
           person2: COLOR_MAP[state.settingsPersonColorsDraft.person2] ? state.settingsPersonColorsDraft.person2 : DEFAULT_PERSON_COLORS.person2
         }
       });
-      await saveUserProfile(); $('settings-modal').classList.add('hidden'); toast('Settings saved!', 'success');
+      // Sync renamed workspace into state.userWorkspaces immediately before saving user profile
+      state.workspace.name = nextName;
+      const wsEntry = state.userWorkspaces.find((w) => w.id === state.workspaceId);
+      if (wsEntry) wsEntry.name = nextName;
+      await saveUserProfile();
+      $('settings-modal').classList.add('hidden'); toast('Settings saved!', 'success');
     } catch { toast('Could not save settings', 'error'); }
     finally { btn.disabled = false; btn.textContent = 'Save Settings'; }
   };
@@ -709,6 +832,7 @@ export function bindMoneyEvents({ onOpenShopTx } = {}) {
     e.preventDefault();
     const title = $('tpl-title').value.trim(), amount = parseAmt($('tpl-amount').value), type = $('tpl-type').value;
     if (!title || amount <= 0) return toast('Enter template name & amount', 'error');
+    if (type === 'transfer' && $('tpl-wallet').value === $('tpl-to-wallet').value) return toast('Choose two different wallets', 'error');
     const editId = $('tpl-edit-id').value;
     const entry = {
       id: editId || `tpl_${Date.now().toString(36)}`, title, type, amount,

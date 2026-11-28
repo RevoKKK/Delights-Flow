@@ -11,6 +11,7 @@ import {
 } from './core.js';
 
 let shopBound = false;
+let shopChartErrNotified = false;
 
 // --- HELPERS ---
 const shopTxs = () => state.transactions.filter((t) => t.scope === 'shop');
@@ -46,7 +47,7 @@ function getFilteredShop(overrideMonth = null) {
     if (category !== 'all' && (t.shopCategoryId || 'general') !== category) return false;
     if ((type === 'sale' && !sale) || (type === 'capital' && sale) || (type === 'pending_cod' && (!sale || pendingCodOf(t) <= 0))) return false;
     if (q) {
-      const hay = [t.customerName, t.customerPhone, t.receiptNo, t.note, t.shopCategoryName, t.costSubType, (t.items || []).map((i) => i.name).join(' '), getWallet(t.wallet).name].join(' ').toLowerCase();
+      const hay = [t.customerName, t.customerPhone, t.receiptNo, t.note, t.shopCategoryName, t.costSubType, (t.items || []).map((i) => i.name).join(' '), getWallet(t.wallet).name, t.codWallet ? getWallet(t.codWallet).name : ''].join(' ').toLowerCase();
       if (!hay.includes(q)) return false;
     }
     return true;
@@ -95,7 +96,8 @@ function rowHTML(t) {
         codHtml = `${pUp > 0 ? `<span class="px-2 py-0.5 rounded-lg text-[11px] font-bold bg-emerald-100 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300">Paid: ${fmtMoney(pUp)}</span>` : ''}<span class="px-2 py-0.5 rounded-lg text-[11px] font-bold bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300">⏳ COD: ${fmtMoney(cAmt)}</span>`;
         codBtn = `<button type="button" data-cod="${esc(t.id)}" class="px-2.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold shadow-sm">✓ Mark COD Paid</button>`;
       } else {
-        codHtml = `<span class="px-2 py-0.5 rounded-lg text-[11px] font-bold bg-emerald-100 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300">✓ COD Paid (${esc(getWallet(t.codWallet || t.wallet).name)})</span>`;
+        const codDateTag = t.codPaidDate && t.codPaidDate !== t.date ? ` · ${esc(t.codPaidDate)}` : '';
+        codHtml = `<span class="px-2 py-0.5 rounded-lg text-[11px] font-bold bg-emerald-100 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300">✓ COD Paid (${esc(getWallet(t.codWallet || t.wallet).name)}${codDateTag})</span>`;
       }
     }
     amtHtml = `<span class="text-sm sm:text-base font-extrabold tabular-nums ${cSt === 'pending' && pUp <= 0 ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400'}">+${fmtMoney(tot)}</span>`;
@@ -114,7 +116,7 @@ function rowHTML(t) {
     </div>
     <div class="flex items-center justify-between sm:justify-end gap-2 shrink-0 flex-wrap">
       <div class="cursor-pointer" data-ed="${esc(t.id)}">${amtHtml}</div>
-      <div class="flex items-center gap-1.5 flex-wrap">${codBtn}${sale ? `<button type="button" data-rc="${esc(t.id)}" class="px-2.5 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 text-xs font-bold">🧾 Receipt</button>` : ''}<button type="button" data-dl="${esc(t.id)}" class="p-1.5 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/50">✕</button></div>
+      <div class="flex items-center gap-1.5 flex-wrap">${codBtn}${sale ? `<button type="button" data-rc="${esc(t.id)}" class="px-2.5 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 text-xs font-bold">🧾 Receipt</button>` : ''}<button type="button" aria-label="Delete shop entry" data-dl="${esc(t.id)}" class="p-1.5 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/50">✕</button></div>
     </div>
   </div>`;
 }
@@ -137,8 +139,12 @@ function bindShopRows(el) {
   el.querySelectorAll('[data-dl]').forEach((n) => n.addEventListener('click', (e) => {
     e.stopPropagation();
     openConfirm('Delete Shop Entry?', 'Your linked wallet balance will adjust automatically.', async () => {
-      await delTx(n.dataset.dl);
-      toast('Deleted', 'success');
+      try {
+        await delTx(n.dataset.dl);
+        toast('Deleted', 'success');
+      } catch {
+        toast('Could not delete shop entry', 'error');
+      }
     }, 'Delete');
   }));
 }
@@ -203,19 +209,41 @@ export function renderShopHome() {
   if (rec.length) bindShopRows(rEl);
 }
 
-// --- VIEW: SHOP HISTORY & CALENDAR ---
+// --- VIEW: SHOP HISTORY & CALENDAR (CROSS-MONTH COD ACCURATE) ---
 function renderShopCalendar() {
   const mk = state.shopCalendarMonth || curMonth(), [y, m] = mk.split('-').map(Number);
   $('shop-cal-month-title').textContent = fmtMonth(mk);
   const txs = getFilteredShop(mk);
 
   const byDay = {};
+  const addDayItem = (iso, t) => {
+    const bucket = byDay[iso] ||= { in: 0, out: 0, cod: 0, items: [], seen: new Set() };
+    if (!bucket.seen.has(t.id)) {
+      bucket.seen.add(t.id);
+      bucket.items.push(t);
+    }
+    return bucket;
+  };
+
   txs.forEach((t) => {
-    if (!t.date?.startsWith(mk)) return;
-    const d = byDay[t.date] ||= { in: 0, out: 0, cod: 0, items: [] };
-    d.items.push(t);
-    if (isSaleTx(t)) { d.in += collectedOf(t); d.cod += pendingCodOf(t); }
-    else d.out += Number(t.amount) || 0;
+    if (isSaleTx(t)) {
+      const pUp = paidUpfront(t), pCod = pendingCodOf(t), cSt = codStatusOf(t), cAmt = codAmtOf(t);
+      // Bucket upfront paid and pending COD on order date
+      if (t.date?.startsWith(mk) && (pUp > 0 || pCod > 0 || cSt === 'none')) {
+        const d = addDayItem(t.date, t);
+        if (pUp > 0) d.in += pUp;
+        if (pCod > 0) d.cod += pCod;
+      }
+      // Bucket paid COD on its actual received date (codPaidDate)
+      const cDate = t.codPaidDate || t.date;
+      if (cSt === 'paid' && cAmt > 0 && cDate?.startsWith(mk)) {
+        const d = addDayItem(cDate, t);
+        d.in += cAmt;
+      }
+    } else if (t.date?.startsWith(mk)) {
+      const d = addDayItem(t.date, t);
+      d.out += Number(t.amount) || 0;
+    }
   });
 
   const firstDow = new Date(y, m - 1, 1).getDay(), dim = new Date(y, m, 0).getDate(), td = todayISO();
@@ -278,7 +306,7 @@ export function renderShopHistory() {
   if (flt.length) bindShopRows(hl);
 }
 
-// --- VIEW: SHOP ANALYTICS (PER-SHOP FILTER + AVG ORDER VALUE FIX) ---
+// --- VIEW: SHOP ANALYTICS (PER-SHOP FILTER + OFFLINE CHART RETRY) ---
 export function renderShopAnalytics() {
   populateShopSelectors();
   if (state.currentView !== 'analytics' || state.analyticsSub !== 'shop') return;
@@ -324,7 +352,17 @@ export function renderShopAnalytics() {
   $('sa-kpi-avg').textContent = fmtMoney(paidOrderCount > 0 ? pS / paidOrderCount : 0);
 
   const tc = state.darkMode ? '#cbd5e1' : '#475569', gc = state.darkMode ? 'rgba(148,163,184,0.12)' : 'rgba(15,23,42,0.07)', hasC = typeof Chart !== 'undefined';
-  if (!hasC) ensureChartJs().then((ok) => { if (ok && state.currentView === 'analytics' && state.analyticsSub === 'shop') renderShopAnalytics(); });
+  if (!hasC) {
+    ensureChartJs().then((ok) => {
+      if (ok) {
+        shopChartErrNotified = false;
+        if (state.currentView === 'analytics' && state.analyticsSub === 'shop') renderShopAnalytics();
+      } else if (!shopChartErrNotified) {
+        shopChartErrNotified = true;
+        toast('Charts need internet once to cache.', 'info', { label: 'Retry', onClick: () => { shopChartErrNotified = false; renderShopAnalytics(); } });
+      }
+    });
+  }
 
   killChart('shopTrend');
   let tL = [], tS = [], tC = [];
@@ -392,7 +430,7 @@ function renderItemRows() {
     <input type="text" placeholder="Item name" value="${esc(it.name)}" data-in="${i}" class="col-span-6 px-2.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm font-semibold"/>
     <input type="number" min="1" step="1" value="${it.qty || 1}" data-iq="${i}" class="col-span-2 px-2 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm font-bold text-center tabular-nums"/>
     <input type="text" inputmode="decimal" placeholder="Price" value="${it.price !== '' ? fmtNum(it.price) : ''}" data-ip="${i}" class="col-span-3 px-2.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm font-bold tabular-nums"/>
-    <button type="button" data-ir="${i}" class="col-span-1 text-slate-400 hover:text-rose-500 font-bold ${state.shopDraft.items.length <= 1 ? 'opacity-20 pointer-events-none' : ''}">✕</button>
+    <button type="button" aria-label="Remove item" data-ir="${i}" class="col-span-1 text-slate-400 hover:text-rose-500 font-bold ${state.shopDraft.items.length <= 1 ? 'opacity-20 pointer-events-none' : ''}">✕</button>
   </div>`).join('');
   box.querySelectorAll('[data-in]').forEach((el) => (el.oninput = () => (state.shopDraft.items[+el.dataset.in].name = el.value)));
   box.querySelectorAll('[data-iq]').forEach((el) => (el.oninput = () => { state.shopDraft.items[+el.dataset.iq].qty = Math.max(1, parseInt(el.value, 10) || 1); computeSale(true); }));
@@ -403,13 +441,17 @@ function renderItemRows() {
 
 function renderShopTxControls() {
   const d = state.shopDraft, sale = d.mode === 'sale', shops = getShops(), ws = getWallets();
-  $('stx-modal-title').textContent = d.editId ? (sale ? 'Edit Shop Sale' : 'Edit Capital / Cost') : (sale ? 'Record Shop Sale' : 'Record Capital / Cost');
+  const isEditing = Boolean(d.editId);
+
+  $('stx-modal-title').textContent = isEditing ? (sale ? 'Edit Shop Sale' : 'Edit Capital / Cost') : (sale ? 'Record Shop Sale' : 'Record Capital / Cost');
+  // Lock Sale/Capital mode switcher when editing an existing record so incompatible fields cannot be orphaned
+  $('stx-mode-tabs')?.classList.toggle('hidden', isEditing);
   $('stx-sale-fields').classList.toggle('hidden', !sale);
   $('stx-capital-fields').classList.toggle('hidden', sale);
   $('stx-wallet-label').textContent = sale ? 'Deposit Paid Amount Into Wallet' : 'Deduct Capital / Cost From Wallet';
   $('stx-cap-currency').textContent = state.workspace.currency || 'Ks';
   const sb = $('stx-submit-btn');
-  sb.textContent = d.editId ? 'Update Entry' : (sale ? 'Save Sale' : 'Save Capital / Cost');
+  sb.textContent = isEditing ? 'Update Entry' : (sale ? 'Save Sale' : 'Save Capital / Cost');
   sb.className = `flex-1 py-3.5 px-5 rounded-2xl text-white font-bold text-sm shadow-lg ${sale ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-rose-600 hover:bg-rose-700'}`;
   document.querySelectorAll('.stx-mode-btn').forEach((b) => {
     const m = b.dataset.stxMode;
@@ -428,9 +470,15 @@ function renderShopTxControls() {
     ct.querySelectorAll('[data-ct]').forEach((b) => (b.onclick = () => { d.costSubType = b.dataset.ct; renderShopTxControls(); }));
   } else renderItemRows();
 
-  if (!ws.some((w) => w.id === d.wallet)) d.wallet = ws[0]?.id || 'cash';
+  // Preserve archived wallets when editing existing entries so notes/items can be updated safely
+  if (!d.wallet || (!isEditing && !ws.some((w) => w.id === d.wallet))) d.wallet = ws[0]?.id || 'cash';
+  const walletChoices = [...ws];
+  if (d.wallet && !ws.some((w) => w.id === d.wallet)) {
+    const aw = getWallet(d.wallet);
+    walletChoices.push({ id: d.wallet, name: `${aw.name} (Archived)`, hex: aw.hex });
+  }
   const wb = $('stx-wallet-pills');
-  wb.innerHTML = ws.map((w) => `<button type="button" data-sw="${esc(w.id)}" class="px-3 py-2 rounded-xl border text-xs font-bold flex items-center gap-2 ${w.id === d.wallet ? 'bg-indigo-50 dark:bg-indigo-950/60 border-indigo-500 text-indigo-700 dark:text-indigo-200 ring-1 ring-indigo-500' : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700'}"><span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:${w.hex}"></span><span class="truncate">${esc(w.name)}</span></button>`).join('');
+  wb.innerHTML = walletChoices.map((w) => `<button type="button" data-sw="${esc(w.id)}" class="px-3 py-2 rounded-xl border text-xs font-bold flex items-center gap-2 ${w.id === d.wallet ? 'bg-indigo-50 dark:bg-indigo-950/60 border-indigo-500 text-indigo-700 dark:text-indigo-200 ring-1 ring-indigo-500' : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700'}"><span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:${w.hex}"></span><span class="truncate">${esc(w.name)}</span></button>`).join('');
   wb.querySelectorAll('[data-sw]').forEach((b) => (b.onclick = () => { d.wallet = b.dataset.sw; renderShopTxControls(); }));
 }
 
@@ -487,18 +535,35 @@ function openCodModal(tx) {
   $('cod-pay-modal').classList.remove('hidden');
 }
 
-// --- MODAL 3: MANAGE SHOPS (18-COLOR SWATCH PICKER + CLEAR LOGO & ADD COST BUTTONS) ---
+// --- MODAL 3: MANAGE SHOPS (AUTO-SAVES BEFORE "+ ADD COST" SO NEW SHOPS NEVER FALL BACK TO SHOP 1) ---
+async function persistShopsDraft() {
+  const clean = state.settingsShopsDraft.map((s, i) => ({
+    id: s.id, name: (s.name || '').trim() || `Shop ${i + 1}`,
+    colorKey: COLOR_MAP[s.colorKey] ? s.colorKey : COLORS[i % COLORS.length].key,
+    startingCapital: Number(s.startingCapital) || 0,
+    footer: (s.footer || '').trim() || 'Thank you for your purchase!',
+    logoDataUrl: s.logoDataUrl || ''
+  }));
+  const f = clean[0];
+  const profile = { name: f?.name || '', footer: f?.footer || 'Thank you for your purchase!', logoDataUrl: f?.logoDataUrl || '' };
+  await patchWs({ shopCategories: clean, shopProfile: profile });
+  // Update local workspace state immediately so follow-up modals see new shops right away
+  state.workspace.shopCategories = clean;
+  state.workspace.shopProfile = profile;
+  return clean;
+}
+
 function renderShopsEditor(focusId = null) {
   const box = $('shops-editor'), canDel = state.settingsShopsDraft.length > 1, cur = state.workspace.currency || 'Ks';
   box.innerHTML = state.settingsShopsDraft.map((s, i) => {
     const col = COLOR_MAP[s.colorKey] || COLORS[0], open = state.openColorPickerShopId === s.id;
     return `<div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700 space-y-3" data-shrow="${esc(s.id)}">
       <div class="flex items-center gap-2.5">
-        <button type="button" data-shl="${i}" title="Upload logo" class="w-12 h-12 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 flex items-center justify-center overflow-hidden shrink-0 shadow-sm">${s.logoDataUrl ? `<img src="${s.logoDataUrl}" alt="" class="w-full h-full object-cover"/>` : '<span class="text-xl">🛍️</span>'}</button>
+        <button type="button" data-shl="${i}" title="Upload logo" aria-label="Upload shop logo" class="w-12 h-12 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 flex items-center justify-center overflow-hidden shrink-0 shadow-sm">${s.logoDataUrl ? `<img src="${s.logoDataUrl}" alt="" class="w-full h-full object-cover"/>` : '<span class="text-xl">🛍️</span>'}</button>
         <div class="flex-1 min-w-0 flex items-center gap-1.5">
           <input type="text" maxlength="32" required placeholder="Shop name" value="${esc(s.name)}" data-shn="${i}" class="flex-1 min-w-0 px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm font-bold"/>
           <button type="button" data-shc="${esc(s.id)}" title="Pick color" class="px-2.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-semibold flex items-center gap-1.5 shrink-0"><span class="w-3.5 h-3.5 rounded-full shrink-0" style="background:${col.hex}"></span><span class="hidden sm:inline">${col.label}</span></button>
-          <button type="button" data-shd="${i}" class="p-2 rounded-xl text-slate-400 hover:text-rose-600 ${canDel ? '' : 'opacity-30'}">✕</button>
+          <button type="button" aria-label="Remove shop" data-shd="${i}" class="p-2 rounded-xl text-slate-400 hover:text-rose-600 ${canDel ? '' : 'opacity-30'}">✕</button>
         </div>
       </div>
       ${open ? `<div class="pt-2 pb-1 border-y border-slate-200/70 dark:border-slate-700 flex flex-wrap gap-2">${COLORS.map((c) => `<button type="button" data-shpc="${i}:${c.key}" title="${c.label}" class="w-7 h-7 rounded-full flex items-center justify-center ${c.key === s.colorKey ? 'ring-2 ring-offset-2 ring-amber-500 scale-110' : ''}" style="background:${c.hex}">${c.key === s.colorKey ? '<span class="text-white text-xs font-bold">✓</span>' : ''}</button>`).join('')}</div>` : ''}
@@ -521,7 +586,19 @@ function renderShopsEditor(focusId = null) {
   box.querySelectorAll('[data-shpc]').forEach((b) => (b.onclick = () => { const [i, k] = b.dataset.shpc.split(':'); state.settingsShopsDraft[+i].colorKey = k; state.openColorPickerShopId = null; renderShopsEditor(); }));
   box.querySelectorAll('[data-shl]').forEach((b) => (b.onclick = () => { state.logoUploadTargetIdx = +b.dataset.shl; $('shop-logo-file-input').value = ''; $('shop-logo-file-input').click(); }));
   box.querySelectorAll('[data-shrl]').forEach((b) => (b.onclick = () => { state.settingsShopsDraft[+b.dataset.shrl].logoDataUrl = ''; renderShopsEditor(); }));
-  box.querySelectorAll('[data-shac]').forEach((b) => (b.onclick = () => { $('shop-settings-modal').classList.add('hidden'); openShopTxModal('capital', null, b.dataset.shac); }));
+  box.querySelectorAll('[data-shac]').forEach((b) => (b.onclick = async () => {
+    const targetShopId = b.dataset.shac;
+    b.disabled = true;
+    try {
+      await persistShopsDraft();
+      $('shop-settings-modal').classList.add('hidden');
+      openShopTxModal('capital', null, targetShopId);
+    } catch {
+      toast('Could not save shops before adding cost', 'error');
+    } finally {
+      b.disabled = false;
+    }
+  }));
   box.querySelectorAll('[data-shd]').forEach((b) => (b.onclick = () => { if (state.settingsShopsDraft.length <= 1) return toast('Keep at least 1 shop', 'info'); state.settingsShopsDraft.splice(+b.dataset.shd, 1); renderShopsEditor(); }));
   if (focusId) box.querySelector(`[data-shrow="${focusId}"] input[data-shn]`)?.focus();
 }
@@ -708,18 +785,44 @@ export function initShopModule() {
   // Sale / Capital Modal
   $('stx-modal-close').onclick = () => $('shop-tx-modal').classList.add('hidden');
   $('shop-tx-modal').onclick = (e) => { if (e.target.id === 'shop-tx-modal') $('shop-tx-modal').classList.add('hidden'); };
-  document.querySelectorAll('.stx-mode-btn').forEach((b) => (b.onclick = () => { state.shopDraft.mode = b.dataset.stxMode; renderShopTxControls(); }));
+  document.querySelectorAll('.stx-mode-btn').forEach((b) => (b.onclick = () => {
+    if (state.shopDraft.editId) return;
+    state.shopDraft.mode = b.dataset.stxMode;
+    renderShopTxControls();
+  }));
   $('stx-add-item-btn').onclick = () => { state.shopDraft.items.push({ name: '', qty: 1, price: '' }); renderItemRows(); };
   ['stx-delivery', 'stx-discount'].forEach((id) => ($(id).oninput = () => { fmtAmtInput($(id)); computeSale(true); }));
   $('stx-capital-amount').oninput = () => fmtAmtInput($('stx-capital-amount'));
   $('stx-btn-full-paid').onclick = () => { state.shopDraft.splitMode = 'full_paid'; computeSale(true); };
   $('stx-btn-full-cod').onclick = () => { state.shopDraft.splitMode = 'full_cod'; computeSale(true); };
-  $('stx-paid-amount').oninput = () => { state.shopDraft.splitMode = 'custom'; fmtAmtInput($('stx-paid-amount')); const { grand } = computeSale(false), p = Math.min(grand, parseAmt($('stx-paid-amount').value)); $('stx-cod-amount').value = fmtNum(Math.max(0, grand - p)); };
-  $('stx-cod-amount').oninput = () => { state.shopDraft.splitMode = 'custom'; fmtAmtInput($('stx-cod-amount')); const { grand } = computeSale(false), c = Math.min(grand, parseAmt($('stx-cod-amount').value)); $('stx-paid-amount').value = fmtNum(Math.max(0, grand - c)); };
+
+  // Clamp both active and opposite Paid/COD fields when input exceeds order grand total
+  $('stx-paid-amount').oninput = () => {
+    state.shopDraft.splitMode = 'custom';
+    fmtAmtInput($('stx-paid-amount'));
+    const { grand } = computeSale(false);
+    const raw = parseAmt($('stx-paid-amount').value);
+    const clamped = Math.min(grand, raw);
+    if (raw > grand) $('stx-paid-amount').value = fmtNum(clamped);
+    $('stx-cod-amount').value = fmtNum(Math.max(0, grand - clamped));
+  };
+  $('stx-cod-amount').oninput = () => {
+    state.shopDraft.splitMode = 'custom';
+    fmtAmtInput($('stx-cod-amount'));
+    const { grand } = computeSale(false);
+    const raw = parseAmt($('stx-cod-amount').value);
+    const clamped = Math.min(grand, raw);
+    if (raw > grand) $('stx-cod-amount').value = fmtNum(clamped);
+    $('stx-paid-amount').value = fmtNum(Math.max(0, grand - clamped));
+  };
+
   $('stx-delete-btn').onclick = () => {
     const id = state.shopDraft.editId; if (!id) return;
     $('shop-tx-modal').classList.add('hidden');
-    openConfirm('Delete Shop Entry?', 'Your linked wallet balance will adjust automatically.', async () => { await delTx(id); toast('Deleted', 'success'); }, 'Delete');
+    openConfirm('Delete Shop Entry?', 'Your linked wallet balance will adjust automatically.', async () => {
+      try { await delTx(id); toast('Deleted', 'success'); }
+      catch { toast('Could not delete entry', 'error'); }
+    }, 'Delete');
   };
 
   $('stx-form').onsubmit = async (e) => {
@@ -784,8 +887,12 @@ export function initShopModule() {
   $('receipt-edit-sale-btn').onclick = () => { const tx = state.activeReceiptTx; if (!tx) return; $('receipt-modal').classList.add('hidden'); openShopTxModal('sale', tx); };
   $('receipt-copy-text-btn').onclick = () => { if (state.activeReceiptTx) copyText(buildReceiptText(state.activeReceiptTx), 'Text receipt copied!'); };
   $('receipt-download-btn').onclick = () => {
-    Object.assign(document.createElement('a'), { href: $('receipt-canvas').toDataURL('image/png'), download: `${state.activeReceiptTx?.receiptNo || 'DelightsFlow_Receipt'}.png` }).click();
-    toast('Receipt PNG downloaded!', 'success');
+    const fn = `${state.activeReceiptTx?.receiptNo || 'DelightsFlow_Receipt'}.png`;
+    $('receipt-canvas').toBlob((blob) => {
+      if (blob) downloadBlob(blob, fn);
+      else Object.assign(document.createElement('a'), { href: $('receipt-canvas').toDataURL('image/png'), download: fn }).click();
+      toast('Receipt PNG downloaded!', 'success');
+    }, 'image/png');
   };
   $('receipt-share-btn').onclick = () => {
     const fn = `${state.activeReceiptTx?.receiptNo || 'DelightsFlow_Receipt'}.png`;
@@ -826,15 +933,7 @@ export function initShopModule() {
   $('shop-settings-form').onsubmit = async (e) => {
     e.preventDefault(); const btn = $('shop-settings-save-btn'); btn.disabled = true; btn.textContent = 'Saving...';
     try {
-      const clean = state.settingsShopsDraft.map((s, i) => ({
-        id: s.id, name: (s.name || '').trim() || `Shop ${i + 1}`,
-        colorKey: COLOR_MAP[s.colorKey] ? s.colorKey : COLORS[i % COLORS.length].key,
-        startingCapital: Number(s.startingCapital) || 0,
-        footer: (s.footer || '').trim() || 'Thank you for your purchase!',
-        logoDataUrl: s.logoDataUrl || ''
-      }));
-      const f = clean[0];
-      await patchWs({ shopCategories: clean, shopProfile: { name: f?.name || '', footer: f?.footer || 'Thank you for your purchase!', logoDataUrl: f?.logoDataUrl || '' } });
+      await persistShopsDraft();
       $('shop-settings-modal').classList.add('hidden'); toast('Shops saved!', 'success');
     } catch { toast('Could not save shops', 'error'); }
     finally { btn.disabled = false; btn.textContent = 'Save Shops'; }
